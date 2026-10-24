@@ -1,0 +1,6 @@
+dist
+coverage
+.turbo
+pnpm-lock.yaml
+# Hand-written docs keep their own formatting.
+*.md

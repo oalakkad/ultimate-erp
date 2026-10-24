@@ -1,0 +1,201 @@
+# Requirements Checklist (traceability to the product brief)
+
+Purpose: every requirement in the owner's master project prompt (the "product brief") is listed here with **where it is designed**, **when it is built**, and its **status**. Reviewed at the start and end of every milestone so nothing is lost between sessions.
+
+Status: ✅ done · 🟡 designed / partly built · ⏳ scheduled · ❓ needs owner decision
+
+Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of the brief were received; the text was cut off at §21, so any later sections still need to be added.
+
+## §1 Role & §19 Teaching
+| Requirement | Where / how | Status |
+|---|---|---|
+| Act as senior architect/engineer/designer/security/QA/mentor; explain reasoning simply | CLAUDE.md working agreement | 🟡 ongoing |
+| Before each feature: purpose, fit, data, dependencies, permissions, acceptance criteria, test plan | CLAUDE.md; module specs in `docs/modules/` | 🟡 ongoing |
+| After each feature: 13-point hand-over (what, why, architecture, files, each file's role, frontend↔backend, database, auth/permissions, what could go wrong, how tested, manual test, incomplete, next step) | CLAUDE.md hand-over template | 🟡 ongoing |
+| Exact commands with expected output; diagnose real errors | Hand-overs, README, testing.md | 🟡 ongoing |
+
+## §2 Product vision
+| Requirement | Where | Status |
+|---|---|---|
+| Connected modules, consistent data model (client → contract → project → budget → tasks → hours → profitability → invoice → payment → reports) | domain-model.md §1–2 | 🟡 designed |
+| Genuine multi-tenancy, not company switching | ADR-0003, architecture §6 | 🟡 designed, built in 1.2 |
+| Web first, React Native later | ADR-0001/0002, Phase 16 | 🟡 designed |
+| Commercial SaaS + on-prem | ADR-0007 | 🟡 designed |
+
+## §3 Non-negotiable rules
+| Requirement | Where | Status |
+|---|---|---|
+| Incremental, stop for approval after each module | CLAUDE.md, roadmap | 🟡 ongoing |
+| Understand before coding (10 steps) | CLAUDE.md | 🟡 ongoing |
+| Ask on architecture/security/financial/legal decisions; default the rest | CLAUDE.md, project-status open questions | 🟡 ongoing |
+| No fake functionality; honest errors; never claim untested passes | CLAUDE.md, testing.md §6 | 🟡 ongoing |
+| No silent shortcuts (no bypassed auth/validation, no swallowed exceptions, no arbitrary timeouts) | Code review each milestone | 🟡 ongoing |
+| Consistency: inspect before editing, reuse, keep records | project-status.md, this file | 🟡 ongoing |
+
+## §4 Technology selection
+| Requirement | Where | Status |
+|---|---|---|
+| Evaluated stack with reasons and rejected alternatives (all 18 areas) | ADR-0002 | ✅ |
+| Versions verified, not assumed | ADR-0002 amendments (TS 6 vs 7, NestJS 12, MinIO → RustFS) | ✅ 1.1 |
+| Modular monolith | ADR-0001 | ✅ decided |
+| Mobile reuse: API contracts, validation, domain logic outside UI | `packages/contracts`, `packages/domain`, api.md | 🟡 contracts built; domain in 1.2+ |
+| Versioned, documented API | api.md (`/api/v1`), OpenAPI | 🟡 conventions done; OpenAPI ⏳ 1.3 |
+
+## §5 UI/UX design
+| Requirement | Where | Status |
+|---|---|---|
+| Premium, distinctive design direction | design-system.md v0.2 (owner-approved vibrant pastel; supersedes the brief's "restrained palette" wording by owner decision) | ✅ direction |
+| Tokens: color, type, spacing, radii, shadows, layout, breakpoints, icons | design-system.md §2 | 🟡 designed; built 1.4 (breakpoints to add in 1.4) |
+| Components: buttons … permission-denied states (full list in brief) | design-system.md §3 | ⏳ 1.4 |
+| Animations with reduced-motion; none on dense/financial data | design-system.md §1 | ⏳ 1.4 |
+| Tables: sort, filter, search, column control, pagination | design-system.md §4, api.md §7 | ⏳ 1.4 / Phase 3 |
+| Command palette / global search | design-system.md §3 (Ctrl K), roadmap Phase 2 | ⏳ Phase 2 |
+| Dark mode | design-system.md (light/dark tokens) | ⏳ 1.4 |
+| Keyboard accessibility, WCAG 2.2 AA | design-system.md §4, testing.md (axe) | ⏳ 1.4 |
+| Contextual help, smart defaults, confirmations for destructive actions | design-system.md §4 | ⏳ per module |
+
+## §6 Multi-tenant architecture
+| Requirement | Where | Status |
+|---|---|---|
+| Per-company profile, branding, domain, settings, data | domain-model.md (tenancy), ADR-0007 | ⏳ 1.2 / 1.3 |
+| Onboarding workflow (register → owner → domain → verify → branding → invite → roles → live) | ADR-0004, ADR-0007, roadmap 1.3 | ⏳ 1.3 |
+| Email domain is not proof of membership; invitations + domain verification (TXT) | ADR-0004, ADR-0007 | ⏳ 1.3 / custom domains later |
+| Server-side isolation: RLS, composite FKs, never trust client company ID | ADR-0003 | ⏳ 1.2 |
+| Isolation across API, URLs, jobs, files, search, reports, exports, notifications, real-time, queries | ADR-0003 §7, security.md §2a | ⏳ 1.2 onward |
+| Automated cross-tenant tests, release-blocking | testing.md §3 | ⏳ 1.2 |
+
+## §7 Roles & access control
+| Requirement | Where | Status |
+|---|---|---|
+| CEO, Manager, Team Leader, Employee, Technical Admin, Platform Operator distinguished; no unrestricted "Super Admin" | permissions.md §2 | ✅ designed |
+| RBAC with permission keys + scopes (own/team/project/company), server-side | permissions.md §1 | ⏳ 1.3 |
+| Separation of duties, least privilege, auditable permission changes, session revocation | permissions.md, security.md R4/R5 | ⏳ 1.3 |
+| Technical admin has no business-data access | permissions.md, security.md R14 | ✅ designed |
+
+## §8 Authentication & security
+| Requirement | Where | Status |
+|---|---|---|
+| Established auth framework (Better Auth ≥ 1.6.11), no homemade OTP | ADR-0004 | ⏳ 1.3 |
+| Email verification, MFA (TOTP + email OTP), recovery codes, password reset | ADR-0004 | ⏳ 1.3 |
+| Sessions: expiry, logout one/all, remembered devices | security.md §2, §2a | ⏳ 1.3 |
+| Rate limiting, credential stuffing, progressive throttling, suspicious login | security.md R3, §2a | ⏳ 1.3 |
+| Secure invitation acceptance | ADR-0004 | ⏳ 1.3 |
+| Defences: access control, SQLi, XSS, CSRF, SSRF, IDOR, session fixation, brute force, mass assignment, uploads, data exposure, reset, CORS, secrets, dependencies | security.md R1–R15, §2a | 🟡 CORS, secrets, deps, headers, error leakage ✅ 1.1; rest scheduled |
+| Security headers, no stack traces | bootstrap.ts | ✅ 1.1 |
+| Restricted financial/employee data, signed short-lived downloads, no sensitive logging | security.md §3, R8, R9 | 🟡 log redaction ✅; files ⏳ 1.5 |
+| Retention, backup, deletion, access policies | domain-model.md §5, compliance.md | 🟡 deletion policy ✅; retention ❓ legal input |
+
+## §9 Standards & compliance
+| Requirement | Where | Status |
+|---|---|---|
+| ISO 27001/27002/27701, OWASP ASVS/Top 10, WCAG 2.2 AA as targets, not claims | compliance.md §1 | ✅ |
+| Security checklist + compliance evidence register (implemented/partial/outstanding) | compliance.md §4 | 🟡 started 1.1 |
+| Kuwait-specific requirements flagged for legal review | compliance.md §2 | ✅ flagged; ❓ legal review |
+
+## §10 Core modules
+| Module | Phase | Status |
+|---|---|---|
+| A Executive dashboard (real data, filters, drill-down, honest empty states; per-module dashboards) | 2, then each module, 14 | ⏳ |
+| B Clients / CRM (contacts, communication history, notes, attachments, related records, timeline, dedupe, export) | 3 | ⏳ domain-model §2, §6 |
+| C Contracts & engagement letters (templates, numbering, states, versions, renewals, approvals, e-signature integration) | 4 | ⏳ |
+| D Projects & budgeting (billing methods, budget revisions, limits & warnings) | 5 | ⏳ |
+| E Tasks & time (lifecycle, dependencies, recurring, board/list/calendar, allocation workflow steps 1–12, concurrency-safe) | 6 | ⏳ domain-model §3 |
+| F Timesheets & performance (timers, approvals, billable, overtime, utilization, profitability) | 7 | ⏳ |
+| G Employees & teams (profiles, hierarchy, documents, restricted personal data, on/offboarding) | 8 (minimal record in 1.3) | ⏳ |
+| H Leave (configurable policies, ledger balances, approvals, calendar) | 9 — after Kuwaiti labour rules confirmed | ⏳ ❓ legal |
+| I Attendance (rotating signed QR, corrections, shifts, disputes) | 10 | ⏳ |
+| J Payroll (versioned rules, no invented formulas, SoD, payslips) | 11 — after jurisdiction rules verified | ⏳ ❓ legal |
+| K Invoicing & payments (states, PDF, partial payments, credit notes, aging, decimal money) | 12 | ⏳ |
+| Expenses ("if implemented" in brief) | 12b — default: included | ⏳ |
+| L Notifications & announcements | infra 1.5, per module, complete 13 | ⏳ |
+| M Reports & analytics | 14 | ⏳ |
+| N Audit logs & administration | audit log 1.3; search 14 | ⏳ |
+
+## §11 Module connections
+| Requirement | Where | Status |
+|---|---|---|
+| Documented domain model + relationship diagram, data ownership | domain-model.md §1–2 | ✅ draft |
+| Transactions, idempotency, explicit state transitions, server-side truth, no circular deps | domain-model §3–4, api.md §8, roadmap 1.2 (lint rule) | 🟡 designed |
+| Domain events / jobs only where useful | architecture §2 (outbox), roadmap 1.5 | ⏳ 1.5 |
+
+## §12 Architecture & files
+| Requirement | Where | Status |
+|---|---|---|
+| Clean structure separating entry points, UI, features, domain, services, controllers, DB, validation, auth, jobs, files, config, logging, tests, docs | architecture.md §4 | 🟡 skeleton ✅ 1.1 |
+| ADRs for significant decisions | docs/decisions/ | ✅ |
+| README with setup, env, dev, test, migrations, deployment | README.md | 🟡 setup/dev/test ✅; migrations 1.2; deployment 15 |
+| `.env.example` placeholders only | .env.example | ✅ 1.1 |
+| Separate dev / test / staging / production config | architecture §7a | 🟡 dev/test ✅; staging ⏳ 15 |
+
+## §13 Database design
+| Requirement | Where | Status |
+|---|---|---|
+| Keys, tenant ownership, integrity, unique constraints, indexes, naming | domain-model.md conventions, ADR-0003 | ⏳ 1.2 |
+| Money precision, date/time handling | ADR-0005 | ✅ decided |
+| Timestamps, soft delete only where justified, history | domain-model §5 | ✅ policy |
+| Migrations, backup & recovery plan | ADR-0007, roadmap 1.2 / 15 | ⏳ |
+| Concurrency (locking, optimistic versions) | domain-model §3, api.md §8 | 🟡 designed |
+| Derived totals consistency | domain-model (ledger for leave; computed hours) | 🟡 per module |
+
+## §14 API & backend
+| Requirement | Where | Status |
+|---|---|---|
+| Consistent conventions, error codes, request tracing, structured logging, versioning | api.md, 1.1 code | ✅ 1.1 |
+| Validated schemas, pagination, filtering, sorting, rate limits, idempotency, API docs | api.md §5–9 | ⏳ 1.3 / Phase 3+ |
+| Auth middleware, authorization policies, tenant-scoped access | ADR-0003/0004, permissions.md | ⏳ 1.2 / 1.3 |
+| Safe file handling, background processing | roadmap 1.5 | ⏳ 1.5 |
+
+## §15 Performance
+| Requirement | Where | Status |
+|---|---|---|
+| Measurable targets, profiling before optimizing | architecture §7b | 🟡 provisional targets |
+| Pagination, indexes, code splitting, lazy loading, background jobs, request cancellation, slow-request monitoring | api.md §7, architecture §7b, roadmap 1.5 | ⏳ |
+| Desktop / tablet / mobile web layouts | design-system (breakpoints in 1.4) | ⏳ 1.4 |
+
+## §16 Testing
+| Requirement | Where | Status |
+|---|---|---|
+| Unit, integration, E2E strategy | testing.md §1 | 🟡 unit + integration ✅ 1.1; E2E ⏳ 1.4 |
+| 20 required E2E workflows mapped to phases | testing.md §4 | ✅ mapped |
+| Negative & security tests mapped | testing.md §5 | ✅ mapped |
+| Definition of done | CLAUDE.md, this file | ✅ |
+
+## §17 Errors & observability
+| Requirement | Where | Status |
+|---|---|---|
+| Consistent errors, safe logging, correlation IDs, health + DB health, graceful dependency failure | 1.1 code, api.md §3–4 | ✅ 1.1 |
+| User-friendly (translated) error messages | ADR-0006, error codes | ⏳ 1.4 |
+| Error monitoring, job-failure monitoring, retries, alerting | roadmap 1.5 | ⏳ 1.5 |
+| Never blindly retry non-idempotent financial operations | api.md §8 | ✅ rule |
+
+## §18 Development workflow (phases 0–16)
+| Requirement | Where | Status |
+|---|---|---|
+| Phase 0 discovery & architecture | docs/ | ✅ approved 2026-10-24 |
+| Phase 1 foundation (setup, config, lint, types, tests, DB, migrations, auth, tenants, authz, errors, logging, tokens, components, layout, navigation, docs) | roadmap 1.1–1.5 | 🟡 1.1 built |
+| Phases 2–16 in the brief's order | roadmap.md | ⏳ |
+
+## §20 Workspace management
+| Requirement | Where | Status |
+|---|---|---|
+| Inspect before editing, focused changes, no duplicates, update tests + docs together, run format/lint/types/tests | CLAUDE.md, `pnpm check` | 🟡 ongoing |
+| Summarize modified files after each milestone | Hand-over | 🟡 ongoing |
+| Project notes + implementation checklist to resume across sessions | project-status.md, this file | ✅ |
+
+## §21 Documentation
+| Document | Status |
+|---|---|
+| README.md | ✅ |
+| docs/architecture.md | ✅ |
+| docs/roadmap.md | ✅ |
+| docs/domain-model.md | ✅ |
+| docs/security.md | ✅ |
+| docs/permissions.md | ✅ |
+| docs/testing.md | ✅ |
+| docs/design-system.md | ✅ |
+| docs/api.md | ✅ |
+| docs/decisions/ | ✅ ADR-0001..0007 (+ amendments) |
+| docs/modules/ | ⏳ one spec per module at phase start |
+| docs/compliance.md | ✅ |
+| docs/project-status.md | ✅ |
+| (rest of §21 and anything after it) | ❓ brief text was truncated — owner to send |

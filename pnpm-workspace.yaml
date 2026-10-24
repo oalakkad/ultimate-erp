@@ -1,0 +1,20 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Pin exact versions when adding dependencies (security.md R10).
+saveExact: true
+
+# Install scripts are blocked unless listed here (supply-chain protection).
+# cpu-features/ssh2/protobufjs are optional native extras of Testcontainers we do not need.
+allowBuilds:
+  '@swc/core': true
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
+
+# Security overrides: force patched versions of transitive dependencies.
+# Remove an entry once the parent package ships the fix itself.
+overrides:
+  # GHSA-q7qp-rjg7-q26m (high, DoS). Pulled in by @nestjs/platform-express 12.2.0, which pins 2.4.0.
+  multer: 2.5.0

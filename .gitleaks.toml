@@ -1,0 +1,14 @@
+# Secret scanning config (security.md R11). Extends the default gitleaks rules.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated or git-ignored paths"
+paths = [
+  '''node_modules/''',
+  '''(^|/)dist/''',
+  '''\.turbo/''',
+  '''pnpm-lock\.yaml''',
+  # Local-only file, git-ignored; values come from .env.example placeholders.
+  '''(^|/)\.env$''',
+]

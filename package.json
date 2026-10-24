@@ -1,0 +1,38 @@
+{
+  "name": "ultimate-erp",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=24.12.0"
+  },
+  "scripts": {
+    "dev": "node scripts/init-env.mjs && pnpm services:up && turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "env:init": "node scripts/init-env.mjs",
+    "services:up": "docker compose -f infra/compose/compose.dev.yaml --env-file .env up -d --wait",
+    "services:down": "docker compose -f infra/compose/compose.dev.yaml --env-file .env down",
+    "services:logs": "docker compose -f infra/compose/compose.dev.yaml --env-file .env logs -f",
+    "licenses:check": "node scripts/check-licenses.mjs",
+    "audit:prod": "pnpm audit --prod --audit-level=high",
+    "secrets:scan": "node scripts/scan-secrets.mjs",
+    "security": "pnpm audit:prod && pnpm licenses:check && pnpm secrets:scan"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "turbo": "2.11.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "extends": "@ultimate-erp/config/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src"]
+}
