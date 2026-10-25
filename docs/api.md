@@ -17,6 +17,7 @@ One API serves the web app, the future React Native app and integrations. The we
 - The tenant is resolved from the **host** (`acme.<platform-domain>`, `acme.localhost` in dev) and verified against the user's membership. Requests never carry a trusted `companyId`; any such field in a body is rejected.
 - Web: httpOnly session cookie + CSRF protection. Mobile: bearer session token. *(Milestone 1.3)*
 - Unknown tenant or no membership ⇒ `404 NOT_FOUND` (does not confirm the tenant exists).
+- Implemented in 1.2: every route except `/health` and `/health/live` passes through tenant resolution; `X-Forwarded-Host` and any client-sent tenant ID are ignored.
 
 ## 3. Correlation IDs
 
@@ -84,3 +85,4 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 |---|---|---|---|---|
 | GET | `/api/v1/health` | Public | Readiness: 200 if all dependencies up, 503 otherwise. Body `healthResponseSchema`. No versions or error details. | 1.1 |
 | GET | `/api/v1/health/live` | Public | Liveness: process running. Always 200 `{ "status": "ok" }`. | 1.1 |
+| GET | `/api/v1/tenant` | Public, tenant host | Public profile of the company owning the host: `{ slug, name: { en, ar }, defaultLocale }` (`tenantPublicProfileSchema`). Unknown/unverified/suspended host ⇒ 404. Database unavailable ⇒ 503. | 1.2 |

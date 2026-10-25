@@ -58,7 +58,9 @@ References: ASVS = OWASP ASVS 5.0 chapter; ISO = ISO/IEC 27002:2022 control. Map
 | Licence compliance of dependencies | ISO 5.32 | `scripts/check-licenses.mjs` | CI `security` job | Implemented 1.1 |
 | Pinned dependencies; install scripts blocked except allow-list | ASVS V15, ISO 8.30 | `saveExact`, `allowBuilds` in `pnpm-workspace.yaml`, lockfile | `pnpm install --frozen-lockfile` in CI | Implemented 1.1 |
 | Dev services not exposed to the network | ISO 8.20 | Compose ports bound to 127.0.0.1 | Manual (`docker ps`) | Implemented 1.1 |
-| Tenant isolation (RLS, composite FKs, `withTenant`) | ASVS V8, ISO 8.3 | — | Cross-tenant suite | Outstanding (1.2) |
+| Tenant isolation (RLS forced, composite FKs, `withTenant`, safe-role check, host resolution) | ASVS V8, ISO 8.3 | `packages/db/migrations/0001_foundation_security.sql`, `packages/db/src/tenant.ts`, `apps/api/src/platform/database/`, `apps/api/src/modules/tenancy/` | `packages/db/test/isolation.spec.ts` (31, incl. catalog guard; mutation-checked: weakening a policy fails 10 tests), `apps/api/test/tenancy.spec.ts` | Implemented 1.2 |
+| Least-privilege database roles (separate migrator / app / platform) | ASVS V13, ISO 8.2 / 8.18 | `packages/db/src/admin.ts`, migration grants | `isolation.spec.ts` "database roles", "platform role" | Implemented 1.2 |
+| Module boundaries: no circular imports, no raw DB access from modules | ISO 8.28 | `eslint.config.js` (import-x/no-cycle, no-restricted-imports) | Lint in CI (verified with planted violations) | Implemented 1.2 |
 | Authentication, MFA, sessions, rate limits | ASVS V6/V7/V2, ISO 8.5 | — | Auth integration tests | Outstanding (1.3) |
 | Authorization (RBAC + scopes, server-side) | ASVS V8, ISO 8.2 / 5.15 | — | Permission matrix suite | Outstanding (1.3) |
 | Append-only audit log | ASVS V16, ISO 8.15 | — | Audit tests | Outstanding (1.3) |

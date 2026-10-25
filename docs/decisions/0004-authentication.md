@@ -21,3 +21,6 @@ Use **Better Auth** embedded in the API, storing its data in our Postgres.
 - (+) Established library rather than custom security code.
 - (−) We own patching: dependency scanning and a security-advisory watch are required (in `security.md`).
 - (−) Library-specific schema; wrapped behind our `identity` module so it could be replaced.
+
+## Amendment 2026-10-25 — minimum version raised
+Advisory check before Milestone 1.3 found fixes after 1.6.11, incl. **GHSA-qq9h-g4jm-xgf3** (high: account takeover via pre-account hijacking on magic-link and email-OTP sign-in, fixed 1.6.22) and **GHSA-86j7-9j95-vpqj** (stored XSS via oidc redirect_uri, fixed 1.6.13). Minimum is now the latest release at implementation time (**1.7.13** on 2026-10-25). Email-OTP and magic-link *sign-in* are not enabled; MFA uses TOTP + recovery codes. Re-check advisories at every Better Auth upgrade.

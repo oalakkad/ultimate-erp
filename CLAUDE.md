@@ -3,14 +3,19 @@
 Multi-tenant, bilingual (EN/AR, full RTL) ERP for audit, risk & GRC firms, deployable as SaaS or on-premises. Kuwait first (KWD, 3 decimals).
 
 ## Before doing anything
-1. Read `docs/project-status.md` (where we are, open questions, next step).
-2. Read `docs/roadmap.md` and the relevant docs in `docs/` and `docs/decisions/` before changing architecture.
-3. The owner's master project prompt (the "product brief") is binding in full. `docs/requirements-checklist.md` traces every section of it; check the rows for the current milestone before starting, and update their status at the end. If `docs/product-brief.md` exists, it is the original text.
+1. Read the **newest entry in `docs/session-log.md`** — exactly where the last session stopped, repo state, and the next step.
+2. Read `docs/project-status.md` (where we are, open questions, how to verify).
+3. Read `docs/roadmap.md` and the relevant docs in `docs/` and `docs/decisions/` before changing architecture.
+4. The owner's master project prompt, `docs/product-brief.md`, is binding in full. `docs/requirements-checklist.md` traces every section of it; check the rows for the current milestone before starting, and update their status at the end.
+
+## Before ending a session (always — the owner relies on this)
+Add a new entry at the top of `docs/session-log.md`: what was done, repo state (last commit, uncommitted work, running services, changed local files like `.env`), real verification results, decisions made, items waiting on the owner, and the exact next step. Update `docs/project-status.md` and the checklist to match.
 
 ## Rules
 - Build phase by phase. Stop after each milestone and wait for the owner's explicit approval before starting the next one.
 - Before a feature: explain its purpose, how it fits the ERP, data, dependencies, permissions/security, acceptance criteria and test plan. For modules, write `docs/modules/<module>.md` covering every item the brief lists for it.
-- After a feature, hand over with: what was built, why, how it works, files changed and what each does, frontend↔backend flow, database involvement, auth/permissions, what could go wrong, how it was tested (real counts), manual verification (exact commands + expected output), what remains incomplete, next step.
+- Before each major module: a short plan and the decisions needing owner approval (brief §22).
+- After a module, hand over in the brief's §22 format — **A** what was built, **B** files created/modified and their roles, **C** architecture (how it connects), **D** security, **E** testing (tests actually run, real results), **F** manual verification checklist (exact commands + expected output), **G** outstanding issues (bugs, gaps, debt, risks), **H** next step (then wait). Also explain, per §19, frontend↔backend flow, database involvement, what could go wrong, and new concepts in plain language.
 - Definition of done: functionality, business rules, permissions, validation, loading/empty/error states, cross-module integration, passing tests, updated docs, no unresolved critical/high defects, owner approval.
 - Run `pnpm check` and `pnpm security` before every hand-over.
 - The owner is learning. Explain reasoning in plain language; don't assume they know concepts like git remotes or migrations.

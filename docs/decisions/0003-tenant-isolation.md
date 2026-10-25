@@ -27,3 +27,13 @@ Multiple companies share one SaaS database. A single missing `WHERE tenant_id = 
 ## Alternatives
 - Schema-per-tenant: migrations multiply with tenant count; rejected.
 - Database-per-tenant only: costly for small SaaS tenants; kept as a deployment option, not the default.
+
+## Implementation notes (Milestone 1.2, 2026-10-24)
+- Context function `app.current_tenant_id()` = `nullif(current_setting('app.tenant_id', true), '')::uuid`. The `nullif` matters: after a transaction-local setting ends, Postgres leaves `''`, not NULL.
+- The migrator is subject to FORCE RLS like everyone else and gets an explicit `USING (true)` policy per table, so its broad access is visible and reviewable rather than implicit.
+- Tenant resolution needs a lookup before any context exists: a `SECURITY DEFINER` function `app.resolve_tenant_by_host(text)` answers one exact, verified host of an active tenant. The app cannot list domains or tenants.
+- `erp_platform` exists as `NOLOGIN` with read access to `tenants` only, until platform-operator code is designed.
+- The API verifies its own role (not superuser, no BYPASSRLS, exactly `erp_app`) before any data access and on `/health`, refusing with 503 otherwise.
+- `users` is global (not tenant-owned); its row-level rules are decided with Better Auth in Milestone 1.3.
+- Business modules are lint-blocked from importing `pg`, `drizzle-orm/node-postgres` or the raw database tokens; `TenantDatabase.withTenant` is the only path.
+- Details and the checklist for new tables: `docs/database.md`.

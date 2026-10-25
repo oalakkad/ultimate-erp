@@ -1,25 +1,25 @@
 import { type Server } from 'node:http';
 import { type INestApplication } from '@nestjs/common';
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { healthResponseSchema } from '@ultimate-erp/contracts';
+import { startTestDatabase, type TestDatabase } from '@ultimate-erp/db/testing';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/bootstrap.js';
 import { loadConfig } from '../src/platform/config/config.js';
 
-// Runs against a real, throwaway Postgres in Docker (same image as local dev).
+// Runs against a real, throwaway Postgres in Docker, set up exactly like an installation.
 describe('GET /api/v1/health with a real database', () => {
-  let container: StartedPostgreSqlContainer;
+  let database: TestDatabase;
   let app: INestApplication;
   let server: Server;
   let containerStopped = false;
 
   beforeAll(async () => {
-    container = await new PostgreSqlContainer('postgres:18.6-alpine').start();
+    database = await startTestDatabase();
     app = await createApp(
       loadConfig({
         NODE_ENV: 'test',
-        DATABASE_URL: container.getConnectionUri(),
+        DATABASE_URL: database.appUrl,
         LOG_LEVEL: 'silent',
       }),
     );
@@ -29,7 +29,7 @@ describe('GET /api/v1/health with a real database', () => {
 
   afterAll(async () => {
     await app.close();
-    if (!containerStopped) await container.stop();
+    if (!containerStopped) await database.stop();
   });
 
   it('reports 200 with the database up', async () => {
@@ -42,7 +42,7 @@ describe('GET /api/v1/health with a real database', () => {
   });
 
   it('reports 503 once the database becomes unavailable', async () => {
-    await container.stop();
+    await database.stop();
     containerStopped = true;
     const res = await request(server).get('/api/v1/health');
     expect(res.status).toBe(503);

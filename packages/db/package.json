@@ -1,0 +1,43 @@
+{
+  "name": "@ultimate-erp/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "default": "./dist/testing/index.js"
+    },
+    "./admin": {
+      "types": "./dist/admin.d.ts",
+      "default": "./dist/admin.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "generate": "drizzle-kit generate",
+    "generate:custom": "drizzle-kit generate --custom",
+    "bootstrap": "node --env-file-if-exists=../../.env dist/cli/bootstrap.js",
+    "migrate": "node --env-file-if-exists=../../.env dist/cli/migrate.js",
+    "seed:dev": "node --env-file-if-exists=../../.env dist/cli/seed-dev.js"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.4",
+    "pg": "8.23.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@testcontainers/postgresql": "12.2.1",
+    "@types/pg": "8.23.1",
+    "@ultimate-erp/config": "workspace:*",
+    "drizzle-kit": "0.31.11",
+    "vitest": "5.0.5"
+  }
+}

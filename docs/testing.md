@@ -20,6 +20,7 @@ Fixtures: test data is created by each test (factories in `test/fixtures/`), nev
 |---|---|
 | `pnpm test` | All unit + integration tests (needs Docker running for Testcontainers) |
 | `pnpm --filter @ultimate-erp/api test` | API tests only |
+| `pnpm --filter @ultimate-erp/db test` | Database isolation suite only |
 | `pnpm --filter @ultimate-erp/api exec vitest run test/http.spec.ts` | One test file |
 | `pnpm --filter @ultimate-erp/api exec vitest` | Watch mode while developing |
 | `pnpm check` | Format check, lint, typecheck, tests (what CI's `check` job runs) |
@@ -91,3 +92,4 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 1.2 | + 31 db isolation (roles, catalog guard, fail-closed, cross-tenant read/list/update/delete/insert/move/link, rollback, host resolution, platform role, idempotent migrations) + API tenancy (host routing, spoofed headers, client-supplied IDs, unsafe role) | 80 passed (5 + 31 + 44) |

@@ -12,6 +12,10 @@ allowBuilds:
   cpu-features: false
   protobufjs: false
   ssh2: false
+  # Used by drizzle-kit (dev tool); works without its install script.
+  esbuild: false
+  # Resolver used by the import lint rules; its prebuilt binary installs without the script.
+  unrs-resolver: false
 
 # Security overrides: force patched versions of transitive dependencies.
 # Remove an entry once the parent package ships the fix itself.

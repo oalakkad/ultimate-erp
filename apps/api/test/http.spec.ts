@@ -49,11 +49,11 @@ describe('HTTP platform behaviour (database unreachable)', () => {
     expect(res.body).toEqual({ status: 'ok' });
   });
 
-  it('returns the standard error shape for unknown routes, with a correlation ID', async () => {
-    const res = await request(server).get('/api/v1/does-not-exist');
-    expect(res.status).toBe(404);
+  it('answers tenant routes with 503 in the standard error shape while the database is down', async () => {
+    const res = await request(server).get('/api/v1/tenant').set('Host', 'acme.localhost');
+    expect(res.status).toBe(503);
     const body = errorResponseSchema.parse(res.body);
-    expect(body.error.code).toBe('NOT_FOUND');
+    expect(body.error.code).toBe('SERVICE_UNAVAILABLE');
     expect(res.headers['x-request-id']).toMatch(UUID);
     expect(body.error.requestId).toBe(res.headers['x-request-id']);
   });

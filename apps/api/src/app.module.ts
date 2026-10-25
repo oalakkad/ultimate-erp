@@ -1,5 +1,6 @@
 import { type DynamicModule, Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { TenancyModule } from './modules/tenancy/tenancy.module.js';
 import { type AppConfig } from './platform/config/config.js';
 import { ConfigModule } from './platform/config/config.module.js';
 import { DatabaseModule } from './platform/database/database.module.js';
@@ -17,6 +18,7 @@ export class AppModule {
         LoggingModule.forRoot(config),
         DatabaseModule.forRoot(config),
         HealthModule,
+        TenancyModule,
       ],
       providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],
     };

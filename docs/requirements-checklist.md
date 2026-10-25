@@ -4,7 +4,7 @@ Purpose: every requirement in the owner's master project prompt (the "product br
 
 Status: ✅ done · 🟡 designed / partly built · ⏳ scheduled · ❓ needs owner decision
 
-Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of the brief were received; the text was cut off at §21, so any later sections still need to be added.
+Last reviewed: 2026-10-24 (after Milestone 1.2). Source: `docs/product-brief.md` (§1–25, complete).
 
 ## §1 Role & §19 Teaching
 | Requirement | Where / how | Status |
@@ -57,12 +57,12 @@ Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of th
 ## §6 Multi-tenant architecture
 | Requirement | Where | Status |
 |---|---|---|
-| Per-company profile, branding, domain, settings, data | domain-model.md (tenancy), ADR-0007 | ⏳ 1.2 / 1.3 |
+| Per-company profile, branding, domain, settings, data | domain-model.md (tenancy), ADR-0007 | 🟡 profile + domains ✅ 1.2; branding/settings 1.3+ |
 | Onboarding workflow (register → owner → domain → verify → branding → invite → roles → live) | ADR-0004, ADR-0007, roadmap 1.3 | ⏳ 1.3 |
 | Email domain is not proof of membership; invitations + domain verification (TXT) | ADR-0004, ADR-0007 | ⏳ 1.3 / custom domains later |
-| Server-side isolation: RLS, composite FKs, never trust client company ID | ADR-0003 | ⏳ 1.2 |
-| Isolation across API, URLs, jobs, files, search, reports, exports, notifications, real-time, queries | ADR-0003 §7, security.md §2a | ⏳ 1.2 onward |
-| Automated cross-tenant tests, release-blocking | testing.md §3 | ⏳ 1.2 |
+| Server-side isolation: RLS, composite FKs, never trust client company ID | ADR-0003, docs/database.md | ✅ 1.2 |
+| Isolation across API, URLs, jobs, files, search, reports, exports, notifications, real-time, queries | ADR-0003 §7, security.md §2a | 🟡 API + queries ✅ 1.2; others with their features |
+| Automated cross-tenant tests, release-blocking | testing.md §3, `packages/db/test/isolation.spec.ts`, `apps/api/test/tenancy.spec.ts` | ✅ 1.2 (extended per module) |
 
 ## §7 Roles & access control
 | Requirement | Where | Status |
@@ -115,7 +115,7 @@ Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of th
 | Requirement | Where | Status |
 |---|---|---|
 | Documented domain model + relationship diagram, data ownership | domain-model.md §1–2 | ✅ draft |
-| Transactions, idempotency, explicit state transitions, server-side truth, no circular deps | domain-model §3–4, api.md §8, roadmap 1.2 (lint rule) | 🟡 designed |
+| Transactions, idempotency, explicit state transitions, server-side truth, no circular deps | domain-model §3–4, api.md §8, eslint import-x/no-cycle | 🟡 transactions + no-cycle lint ✅ 1.2; rest per module |
 | Domain events / jobs only where useful | architecture §2 (outbox), roadmap 1.5 | ⏳ 1.5 |
 
 ## §12 Architecture & files
@@ -123,17 +123,17 @@ Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of th
 |---|---|---|
 | Clean structure separating entry points, UI, features, domain, services, controllers, DB, validation, auth, jobs, files, config, logging, tests, docs | architecture.md §4 | 🟡 skeleton ✅ 1.1 |
 | ADRs for significant decisions | docs/decisions/ | ✅ |
-| README with setup, env, dev, test, migrations, deployment | README.md | 🟡 setup/dev/test ✅; migrations 1.2; deployment 15 |
+| README with setup, env, dev, test, migrations, deployment | README.md, docs/database.md | 🟡 setup/dev/test/migrations ✅; deployment 15 |
 | `.env.example` placeholders only | .env.example | ✅ 1.1 |
 | Separate dev / test / staging / production config | architecture §7a | 🟡 dev/test ✅; staging ⏳ 15 |
 
 ## §13 Database design
 | Requirement | Where | Status |
 |---|---|---|
-| Keys, tenant ownership, integrity, unique constraints, indexes, naming | domain-model.md conventions, ADR-0003 | ⏳ 1.2 |
+| Keys, tenant ownership, integrity, unique constraints, indexes, naming | domain-model.md conventions, docs/database.md §4 | ✅ pattern 1.2 |
 | Money precision, date/time handling | ADR-0005 | ✅ decided |
 | Timestamps, soft delete only where justified, history | domain-model §5 | ✅ policy |
-| Migrations, backup & recovery plan | ADR-0007, roadmap 1.2 / 15 | ⏳ |
+| Migrations, backup & recovery plan | docs/database.md, ADR-0007 | 🟡 migrations ✅ 1.2; backup ⏳ 15 |
 | Concurrency (locking, optimistic versions) | domain-model §3, api.md §8 | 🟡 designed |
 | Derived totals consistency | domain-model (ledger for leave; computed hours) | 🟡 per module |
 
@@ -142,7 +142,7 @@ Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of th
 |---|---|---|
 | Consistent conventions, error codes, request tracing, structured logging, versioning | api.md, 1.1 code | ✅ 1.1 |
 | Validated schemas, pagination, filtering, sorting, rate limits, idempotency, API docs | api.md §5–9 | ⏳ 1.3 / Phase 3+ |
-| Auth middleware, authorization policies, tenant-scoped access | ADR-0003/0004, permissions.md | ⏳ 1.2 / 1.3 |
+| Auth middleware, authorization policies, tenant-scoped access | ADR-0003/0004, permissions.md | 🟡 tenant-scoped access ✅ 1.2; auth/authz ⏳ 1.3 |
 | Safe file handling, background processing | roadmap 1.5 | ⏳ 1.5 |
 
 ## §15 Performance
@@ -172,7 +172,7 @@ Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of th
 | Requirement | Where | Status |
 |---|---|---|
 | Phase 0 discovery & architecture | docs/ | ✅ approved 2026-10-24 |
-| Phase 1 foundation (setup, config, lint, types, tests, DB, migrations, auth, tenants, authz, errors, logging, tokens, components, layout, navigation, docs) | roadmap 1.1–1.5 | 🟡 1.1 built |
+| Phase 1 foundation (setup, config, lint, types, tests, DB, migrations, auth, tenants, authz, errors, logging, tokens, components, layout, navigation, docs) | roadmap 1.1–1.5 | 🟡 1.1 ✅, 1.2 built |
 | Phases 2–16 in the brief's order | roadmap.md | ⏳ |
 
 ## §20 Workspace management
@@ -180,7 +180,7 @@ Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of th
 |---|---|---|
 | Inspect before editing, focused changes, no duplicates, update tests + docs together, run format/lint/types/tests | CLAUDE.md, `pnpm check` | 🟡 ongoing |
 | Summarize modified files after each milestone | Hand-over | 🟡 ongoing |
-| Project notes + implementation checklist to resume across sessions | project-status.md, this file | ✅ |
+| Project notes + implementation checklist to resume across sessions | project-status.md, session-log.md, this file | ✅ |
 
 ## §21 Documentation
 | Document | Status |
@@ -198,4 +198,44 @@ Last reviewed: 2026-10-24 (after Milestone 1.1 follow-up). Sections 1–21 of th
 | docs/modules/ | ⏳ one spec per module at phase start |
 | docs/compliance.md | ✅ |
 | docs/project-status.md | ✅ |
-| (rest of §21 and anything after it) | ❓ brief text was truncated — owner to send |
+| docs/database.md (added: roles, migrations, table checklist) | ✅ 1.2 |
+| docs/session-log.md (added: session-by-session hand-off for the next Claude session) | ✅ |
+| Documentation never claims unfinished features are complete | 🟡 ongoing (statuses in this file) |
+
+## §22 Communication & approval
+| Requirement | Where | Status |
+|---|---|---|
+| Before each major module: short plan + decisions needing approval | CLAUDE.md | 🟡 ongoing |
+| After each module: A What was built · B Files · C Architecture · D Security · E Testing (real results) · F Manual verification · G Outstanding issues · H Next step | CLAUDE.md hand-over template | 🟡 ongoing |
+| Never skip or conceal failing tests; fix and retest on correction; wait for review | CLAUDE.md, testing.md §6 | 🟡 ongoing |
+
+## §23 CEO / Super Admin experience
+| Requirement | Where | Status |
+|---|---|---|
+| Premium from first usable version; coherent single view | design-system.md, roadmap Phase 2 | ⏳ 2 |
+| Navigation hierarchy: overview, clients, contracts, projects & budgets, tasks & allocation, team, timesheets, leave, attendance, payroll, invoicing, notifications, reports, audit, settings, security | roadmap Phase 2 scope | ⏳ 2 |
+| Nav groups, collapsible sections, breadcrumbs, contextual actions, command palette | design-system.md §3, roadmap Phase 2 | ⏳ 1.4 / 2 |
+| Every metric drills down to records (permission-aware) | roadmap Phase 2 | ⏳ 2 |
+| Answers: what's happening, projects at risk / over budget, over/under-utilized people, overdue tasks, hours remaining, outstanding invoices, expiring contracts, pending leave, issues needing attention | roadmap Phase 2 + module dashboards | ⏳ 2 → 14 |
+| Not overcrowded; payroll hidden without permission | design-system.md §4, permissions.md | ⏳ 2 |
+
+## §24 Final acceptance criteria
+| Criterion | Status |
+|---|---|
+| Premium coherent UI, reusable components | ⏳ 1.4 → |
+| Secure auth + MFA | ⏳ 1.3 |
+| Reliable tenant isolation | 🟡 foundation ✅ 1.2, extended per module |
+| Server-enforced authorization; business vs technical admin separated | ⏳ 1.3 |
+| Correct record relationships; accurate budgets/allocations; planned vs actual hours | ⏳ 3–7 |
+| Reliable leave & attendance; verified payroll for jurisdiction | ⏳ 9–11 (❓ legal) |
+| Reliable invoices/payments; centralized secure notifications; module dashboards; audit history | ⏳ 12–14 |
+| Automated unit, integration, security, E2E tests | 🟡 unit/integration/security ✅; E2E 1.4 |
+| Organized code & docs; reproducible setup & deployment | 🟡 setup ✅; deployment 15 |
+| Documented security & compliance assessment | 🟡 security.md + compliance.md ongoing |
+| Ready for React Native client | 🟡 shared contracts ✅ |
+| Production readiness shown by evidence | ⏳ 15 |
+
+## §25 First task (Phase 0)
+| Requirement | Status |
+|---|---|
+| Assessment, stack, architecture, tenancy model, DB design, roles, design direction, structure, roadmap, risks; essential questions only; wait for approval | ✅ Phase 0, approved 2026-10-24 |

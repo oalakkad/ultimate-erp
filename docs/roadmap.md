@@ -5,7 +5,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Discovery & architecture (this set of docs) | Approved 2026-10-24 |
-| 1 | Foundation — split into milestones below | **In progress** — 1.1 built, awaiting approval |
+| 1 | Foundation — split into milestones below | **In progress** — 1.1 and 1.2 approved; 1.3 planning |
 | 2 | Executive shell & dashboard (honest empty states until modules exist) | — |
 | 3 | Clients / CRM | — |
 | 4 | Contracts & engagement letters (incl. bilingual templates, PDF) | — |
@@ -32,7 +32,9 @@ Note: Phase 8 (employees) is a dependency of tasks/timesheets. Phase 1 creates a
 |---|---|---|
 | **1.1 Skeleton** | Monorepo (pnpm + Turborepo), TypeScript strict, ESLint/Prettier, Vitest, Docker Compose (Postgres, RustFS (S3), Mailpit), API with health checks, config validation, structured logging, correlation IDs, standard error format, CI workflow. | `pnpm dev` runs everything; `/api/v1/health` reports DB status; tests + lint pass in CI. |
 | **1.2 Tenancy & isolation** | Drizzle setup, migrations, DB roles, RLS, `withTenant` helper, tenants/memberships tables, composite FK pattern, host-based tenant resolution. | Automated cross-tenant tests prove company A cannot read/write company B. |
-| **1.3 Identity & access** | Better Auth: sign-up, email verification, login, TOTP MFA + recovery codes, password reset, sessions list/revoke, rate limits; company onboarding; invitations; RBAC with permission keys + scopes; audit log. | Auth integration tests incl. expired/reused OTP, invalid invitation, self-elevation attempts. |
+| **1.3a Identity** (split 2026-10-25) | Better Auth 1.7.13: sign-up, email verification (Mailpit), login/logout, password reset, TOTP MFA + recovery codes, sessions list/revoke, idle 30 min / absolute 12 h, remembered device (MFA only, 30 days), rate limits + progressive throttling, breached-password check (configurable for offline on-prem), new-device notice, strict request validation, decide `users` row rules. | Auth integration tests: expired/reused OTP and reset tokens, brute-force throttling, session revoke, session fixation, unverified email blocked. |
+| **1.3b Access** | Self-service company onboarding (verified email → company + subdomain + Owner), invitations (verified matching email), RBAC permission keys + scopes from permissions.md, MFA required for sensitive roles, append-only audit log, OpenAPI docs. | Invalid invitation, self-elevation, permission matrix suite, audit immutability. |
+| **1.3 Identity & access (original scope, now 1.3a + 1.3b)** | Better Auth: sign-up, email verification, login, TOTP MFA + recovery codes, password reset, sessions list/revoke, rate limits; company onboarding; invitations; RBAC with permission keys + scopes; audit log. | Auth integration tests incl. expired/reused OTP, invalid invitation, self-elevation attempts. |
 | **1.4 Design system & shell** | Tokens (light/dark), fonts, core components, app shell, EN/AR switch with RTL, login/onboarding screens wired to real auth, component preview page. | Playwright E2E: sign up → verify email (Mailpit) → enable MFA → log in, in both languages; axe accessibility checks. |
 | **1.5 Platform services** | Background worker (pg-boss) + transactional outbox; files module (S3 storage, tenant-prefixed keys, upload allow-list + magic-byte check + size limits, short-lived signed downloads); notification foundation (in-app records + email via SMTP/Mailpit, delivery status, retries); error monitoring (Sentry SDK, PII-scrubbed), OpenTelemetry traces, slow-request logging; Dockerfile for API/worker. | Upload tests incl. malicious samples; failed email delivery is retried and recorded; job carries tenant context (cross-tenant test); errors reach monitoring without PII. |
 

@@ -23,12 +23,13 @@
     "pino-http": "11.0.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "@ultimate-erp/db": "workspace:*",
+    "drizzle-orm": "0.45.4"
   },
   "devDependencies": {
     "@nestjs/testing": "12.2.0",
     "@swc/core": "1.16.20",
-    "@testcontainers/postgresql": "12.2.1",
     "@types/express": "5.0.6",
     "@types/pg": "8.23.1",
     "@types/supertest": "7.2.1",

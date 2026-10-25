@@ -5,16 +5,18 @@ import {
   Module,
   type OnApplicationShutdown,
 } from '@nestjs/common';
+import { createDatabase } from '@ultimate-erp/db';
 import { PinoLogger } from 'nestjs-pino';
 import pg from 'pg';
 import { type AppConfig } from '../config/config.js';
-
-export const DB_POOL = Symbol('DB_POOL');
+import { DatabaseRoleCheck } from './database-role-check.js';
+import { DB, DB_POOL } from './database.tokens.js';
+import { TenantDatabase } from './tenant-database.js';
 
 /**
- * One connection pool per process. Connections open lazily, so the API still
- * starts (and reports "database down" on /health) when Postgres is unavailable.
- * Milestone 1.2 adds Drizzle, DB roles and the tenant-scoped `withTenant` helper on top.
+ * One connection pool per process, connected as erp_app (subject to row-level security).
+ * Connections open lazily, so the API still starts (and reports "database down" on /health)
+ * when Postgres is unavailable. Business modules use `TenantDatabase` only.
  */
 @Global()
 @Module({})
@@ -44,8 +46,11 @@ export class DatabaseModule implements OnApplicationShutdown {
             return pool;
           },
         },
+        { provide: DB, inject: [DB_POOL], useFactory: (pool: pg.Pool) => createDatabase(pool) },
+        DatabaseRoleCheck,
+        TenantDatabase,
       ],
-      exports: [DB_POOL],
+      exports: [DB_POOL, DatabaseRoleCheck, TenantDatabase],
     };
   }
 
