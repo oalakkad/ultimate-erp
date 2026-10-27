@@ -6,6 +6,89 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-27 — Session 3: owner re-testing Milestone 1.3a
+
+### Where we finished
+Milestone 1.3a still **awaiting owner approval**, uncommitted (last commit `097350e`). No code changes.
+
+### Done
+- Docker Desktop was not running after a reboot; started it. The dev containers came back on their own (`restart: unless-stopped` confirmed working).
+- Re-ran from scratch: `pnpm check` **131 passed** (i18n 4, contracts 5, db 32, api 90); `pnpm security` 1 moderate (accepted), licences OK (156), no leaks.
+- Rehearsed the owner's PowerShell steps cold with `rehearsal…@example.com` addresses (so `omar@example.com` stays unused): sign-up → email → verify → sign-in → me → sessions → 6 wrong passwords (5× INVALID_CREDENTIALS, then RATE_LIMITED) → lock email. All correct.
+- Found a display pitfall: PowerShell shows `signe...` / blank lines when several result types print in one go. Owner steps now pipe to `ConvertTo-Json` / `Format-List`.
+- API dev server stopped so the owner can run `pnpm dev`; Docker services left running.
+
+- Owner's step 5 returned UNAUTHENTICATED. Cause (checked in DB + Mailpit, not guessed): omar@example.com was never verified — the owner clicked **my rehearsal emails** (same subject) left in the Mailpit inbox, which verified the rehearsal accounts instead. Deleted the rehearsal emails; owner continues from step 3. My mistake.
+
+- Second retry still EMAIL_NOT_VERIFIED: the owner's email was still unopened (browser likely showing the stale Mailpit list). Found a real bug: the HTML email showed the link as plain text (not clickable). Fixed: `renderHtml()` in `platform/mail/mailer.ts` (escaped text, clickable links, RTL for Arabic) + `mailer.spec.ts` (3 tests). Typecheck + lint pass.
+- While editing, the mailer briefly had a syntax error; the owner's auto-reloading `pnpm dev` stopped listening (port 3000 down). My earlier dev run (started 19:56 local) also left orphan node processes after TaskStop; stopping them was (rightly) blocked as a permission decision for the owner.
+
+- Owner restarted `pnpm dev` (first command was sent before the server was ready), resent verification, clicked the new clickable link, signed in: DB confirms omar@example.com verified + 1 active session (steps 1–5 passed). Steps 6–7 (sign-out, lockout) handed to the owner.
+
+### Notes for next session
+- Suggest the owner enables Docker Desktop → Settings → General → "Start Docker Desktop when you sign in".
+- After rehearsing steps, clean up what the owner will see (e.g. delete rehearsal emails from Mailpit).
+- Don't edit code while the owner's dev server is running without warning them; prefer making edits in one valid step.
+- TaskStop of `pnpm dev` can leave child node processes behind on Windows; check with Get-NetTCPConnection -LocalPort 3000 before handing over.
+
+### Next step
+Wait for the owner's test results and approval of 1.3a (and whether to commit), then plan 1.3b.
+
+---
+
+## 2026-10-25 — Session 2 (continued): Milestone 1.3a Identity built
+
+### Where we finished
+**Milestone 1.3a (Identity) is built and verified, awaiting the owner's review and approval. NOT committed** (last commit `097350e` = 1.2). Do not start 1.3b until the owner approves 1.3a.
+
+### Done
+- Spec `docs/modules/identity.md` written first (purpose, brief §8 coverage, data, API, security, acceptance criteria, test plan) and updated with implementation notes.
+- DB: migrations `0002_identity_tables` (accounts, sessions, verifications, two_factors, used_totp_codes, user_known_devices, rate_limit_buckets; users + image/two_factor_enabled/locale) and `0003_identity_security` (least-privilege grants, triggers). New catalog guard: tables without tenant_id must be on a reviewed allow-list.
+- New `packages/i18n` (EN/AR email catalogs; AR machine-drafted, needs native review; key/placeholder parity tests).
+- API platform: `Mailer` (SMTP, bilingual), `RateLimiter` (Postgres fixed windows, hashed keys, Retry-After), `ZodValidationPipe` (strict), origin-check (CSRF), `NoStoreInterceptor`, client IP from socket, query-string redaction in request logs.
+- API identity module: Better Auth 1.7.13 (handler not mounted; telemetry off; hashed verification identifiers; generateId=false → uuidv7), 18 endpoints under `/api/v1/auth`, SessionGuard (12 h absolute lifetime), TOTP replay ledger, new-device and lockout notices, breached-password checker (HIBP range, fails open, switchable).
+- Lint: business modules may not import identity tables; identity module is the reviewed exception for the unscoped DB handle.
+
+### Findings worth remembering
+- Better Auth: TOTP codes reusable within the window (we added a ledger); its rate limiter doesn't apply to `auth.api` calls; telemetry on by default; tokens stored plain by default; `@Header` can't decorate a class in Nest 12.
+- Request logs included `?token=` — fixed platform-wide; verified live (only the pre-fix line contains a token).
+- `nodemailer` is MIT-0 → added to licence allow-list. Moderate esbuild advisory accepted (security.md §2b).
+- Mutation checks: disabling replay protection, lockout, absolute lifetime, or the CSRF check each made its test fail.
+
+### State
+- Uncommitted: all 1.3a work. Local `.env` got AUTH_SECRET, APP_PUBLIC_URL, SMTP_HOST, SMTP_FROM, PASSWORD_BREACH_CHECK (via env:init). Docker services running (auto-restart). API stopped.
+
+### Verification (last run)
+- `pnpm check`: **131 passed** (i18n 4, contracts 5, db 32, api 90), 0 failed. `pnpm security`: 1 moderate (accepted), licences OK (156 packages), no leaks.
+- Live PowerShell walkthrough (owner can repeat): sign-up → 202; sign-in before verify → EMAIL_NOT_VERIFIED; email in Mailpit; open link → ok; sign-in → signed_in; me; sessions; sign-out; me → UNAUTHENTICATED.
+
+### Next step
+Owner reviews 1.3a (hand-over A–H). After approval (+ commit if asked): Milestone 1.3b — plan + decisions first: onboarding (company + subdomain + Owner membership), invitations (verified matching email), RBAC permission keys + scopes from permissions.md, MFA required for sensitive roles (and no trusted device for them), append-only audit log, OpenAPI.
+
+---
+
+## 2026-10-25 — Session 2 (continued): 1.2 approved and committed, 1.3 planned
+
+### Where we finished
+**Milestone 1.2 approved by the owner (tested it themselves) and committed `097350e`.** Milestone 1.3 plan presented and the owner's decisions recorded. **Next: start Milestone 1.3a when the owner says go.** Nothing uncommitted except this log entry.
+
+### Decisions (owner, 2026-10-25)
+- Split 1.3 → **1.3a Identity** (sign-up, email verification, login, password reset, TOTP MFA + recovery codes, sessions, rate limits, remembered device, breached-password check, new-device notice, strict validation, `users` row rules) and **1.3b Access** (self-service onboarding, invitations, RBAC + scopes, MFA enforcement for sensitive roles, audit log, OpenAPI). See roadmap.
+- Company creation: self-service for anyone after email verification.
+- MFA: required for sensitive roles; optional for others; tenant may require for all.
+- Defaults accepted without objection: passwords ≥ 12 chars + breached check (switchable off for offline on-prem); session idle 30 min / absolute 12 h; remembered device skips MFA prompt only, 30 days, never for sensitive roles.
+
+### Findings
+- Better Auth advisory check: latest **1.7.13**; ADR-0004's minimum 1.6.11 is no longer safe (GHSA-qq9h-g4jm-xgf3, high, fixed 1.6.22). ADR-0004 amended; email-OTP / magic-link sign-in will not be enabled.
+
+### State
+- Docker services running with `restart: unless-stopped`; dev DB seeded (acme, globex). API not running.
+
+### Next step
+Milestone 1.3a: first write `docs/modules/identity.md` (purpose, data, dependencies, permissions, acceptance criteria, test plan, brief §8 coverage), verify Better Auth 1.7.13 docs for NestJS/Express + Drizzle adapter + twoFactor plugin + uuid ids mapped onto our `users` table, then implement with tests (expired/reused OTP and reset tokens, throttling, session revoke/fixation, unverified email blocked) and hand over in §22 A–H format.
+
+---
+
 ## 2026-10-25 — Session 2: owner re-verification of Milestone 1.2
 
 ### Where we finished

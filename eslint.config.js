@@ -6,6 +6,27 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+const RAW_DATABASE_IMPORTS = [
+  { name: 'pg', message: 'Use TenantDatabase.withTenant instead of a raw connection.' },
+  {
+    name: 'drizzle-orm/node-postgres',
+    message: 'Use TenantDatabase.withTenant instead of an unscoped database handle.',
+  },
+  { name: '@ultimate-erp/db/admin', message: 'Admin tools are for CLI and tests only.' },
+  { name: '@ultimate-erp/db/testing', message: 'Test helpers are for tests only.' },
+];
+
+const IDENTITY_TABLES = [
+  'users',
+  'accounts',
+  'sessions',
+  'verifications',
+  'twoFactors',
+  'usedTotpCodes',
+  'userKnownDevices',
+  'rateLimitBuckets',
+];
+
 export default defineConfig(
   globalIgnores(['**/dist/**', '**/coverage/**', '**/.turbo/**', '**/node_modules/**']),
   js.configs.recommended,
@@ -42,20 +63,21 @@ export default defineConfig(
     },
   },
   {
-    // Business modules reach data only through TenantDatabase.withTenant (ADR-0003).
+    // Business modules reach data only through TenantDatabase.withTenant (ADR-0003), and never
+    // touch the global identity tables (docs/modules/identity.md §3).
     files: ['apps/api/src/modules/**/*.ts'],
+    ignores: ['apps/api/src/modules/identity/**'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           paths: [
-            { name: 'pg', message: 'Use TenantDatabase.withTenant instead of a raw connection.' },
+            ...RAW_DATABASE_IMPORTS,
             {
-              name: 'drizzle-orm/node-postgres',
-              message: 'Use TenantDatabase.withTenant instead of an unscoped database handle.',
+              name: '@ultimate-erp/db',
+              importNames: IDENTITY_TABLES,
+              message: 'Identity tables belong to the identity module; use IdentityService.',
             },
-            { name: '@ultimate-erp/db/admin', message: 'Admin tools are for CLI and tests only.' },
-            { name: '@ultimate-erp/db/testing', message: 'Test helpers are for tests only.' },
           ],
           patterns: [
             {
@@ -66,6 +88,12 @@ export default defineConfig(
         },
       ],
     },
+  },
+  {
+    // Reviewed exception: identity owns the global (non-tenant) tables, so it may use the
+    // unscoped database handle — but still no raw drivers or admin/test helpers.
+    files: ['apps/api/src/modules/identity/**/*.ts'],
+    rules: { 'no-restricted-imports': ['error', { paths: RAW_DATABASE_IMPORTS }] },
   },
   {
     files: ['**/*.{js,mjs}'],

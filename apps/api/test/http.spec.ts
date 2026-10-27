@@ -4,7 +4,7 @@ import { errorResponseSchema, healthResponseSchema } from '@ultimate-erp/contrac
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/bootstrap.js';
-import { loadConfig } from '../src/platform/config/config.js';
+import { testConfig } from './support/config.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -17,7 +17,7 @@ describe('HTTP platform behaviour (database unreachable)', () => {
 
   beforeAll(async () => {
     app = await createApp(
-      loadConfig({
+      testConfig({
         NODE_ENV: 'test',
         DATABASE_URL: UNREACHABLE_DB,
         LOG_LEVEL: 'silent',
@@ -112,7 +112,7 @@ describe('trusted proxy request IDs', () => {
 
   beforeAll(async () => {
     app = await createApp(
-      loadConfig({
+      testConfig({
         NODE_ENV: 'test',
         DATABASE_URL: UNREACHABLE_DB,
         LOG_LEVEL: 'silent',

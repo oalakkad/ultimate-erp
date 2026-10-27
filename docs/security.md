@@ -47,6 +47,11 @@ Status: **Draft — Phase 0.** Targets OWASP ASVS 5.0 Level 2 for the whole app,
 | Exports and reports | Run through the RLS connection with the requester's permissions; confidential exports require `exports.confidential`, MFA-fresh session, and are audited with row counts. | 14 |
 | Secrets management | Dev: `.env` (git-ignored). SaaS: platform secret manager injected as env vars. On-prem: customer-managed env/secret files (`*_FILE` variants). Never in images, logs or the database in plain text. | 1.1 / 15 |
 
+## 2b. Accepted risks (reviewed)
+| Finding | Why accepted | Revisit |
+|---|---|---|
+| GHSA-67mh-4wv8-2f99 (moderate): esbuild ≤ 0.24.2 dev server lets websites read responses. Reaches the production tree via better-auth → drizzle-kit (optional peer auto-installed) → @esbuild-kit. | Only affects esbuild's development *server*, which nothing in this project runs; below the CI gate (high/critical). 2026-10-25. | On each better-auth / drizzle-kit upgrade; remove when drizzle-kit drops @esbuild-kit. |
+
 ## 3. Sensitive data classification
 
 | Class | Examples | Handling |

@@ -48,10 +48,14 @@ All errors use one shape (`errorResponseSchema` in `packages/contracts`):
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | |
 | 422 | `VALIDATION_FAILED` | Schema or business-rule validation; `details` lists fields |
 | 429 | `RATE_LIMITED` | `Retry-After` header included |
+| 401 | `INVALID_CREDENTIALS`, `INVALID_CODE` | Wrong email/password (identical for unknown emails); wrong or reused 2FA code |
+| 403 | `EMAIL_NOT_VERIFIED` | Sign-in before confirming the email |
+| 400 | `INVALID_TOKEN` | Verification/reset link invalid, used or expired |
+| 422 | `PASSWORD_COMPROMISED` | Password appears in known breaches |
 | 500 | `INTERNAL_ERROR` | Unexpected |
 | 503 | `SERVICE_UNAVAILABLE` | Dependency down |
 
-## 5. Validation *(planned, Milestone 1.3)*
+## 5. Validation *(implemented 1.3a: `ZodValidationPipe`)*
 
 - Every body, query and path parameter is validated against its Zod schema before the service runs. Schemas are `.strict()`: **unknown fields are rejected** (prevents mass assignment such as `"role": "owner"`).
 - Business rules (budget capacity, state transitions, permissions) are enforced in services, never only in the UI.
@@ -75,7 +79,7 @@ All errors use one shape (`errorResponseSchema` in `packages/contracts`):
 - **Idempotency keys** (first financial/time endpoint, Phase 7/12): retryable create operations accept `Idempotency-Key: <uuid>`. The server stores key + request hash + response per tenant for 24h; a repeat returns the original response; same key with a different body ⇒ `409 CONFLICT`. Required for payments, invoice issue, payroll approval, time-entry submission.
 - Non-idempotent financial operations are never retried automatically (server or client).
 
-## 9. Rate limits *(planned, Milestone 1.3)*
+## 9. Rate limits *(implemented 1.3a for /auth: Postgres-backed `RateLimiter`; general per-user limit later)*
 
 Per IP and per account on login, OTP verify, password reset, invitation accept, exports; general per-user limit on all endpoints. Exceeding ⇒ `429 RATE_LIMITED` with `Retry-After`.
 
@@ -85,4 +89,23 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 |---|---|---|---|---|
 | GET | `/api/v1/health` | Public | Readiness: 200 if all dependencies up, 503 otherwise. Body `healthResponseSchema`. No versions or error details. | 1.1 |
 | GET | `/api/v1/health/live` | Public | Liveness: process running. Always 200 `{ "status": "ok" }`. | 1.1 |
+| POST | `/api/v1/auth/sign-up` | Public | `{ email, password, name, locale? }` → `202 { status: "accepted" }` (same for existing emails) | 1.3a |
+| GET | `/api/v1/auth/verify-email?token=` | Public | Confirms the email → `{ status: "ok" }`; bad token ⇒ `400 INVALID_TOKEN` | 1.3a |
+| POST | `/api/v1/auth/verify-email/resend` | Public | `{ email }` → `202` always | 1.3a |
+| POST | `/api/v1/auth/sign-in` | Public | `{ email, password, rememberMe? }` → `{ status: "signed_in", user }` + session cookie, or `{ status: "two_factor_required" }`; `401 INVALID_CREDENTIALS`, `403 EMAIL_NOT_VERIFIED`, `429 RATE_LIMITED` | 1.3a |
+| POST | `/api/v1/auth/two-factor/verify` | Pending 2FA | `{ code, trustDevice? }` → signed in; `401 INVALID_CODE` (wrong or replayed) | 1.3a |
+| POST | `/api/v1/auth/two-factor/verify-backup-code` | Pending 2FA | `{ code, trustDevice? }` → signed in (each code once) | 1.3a |
+| POST | `/api/v1/auth/sign-out` | Session | Ends this session | 1.3a |
+| GET | `/api/v1/auth/me` | Session | `{ user, session }` | 1.3a |
+| POST | `/api/v1/auth/password/forgot` | Public | `{ email }` → `202` always | 1.3a |
+| GET | `/api/v1/auth/password/reset?token=` | Public | Is the reset link still valid? (does not use it) | 1.3a |
+| POST | `/api/v1/auth/password/reset` | Public | `{ token, newPassword }`; revokes all sessions | 1.3a |
+| POST | `/api/v1/auth/password/change` | Session | `{ currentPassword, newPassword }`; revokes other sessions | 1.3a |
+| POST | `/api/v1/auth/two-factor/enable` | Session | `{ password }` → `{ totpUri, backupCodes }` (inactive until confirmed) | 1.3a |
+| POST | `/api/v1/auth/two-factor/confirm` | Session | `{ code }` activates two-factor | 1.3a |
+| POST | `/api/v1/auth/two-factor/disable` | Session | `{ password }` | 1.3a |
+| POST | `/api/v1/auth/two-factor/backup-codes` | Session | `{ password }` → new `{ backupCodes }` | 1.3a |
+| GET | `/api/v1/auth/sessions` | Session | Own sessions (no tokens) | 1.3a |
+| DELETE | `/api/v1/auth/sessions/:id` | Session | Revoke one own session (others' IDs ⇒ 404) | 1.3a |
+| POST | `/api/v1/auth/sessions/revoke-others` | Session | Revoke all other own sessions | 1.3a |
 | GET | `/api/v1/tenant` | Public, tenant host | Public profile of the company owning the host: `{ slug, name: { en, ar }, defaultLocale }` (`tenantPublicProfileSchema`). Unknown/unverified/suspended host ⇒ 404. Database unavailable ⇒ 503. | 1.2 |

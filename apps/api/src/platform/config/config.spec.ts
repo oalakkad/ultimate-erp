@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { ConfigError, loadConfig } from './config.js';
 
 const SECRET = 'super-secret-password-123';
-const valid = { DATABASE_URL: `postgres://erp:${SECRET}@127.0.0.1:5432/erp` };
+const valid = {
+  DATABASE_URL: `postgres://erp:${SECRET}@127.0.0.1:5432/erp`,
+  AUTH_SECRET: 'x'.repeat(32),
+  APP_PUBLIC_URL: 'http://localhost:3000',
+};
 
 function errorMessage(fn: () => unknown): string {
   try {
@@ -55,6 +59,22 @@ describe('loadConfig', () => {
     ['DATABASE_URL', 'mysql://localhost/erp'],
   ])('rejects an invalid %s (%s)', (key, value) => {
     expect(errorMessage(() => loadConfig({ ...valid, [key]: value }))).toContain(key);
+  });
+
+  it('refuses a short AUTH_SECRET and missing APP_PUBLIC_URL', () => {
+    expect(errorMessage(() => loadConfig({ ...valid, AUTH_SECRET: 'short' }))).toContain(
+      'AUTH_SECRET',
+    );
+    const withoutUrl = { DATABASE_URL: valid.DATABASE_URL, AUTH_SECRET: valid.AUTH_SECRET };
+    expect(errorMessage(() => loadConfig(withoutUrl))).toContain('APP_PUBLIC_URL');
+  });
+
+  it('requires https and a real mail server in production', () => {
+    const message = errorMessage(() =>
+      loadConfig({ ...valid, NODE_ENV: 'production', APP_PROFILE: 'saas' }),
+    );
+    expect(message).toContain('APP_PUBLIC_URL');
+    expect(message).toContain('SMTP_HOST');
   });
 
   it('rejects pretty logs and the dev profile in production', () => {

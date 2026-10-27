@@ -3,7 +3,7 @@
 Last updated: 2026-10-24
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). **Milestone 1.2 (tenancy & isolation) tested by the owner and approved 2026-10-25.** Next: Milestone 1.3 plan awaiting owner decisions. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). **Milestone 1.3a (identity) tested by the owner and approved 2026-10-27.** Next: Milestone 1.3b plan awaiting owner decisions. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -58,22 +58,24 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). **Mile
   - Commands: `pnpm db:setup` (in `pnpm dev`), `db:seed`, `db:generate`.
   - Tests: 80 passing (contracts 5, db isolation 31, api 44). Mutation-checked.
 
-## How to verify Milestone 1.2
-1. `pnpm check` → contracts `5 passed`, db `31 passed`, api `44 passed`.
-2. `pnpm security` → `No known vulnerabilities found`, `Licence check passed`, `no leaks found`.
-3. Docker Desktop running, then `pnpm db:seed` (starts services itself) and `pnpm dev`; in a browser or a second terminal (`curl.exe` in PowerShell):
-   - `curl http://acme.localhost:3000/api/v1/tenant` → `{"slug":"acme",...}`
-   - `curl http://globex.localhost:3000/api/v1/tenant` → `{"slug":"globex",...}`
-   - `curl http://nobody.localhost:3000/api/v1/tenant` → `{"error":{"code":"NOT_FOUND",...}}`
-   - `curl -H "X-Forwarded-Host: globex.localhost" http://acme.localhost:3000/api/v1/tenant` → still acme.
+- **Milestone 1.3a — Identity** (2026-10-25, owner-tested and approved 2026-10-27; email links made clickable during owner testing): Better Auth 1.7.13 behind our own `/api/v1/auth` endpoints (spec: `modules/identity.md`): sign-up with email verification (Mailpit), enumeration-safe answers, sign-in, lockout after 5 failures + email, per-IP limits (Postgres-backed), TOTP two-factor with replay protection, single-use backup codes, trusted device, password forgot/reset/change with breached-password check, sessions list/revoke (30 min idle / 12 h absolute), new-device notices, CSRF origin check, strict validation, bilingual emails (`packages/i18n`), query-string redaction in logs, telemetry off, hashed tokens. Tests: 131 passing; four protections mutation-checked.
+
+## How to verify Milestone 1.3a
+1. `pnpm check` → i18n `4 passed`, contracts `5 passed`, db `32 passed`, api `90 passed`.
+2. `pnpm security` → `Severity: 1 moderate` (accepted, see security.md §2b), `Licence check passed`, `no leaks found`.
+3. `pnpm dev`, then the PowerShell walkthrough in the newest `session-log.md` entry (sign-up → email in http://localhost:8025 → verify → sign-in → me → sessions → sign-out).
 
 ## Known issues
 - CI workflow not yet run on GitHub (no remote). Locally the identical steps pass.
 - Turborepo sends anonymous usage telemetry by default; opt out with `pnpm turbo telemetry disable` if preferred.
 - multer override must be removed once @nestjs/platform-express ships multer ≥ 2.5.0 (check on each NestJS upgrade).
-- `users` table has no row-level rules yet (global identity); to decide with Better Auth in 1.3.
+- Identity tables are global by design (decision in `modules/identity.md` §3), protected by module ownership + lint, not RLS.
+- Emails are sent synchronously (no retry yet) → Milestone 1.5 outbox.
+- Arabic email texts are machine-drafted; native-speaker review needed before release.
+- Accepted moderate advisory GHSA-67mh-4wv8-2f99 (esbuild dev server, unused) — security.md §2b.
+- Right after enabling two-factor, the code just used cannot sign in again (replay protection); wait for the next code.
 - `erp_platform` is NOLOGIN until platform-operator features are designed.
 - Not yet built by design: login/RBAC/audit (1.3), web app (1.4), worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Owner verifies Milestone 1.2 (steps above) and approves → Milestone 1.3 (Identity & access: Better Auth, MFA, sessions, onboarding, invitations, RBAC, audit log, OpenAPI, validation). See the newest entry in `session-log.md`.
+Owner verifies Milestone 1.3a and approves (and says whether to commit) → Milestone 1.3b (onboarding, invitations, RBAC + scopes, MFA enforcement for sensitive roles, audit log, OpenAPI). See the newest entry in `session-log.md`.

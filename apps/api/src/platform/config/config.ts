@@ -34,6 +34,23 @@ export const configSchema = z
       .string()
       .regex(/^\d+(kb|mb)$/, 'must look like 100kb or 1mb')
       .default('1mb'),
+
+    // Identity (Milestone 1.3a)
+    /** Signs cookies and encrypts two-factor secrets. Never defaulted; rotate with care. */
+    AUTH_SECRET: z.string().min(32, 'must be at least 32 characters'),
+    /** Public base URL of this API, used in email links and cookie security. */
+    APP_PUBLIC_URL: z.url({ protocol: /^https?$/ }),
+    SMTP_HOST: z.string().min(1).default('127.0.0.1'),
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(1025),
+    SMTP_SECURE: flag.default(false),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASSWORD: z.string().optional(),
+    SMTP_FROM: z.string().min(3).default('Ultimate ERP <no-reply@localhost>'),
+    /** Have I Been Pwned range check. Turn off for on-prem installs without internet access. */
+    PASSWORD_BREACH_CHECK: flag.default(true),
+    PASSWORD_BREACH_API_URL: z
+      .url({ protocol: /^https?$/ })
+      .default('https://api.pwnedpasswords.com'),
   })
   .superRefine((config, ctx) => {
     if (config.NODE_ENV === 'production' && config.LOG_PRETTY) {
@@ -41,6 +58,23 @@ export const configSchema = z
         code: 'custom',
         path: ['LOG_PRETTY'],
         message: 'must be false in production',
+      });
+    }
+    if (config.NODE_ENV === 'production' && !config.APP_PUBLIC_URL.startsWith('https://')) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['APP_PUBLIC_URL'],
+        message: 'must use https in production',
+      });
+    }
+    if (
+      config.NODE_ENV === 'production' &&
+      ['127.0.0.1', 'localhost', '::1'].includes(config.SMTP_HOST)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SMTP_HOST'],
+        message: 'must be a real mail server in production',
       });
     }
     if (config.NODE_ENV === 'production' && config.APP_PROFILE === 'dev') {

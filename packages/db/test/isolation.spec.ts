@@ -160,6 +160,29 @@ describe('every tenant-owned table is protected (catalog guard for future tables
     }
   });
 
+  it('tables without tenant_id are exactly the reviewed global tables', async () => {
+    // Adding a table here is a security decision: it will be visible regardless of tenant.
+    const { rows } = await migratorPool.query<{ table: string }>(`
+      select c.relname as table
+      from pg_class c join pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public' and c.relkind = 'r'
+        and not exists (select 1 from pg_attribute a
+                        where a.attrelid = c.oid and a.attname = 'tenant_id' and not a.attisdropped)
+      order by 1
+    `);
+    expect(rows.map((r) => r.table)).toEqual([
+      'accounts',
+      'rate_limit_buckets',
+      'sessions',
+      'tenants',
+      'two_factors',
+      'used_totp_codes',
+      'user_known_devices',
+      'users',
+      'verifications',
+    ]);
+  });
+
   it('the tenants table itself is protected', async () => {
     const { rows } = await migratorPool.query(
       `select relrowsecurity, relforcerowsecurity from pg_class where relname = 'tenants'`,

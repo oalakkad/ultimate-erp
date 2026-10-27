@@ -70,8 +70,8 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | User assigning themselves elevated privileges | 1.3 |
 | Unauthorized user modifying payroll | 11 |
 | Duplicate payment or time-entry submissions (idempotency) | 7, 12 |
-| Expired or reused OTPs | 1.3 |
-| Invalid session and invitation tokens | 1.3 |
+| Expired or reused OTPs | 1.3a ✅ |
+| Invalid session and invitation tokens | sessions ✅ 1.3a; invitations 1.3b |
 | Concurrent hour allocations exceeding a budget | 6 |
 | Invalid status transitions | 4 onward (every state machine) |
 | Invalid or malicious file uploads | 1.5 |
@@ -92,4 +92,5 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 1.3a | + identity suite against real Postgres **and real Mailpit** (31: verification, enumeration, validation, breached passwords, lockout, IP limits, fixation, CSRF, new-device notice, sessions incl. idle/absolute expiry, reset single-use/expiry/hashing, password change, 2FA incl. replay, backup codes, trusted device, encrypted secrets) + unit tests (breach checker fail-open, error mapping, log redaction, i18n catalogs) + global-table guard | 134 passed (i18n 4, contracts 5, db 32, api 93 incl. mailer HTML) |
 | 1.2 | + 31 db isolation (roles, catalog guard, fail-closed, cross-tenant read/list/update/delete/insert/move/link, rollback, host resolution, platform role, idempotent migrations) + API tenancy (host routing, spoofed headers, client-supplied IDs, unsafe role) | 80 passed (5 + 31 + 44) |

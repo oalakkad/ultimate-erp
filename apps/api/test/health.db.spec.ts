@@ -5,7 +5,7 @@ import { startTestDatabase, type TestDatabase } from '@ultimate-erp/db/testing';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/bootstrap.js';
-import { loadConfig } from '../src/platform/config/config.js';
+import { testConfig } from './support/config.js';
 
 // Runs against a real, throwaway Postgres in Docker, set up exactly like an installation.
 describe('GET /api/v1/health with a real database', () => {
@@ -17,7 +17,7 @@ describe('GET /api/v1/health with a real database', () => {
   beforeAll(async () => {
     database = await startTestDatabase();
     app = await createApp(
-      loadConfig({
+      testConfig({
         NODE_ENV: 'test',
         DATABASE_URL: database.appUrl,
         LOG_LEVEL: 'silent',

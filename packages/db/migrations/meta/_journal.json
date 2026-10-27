@@ -15,6 +15,20 @@
       "when": 1792867090655,
       "tag": "0001_foundation_security",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792946755226,
+      "tag": "0002_identity_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792946756129,
+      "tag": "0003_identity_security",
+      "breakpoints": true
     }
   ]
 }

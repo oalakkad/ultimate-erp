@@ -1,8 +1,9 @@
 import { type DynamicModule, Module } from '@nestjs/common';
 import { API_PREFIX } from '@ultimate-erp/contracts';
 import { LoggerModule } from 'nestjs-pino';
+import { stdSerializers } from 'pino';
 import { type AppConfig } from '../config/config.js';
-import { buildLoggerOptions } from './logger-options.js';
+import { buildLoggerOptions, redactRequestForLog } from './logger-options.js';
 
 @Module({})
 export class LoggingModule {
@@ -16,6 +17,7 @@ export class LoggingModule {
             // The request ID is assigned earlier by requestIdMiddleware.
             genReqId: (req) => req.id,
             customAttributeKeys: { reqId: 'requestId' },
+            serializers: { req: stdSerializers.wrapRequestSerializer(redactRequestForLog) },
             autoLogging: { ignore: (req) => req.url === `/${API_PREFIX}/health/live` },
           },
         }),

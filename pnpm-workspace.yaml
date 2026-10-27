@@ -22,3 +22,13 @@ allowBuilds:
 overrides:
   # GHSA-q7qp-rjg7-q26m (high, DoS). Pulled in by @nestjs/platform-express 12.2.0, which pins 2.4.0.
   multer: 2.5.0
+
+minimumReleaseAgeExclude:
+  - '@better-auth/core@1.7.13'
+  - '@better-auth/drizzle-adapter@1.7.13'
+  - '@better-auth/kysely-adapter@1.7.13'
+  - '@better-auth/memory-adapter@1.7.13'
+  - '@better-auth/mongo-adapter@1.7.13'
+  - '@better-auth/prisma-adapter@1.7.13'
+  - '@better-auth/telemetry@1.7.13'
+  - better-auth@1.7.13

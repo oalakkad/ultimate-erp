@@ -30,7 +30,17 @@ const MESSAGE_BY_CODE: Record<ErrorCode, string> = {
   RATE_LIMITED: 'Too many requests. Try again later.',
   INTERNAL_ERROR: 'An unexpected error occurred.',
   SERVICE_UNAVAILABLE: 'The service is temporarily unavailable.',
+  INVALID_CREDENTIALS: 'The email or password is incorrect.',
+  EMAIL_NOT_VERIFIED: 'The email address has not been verified yet.',
+  INVALID_TOKEN: 'The link is invalid or has expired.',
+  INVALID_CODE: 'The code is invalid or has expired.',
+  PASSWORD_COMPROMISED: 'This password appears in known data breaches; choose another.',
 };
+
+/** The standard developer-facing message for an error code. */
+export function messageFor(code: ErrorCode): string {
+  return MESSAGE_BY_CODE[code];
+}
 
 export interface MappedError {
   status: number;

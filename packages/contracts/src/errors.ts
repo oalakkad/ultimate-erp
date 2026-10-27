@@ -18,6 +18,12 @@ export const ERROR_CODES = [
   'RATE_LIMITED',
   'INTERNAL_ERROR',
   'SERVICE_UNAVAILABLE',
+  // Identity (Milestone 1.3a)
+  'INVALID_CREDENTIALS',
+  'EMAIL_NOT_VERIFIED',
+  'INVALID_TOKEN',
+  'INVALID_CODE',
+  'PASSWORD_COMPROMISED',
 ] as const;
 
 export const errorCodeSchema = z.enum(ERROR_CODES);

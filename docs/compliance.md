@@ -61,7 +61,13 @@ References: ASVS = OWASP ASVS 5.0 chapter; ISO = ISO/IEC 27002:2022 control. Map
 | Tenant isolation (RLS forced, composite FKs, `withTenant`, safe-role check, host resolution) | ASVS V8, ISO 8.3 | `packages/db/migrations/0001_foundation_security.sql`, `packages/db/src/tenant.ts`, `apps/api/src/platform/database/`, `apps/api/src/modules/tenancy/` | `packages/db/test/isolation.spec.ts` (31, incl. catalog guard; mutation-checked: weakening a policy fails 10 tests), `apps/api/test/tenancy.spec.ts` | Implemented 1.2 |
 | Least-privilege database roles (separate migrator / app / platform) | ASVS V13, ISO 8.2 / 8.18 | `packages/db/src/admin.ts`, migration grants | `isolation.spec.ts` "database roles", "platform role" | Implemented 1.2 |
 | Module boundaries: no circular imports, no raw DB access from modules | ISO 8.28 | `eslint.config.js` (import-x/no-cycle, no-restricted-imports) | Lint in CI (verified with planted violations) | Implemented 1.2 |
-| Authentication, MFA, sessions, rate limits | ASVS V6/V7/V2, ISO 8.5 | — | Auth integration tests | Outstanding (1.3) |
+| Authentication: verified email, scrypt passwords ≥ 12 chars, breached-password check, enumeration-safe answers | ASVS V6, ISO 8.5 | `modules/identity/`, Better Auth 1.7.13 | `identity.spec.ts` (sign-up & sign-in suites), `breached-password.spec.ts` | Implemented 1.3a |
+| MFA: TOTP + single-use backup codes, encrypted secrets, replay ledger, lockout, trusted device | ASVS V6.6, ISO 8.5 | `identity.service.ts`, two-factor plugin | `identity.spec.ts` two-factor suite; mutation-checked (replay) | Implemented 1.3a (role-based enforcement 1.3b) |
+| Sessions: httpOnly SameSite cookies, 30 min idle / 12 h absolute, list/revoke, fixation-safe | ASVS V7, ISO 8.5 | `identity.service.ts`, `session.guard.ts` | `identity.spec.ts` sessions suite; mutation-checked (absolute lifetime) | Implemented 1.3a |
+| Brute-force protection: per-IP and per-account limits, account lock + notice | ASVS V6.3, ISO 8.5 | `platform/rate-limit/` | `identity.spec.ts`; mutation-checked (lockout) | Implemented 1.3a |
+| CSRF: Origin check on state-changing requests + SameSite | ASVS V3.5, ISO 8.26 | `origin-check.middleware.ts` | `identity.spec.ts`; mutation-checked | Implemented 1.3a |
+| Strict input validation (unknown fields rejected) | ASVS V2, ISO 8.28 | `zod-validation.pipe.ts`, contracts | `identity.spec.ts` | Implemented 1.3a |
+| Tokens never stored or logged in clear (hashed verification identifiers; query values redacted in logs) | ASVS V7/V16, ISO 8.11/8.15 | `auth.ts`, `logger-options.ts` | `identity.spec.ts`, `logger-options.spec.ts` | Implemented 1.3a |
 | Authorization (RBAC + scopes, server-side) | ASVS V8, ISO 8.2 / 5.15 | — | Permission matrix suite | Outstanding (1.3) |
 | Append-only audit log | ASVS V16, ISO 8.15 | — | Audit tests | Outstanding (1.3) |
 | Error monitoring and alerting | ISO 8.16 | — | — | Outstanding (1.5) |

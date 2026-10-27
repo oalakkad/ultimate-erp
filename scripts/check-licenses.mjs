@@ -12,6 +12,8 @@ const ALLOWED = new Set([
   'BlueOak-1.0.0',
   'Unlicense',
   'CC0-1.0',
+  // MIT No Attribution: MIT without even the notice requirement (nodemailer). Reviewed 2026-10-25.
+  'MIT-0',
 ]);
 
 // Reviewed exceptions: "package-name": "reason and date".

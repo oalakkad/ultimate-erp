@@ -7,7 +7,7 @@ import pg from 'pg';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/bootstrap.js';
-import { loadConfig } from '../src/platform/config/config.js';
+import { testConfig } from './support/config.js';
 
 // Tenant routing over HTTP against a real database (ADR-0003, testing.md §3).
 
@@ -18,7 +18,7 @@ let globexId: string;
 
 async function startApp(databaseUrl: string): Promise<INestApplication> {
   const instance = await createApp(
-    loadConfig({ NODE_ENV: 'test', DATABASE_URL: databaseUrl, LOG_LEVEL: 'silent' }),
+    testConfig({ NODE_ENV: 'test', DATABASE_URL: databaseUrl, LOG_LEVEL: 'silent' }),
   );
   await instance.init();
   return instance;

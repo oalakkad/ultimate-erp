@@ -4,7 +4,7 @@ Purpose: every requirement in the owner's master project prompt (the "product br
 
 Status: ✅ done · 🟡 designed / partly built · ⏳ scheduled · ❓ needs owner decision
 
-Last reviewed: 2026-10-24 (after Milestone 1.2). Source: `docs/product-brief.md` (§1–25, complete).
+Last reviewed: 2026-10-25 (after Milestone 1.3a). Source: `docs/product-brief.md` (§1–25, complete).
 
 ## §1 Role & §19 Teaching
 | Requirement | Where / how | Status |
@@ -75,10 +75,10 @@ Last reviewed: 2026-10-24 (after Milestone 1.2). Source: `docs/product-brief.md`
 ## §8 Authentication & security
 | Requirement | Where | Status |
 |---|---|---|
-| Established auth framework (Better Auth ≥ 1.6.11), no homemade OTP | ADR-0004 | ⏳ 1.3 |
-| Email verification, MFA (TOTP + email OTP), recovery codes, password reset | ADR-0004 | ⏳ 1.3 |
-| Sessions: expiry, logout one/all, remembered devices | security.md §2, §2a | ⏳ 1.3 |
-| Rate limiting, credential stuffing, progressive throttling, suspicious login | security.md R3, §2a | ⏳ 1.3 |
+| Established auth framework (Better Auth 1.7.13), no homemade OTP | ADR-0004, modules/identity.md | ✅ 1.3a |
+| Email verification, MFA (TOTP), recovery codes, password reset | modules/identity.md | ✅ 1.3a (email-OTP sign-in deliberately not enabled, ADR-0004 amendment) |
+| Sessions: expiry, logout one/all, remembered devices | modules/identity.md | ✅ 1.3a (no remembered device for sensitive roles: 1.3b) |
+| Rate limiting, credential stuffing, progressive throttling, suspicious login | modules/identity.md | ✅ 1.3a |
 | Secure invitation acceptance | ADR-0004 | ⏳ 1.3 |
 | Defences: access control, SQLi, XSS, CSRF, SSRF, IDOR, session fixation, brute force, mass assignment, uploads, data exposure, reset, CORS, secrets, dependencies | security.md R1–R15, §2a | 🟡 CORS, secrets, deps, headers, error leakage ✅ 1.1; rest scheduled |
 | Security headers, no stack traces | bootstrap.ts | ✅ 1.1 |
@@ -141,7 +141,7 @@ Last reviewed: 2026-10-24 (after Milestone 1.2). Source: `docs/product-brief.md`
 | Requirement | Where | Status |
 |---|---|---|
 | Consistent conventions, error codes, request tracing, structured logging, versioning | api.md, 1.1 code | ✅ 1.1 |
-| Validated schemas, pagination, filtering, sorting, rate limits, idempotency, API docs | api.md §5–9 | ⏳ 1.3 / Phase 3+ |
+| Validated schemas, pagination, filtering, sorting, rate limits, idempotency, API docs | api.md §5–9 | 🟡 validation + auth rate limits ✅ 1.3a; OpenAPI 1.3b; rest Phase 3+ |
 | Auth middleware, authorization policies, tenant-scoped access | ADR-0003/0004, permissions.md | 🟡 tenant-scoped access ✅ 1.2; auth/authz ⏳ 1.3 |
 | Safe file handling, background processing | roadmap 1.5 | ⏳ 1.5 |
 
@@ -223,7 +223,7 @@ Last reviewed: 2026-10-24 (after Milestone 1.2). Source: `docs/product-brief.md`
 | Criterion | Status |
 |---|---|
 | Premium coherent UI, reusable components | ⏳ 1.4 → |
-| Secure auth + MFA | ⏳ 1.3 |
+| Secure auth + MFA | 🟡 ✅ 1.3a; role-based MFA enforcement 1.3b |
 | Reliable tenant isolation | 🟡 foundation ✅ 1.2, extended per module |
 | Server-enforced authorization; business vs technical admin separated | ⏳ 1.3 |
 | Correct record relationships; accurate budgets/allocations; planned vs actual hours | ⏳ 3–7 |

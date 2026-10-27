@@ -50,7 +50,7 @@ export class DatabaseModule implements OnApplicationShutdown {
         DatabaseRoleCheck,
         TenantDatabase,
       ],
-      exports: [DB_POOL, DatabaseRoleCheck, TenantDatabase],
+      exports: [DB_POOL, DB, DatabaseRoleCheck, TenantDatabase],
     };
   }
 
