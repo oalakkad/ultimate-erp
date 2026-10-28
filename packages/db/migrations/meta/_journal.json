@@ -43,6 +43,20 @@
       "when": 1793121276471,
       "tag": "0005_access_security",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793210231131,
+      "tag": "0006_handoff_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793210231959,
+      "tag": "0007_handoff_security",
+      "breakpoints": true
     }
   ]
 }

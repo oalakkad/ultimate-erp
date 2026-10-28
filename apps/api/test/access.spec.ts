@@ -5,9 +5,11 @@ import {
   auditListResponseSchema,
   createCompanyResponseSchema,
   errorResponseSchema,
+  handoffResponseSchema,
   invitationListResponseSchema,
   invitationPreviewResponseSchema,
   memberListResponseSchema,
+  myCompaniesResponseSchema,
   type Role,
   twoFactorSetupResponseSchema,
 } from '@ultimate-erp/contracts';
@@ -465,6 +467,112 @@ describe('trusted devices and sensitive roles', () => {
       password: PASSWORD,
     });
     expect(after.body).toEqual({ status: 'two_factor_required' });
+  });
+});
+
+describe('company hand-off (sign in once)', () => {
+  async function handoffUrl(p: Person, tenantId: string): Promise<URL> {
+    const res = await p.post('/api/v1/auth/handoff', { tenantId });
+    expect(res.status, JSON.stringify(res.body)).toBe(200);
+    return new URL(handoffResponseSchema.parse(res.body).url);
+  }
+
+  async function companyId(p: Person, slug: string): Promise<string> {
+    const { companies } = myCompaniesResponseSchema.parse(
+      (await p.get('/api/v1/auth/companies')).body,
+    );
+    const found = companies.find((c) => c.slug === slug);
+    if (!found) throw new Error(`${slug} not in my companies`);
+    return found.tenantId;
+  }
+
+  it('lists my companies with their web address', async () => {
+    const { owner, slug } = await founder();
+    const { companies } = myCompaniesResponseSchema.parse(
+      (await owner.get('/api/v1/auth/companies')).body,
+    );
+    expect(companies).toEqual([
+      expect.objectContaining({
+        slug,
+        url: `http://${slug}.localhost:3000`,
+        roles: ['ceo', 'owner'],
+      }),
+    ]);
+  });
+
+  it('moves a signed-in person to the company address with a single-use ticket', async () => {
+    const { owner, slug, host } = await founder();
+    const url = await handoffUrl(owner, await companyId(owner, slug));
+    expect(url.host).toBe(`${slug}.localhost:3000`);
+    expect(url.pathname).toBe('/handoff');
+    const ticket = url.searchParams.get('ticket') ?? '';
+
+    const browser = browserFor(owner.email); // a fresh browser: no cookies at all
+    const redeemed = await browser.post('/api/v1/auth/handoff/redeem', { ticket }, host);
+    expect(redeemed.status).toBe(200);
+    expect((await browser.get('/api/v1/access/me', host)).status).toBe(200);
+
+    const replay = await browserFor(owner.email).post(
+      '/api/v1/auth/handoff/redeem',
+      { ticket },
+      host,
+    );
+    expect(replay.status).toBe(400);
+    expect(errorCode(replay)).toBe('INVALID_TOKEN');
+  });
+
+  it('a ticket works only on its own company address', async () => {
+    const one = await founder();
+    const two = await founder();
+    const url = await handoffUrl(one.owner, await companyId(one.owner, one.slug));
+    const ticket = url.searchParams.get('ticket') ?? '';
+    const wrongHost = await browserFor(one.owner.email).post(
+      '/api/v1/auth/handoff/redeem',
+      { ticket },
+      two.host,
+    );
+    expect(wrongHost.status).toBe(400);
+    // Still unused: the right company can redeem it.
+    expect(
+      (await browserFor(one.owner.email).post('/api/v1/auth/handoff/redeem', { ticket }, one.host))
+        .status,
+    ).toBe(200);
+  });
+
+  it('expired tickets are refused', async () => {
+    const { owner, slug, host } = await founder();
+    const ticket =
+      (await handoffUrl(owner, await companyId(owner, slug))).searchParams.get('ticket') ?? '';
+    await admin.query(`update handoff_tickets set expires_at = now() - interval '1 second'`);
+    expect(
+      (await browserFor(owner.email).post('/api/v1/auth/handoff/redeem', { ticket }, host)).status,
+    ).toBe(400);
+  });
+
+  it('cannot hand off into a company I do not belong to', async () => {
+    const { owner, slug } = await founder();
+    const tenantId = await companyId(owner, slug);
+    const stranger = await person('stranger');
+    expect((await stranger.post('/api/v1/auth/handoff', { tenantId })).status).toBe(404);
+  });
+
+  it('the new session keeps the original sign-in time (12-hour limit cannot be extended)', async () => {
+    const { owner, slug, host } = await founder();
+    await admin.query(
+      `update sessions set authenticated_at = now() - interval '11 hours'
+       where user_id = (select id from users where lower(email) = $1)`,
+      [owner.email],
+    );
+    const ticket =
+      (await handoffUrl(owner, await companyId(owner, slug))).searchParams.get('ticket') ?? '';
+    const browser = browserFor(owner.email);
+    await browser.post('/api/v1/auth/handoff/redeem', { ticket }, host);
+    const { rows } = await admin.query<{ hours: number }>(
+      `select extract(epoch from now() - max(s.authenticated_at)) / 3600 as hours
+       from sessions s join users u on u.id = s.user_id where lower(u.email) = $1`,
+      [owner.email],
+    );
+    expect(Number(rows[0]?.hours)).toBeGreaterThan(10.9);
   });
 });
 

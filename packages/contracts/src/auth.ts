@@ -93,3 +93,28 @@ export const twoFactorSetupResponseSchema = z
 export const backupCodesResponseSchema = z.object({ backupCodes: z.array(z.string()) }).strict();
 
 export const okResponseSchema = z.object({ status: z.literal('ok') }).strict();
+
+// --- Companies and hand-off (Milestone 1.4b) --------------------------------------------------
+
+export const myCompanySchema = z
+  .object({
+    tenantId: z.uuid(),
+    slug: z.string(),
+    name: z.object({ en: z.string(), ar: z.string() }).strict(),
+    defaultLocale: localeSchema,
+    url: z.string(),
+    roles: z.array(z.string()),
+  })
+  .strict();
+export const myCompaniesResponseSchema = z.object({ companies: z.array(myCompanySchema) }).strict();
+export type MyCompany = z.infer<typeof myCompanySchema>;
+
+export const handoffRequestSchema = z.object({ tenantId: z.uuid() }).strict();
+/** Where to send the browser: the company address with a one-time ticket. */
+export const handoffResponseSchema = z.object({ url: z.string() }).strict();
+export const redeemHandoffRequestSchema = z.object({ ticket: z.string().min(1).max(200) }).strict();
+
+export const updateMeRequestSchema = z
+  .object({ name: z.string().trim().min(1).max(100).optional(), locale: localeSchema.optional() })
+  .strict()
+  .refine((body) => body.name !== undefined || body.locale !== undefined, 'nothing to update');

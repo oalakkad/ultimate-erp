@@ -9,26 +9,35 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests --dir src",
-    "e2e": "playwright test"
+    "e2e": "playwright test --project=ui",
+    "e2e:journey": "playwright test --project=journey"
   },
   "dependencies": {
+    "@hookform/resolvers": "6.0.2",
     "@tanstack/react-query": "5.105.0",
     "@tanstack/react-router": "1.170.46",
     "@ultimate-erp/contracts": "workspace:*",
     "@ultimate-erp/i18n": "workspace:*",
     "@ultimate-erp/ui": "workspace:*",
     "lucide-react": "1.63.0",
+    "qrcode": "1.5.4",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "react-hook-form": "7.91.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
+    "@better-auth/utils": "0.5.1",
     "@playwright/test": "1.64.1",
     "@tailwindcss/vite": "4.3.3",
+    "@types/pg": "8.23.1",
+    "@types/qrcode": "1.5.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@ultimate-erp/config": "workspace:*",
     "@vitejs/plugin-react": "6.1.2",
+    "pg": "8.23.1",
     "tailwindcss": "4.3.3",
     "vite": "8.3.5",
     "vitest": "5.0.5"

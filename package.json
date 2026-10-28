@@ -29,7 +29,8 @@
     "secrets:scan": "node scripts/scan-secrets.mjs",
     "security": "pnpm audit:prod && pnpm licenses:check && pnpm secrets:scan",
     "http": "node scripts/dev-http.mjs",
-    "e2e": "turbo run build && pnpm --filter @ultimate-erp/web e2e"
+    "e2e": "turbo run build && pnpm --filter @ultimate-erp/web e2e",
+    "e2e:journey": "turbo run build && pnpm --filter @ultimate-erp/web e2e:journey"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

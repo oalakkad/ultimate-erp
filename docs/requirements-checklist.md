@@ -48,10 +48,10 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Tokens: color, type, spacing, radii, shadows, layout, breakpoints, icons | design-system.md §2, packages/ui | ✅ 1.4a |
 | Components: buttons … permission-denied states (full list in brief) | modules/web-ui.md §2 | 🟡 core set ✅ 1.4a; tables, pagination, filters, breadcrumbs, date picker, searchable select with their first use |
 | Animations with reduced-motion; none on dense/financial data | packages/ui | 🟡 transitions + reduced-motion ✅ 1.4a; richer motion with flows |
-| Tables: sort, filter, search, column control, pagination | design-system.md §4, api.md §7 | ⏳ 1.4 / Phase 3 |
+| Tables: sort, filter, search, column control, pagination | design-system.md §4, api.md §7 | 🟡 simple members table 1.4b; full data tables ⏳ Phase 3 |
 | Command palette / global search | design-system.md §3 (Ctrl K), roadmap Phase 2 | ⏳ Phase 2 |
 | Dark mode | packages/ui tokens | ✅ 1.4a |
-| Keyboard accessibility, WCAG 2.2 AA | e2e/gallery.spec.ts | 🟡 components ✅ 1.4a; every screen 1.4b |
+| Keyboard accessibility, WCAG 2.2 AA | e2e/gallery.spec.ts, e2e/journey.spec.ts | ✅ components 1.4a; every 1.4b screen axe-checked EN/AR (new screens: per module) |
 | Contextual help, smart defaults, confirmations for destructive actions | design-system.md §4 | ⏳ per module |
 
 ## §6 Multi-tenant architecture
@@ -150,12 +150,12 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Measurable targets, profiling before optimizing | architecture §7b | 🟡 provisional targets |
 | Pagination, indexes, code splitting, lazy loading, background jobs, request cancellation, slow-request monitoring | api.md §7, architecture §7b, roadmap 1.5 | ⏳ |
-| Desktop / tablet / mobile web layouts | design-system (breakpoints in 1.4) | ⏳ 1.4 |
+| Desktop / tablet / mobile web layouts | design-system (breakpoints 1.4a) | 🟡 desktop + tablet verified; phone navigation drawer ⏳ Phase 2 |
 
 ## §16 Testing
 | Requirement | Where | Status |
 |---|---|---|
-| Unit, integration, E2E strategy | testing.md §1 | 🟡 unit + integration ✅ 1.1; E2E ⏳ 1.4 |
+| Unit, integration, E2E strategy | testing.md §1 | ✅ unit + integration 1.1; E2E 1.4a/1.4b (full-stack journey in CI) |
 | 20 required E2E workflows mapped to phases | testing.md §4 | ✅ mapped |
 | Negative & security tests mapped | testing.md §5 | ✅ mapped |
 | Definition of done | CLAUDE.md, this file | ✅ |
@@ -164,7 +164,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Requirement | Where | Status |
 |---|---|---|
 | Consistent errors, safe logging, correlation IDs, health + DB health, graceful dependency failure | 1.1 code, api.md §3–4 | ✅ 1.1 |
-| User-friendly (translated) error messages | ADR-0006, error codes | ⏳ 1.4 |
+| User-friendly (translated) error messages | ADR-0006, error codes, apps/web/src/lib/errors.ts | ✅ 1.4b (every code EN/AR, unit-tested; request reference shown) |
 | Error monitoring, job-failure monitoring, retries, alerting | roadmap 1.5 | ⏳ 1.5 |
 | Never blindly retry non-idempotent financial operations | api.md §8 | ✅ rule |
 
@@ -214,7 +214,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Premium from first usable version; coherent single view | design-system.md, roadmap Phase 2 | ⏳ 2 |
 | Navigation hierarchy: overview, clients, contracts, projects & budgets, tasks & allocation, team, timesheets, leave, attendance, payroll, invoicing, notifications, reports, audit, settings, security | roadmap Phase 2 scope | ⏳ 2 |
-| Nav groups, collapsible sections, breadcrumbs, contextual actions, command palette | design-system.md §3, roadmap Phase 2 | ⏳ 1.4 / 2 |
+| Nav groups, collapsible sections, breadcrumbs, contextual actions, command palette | design-system.md §3, roadmap Phase 2 | 🟡 nav groups ✅ 1.4a/1.4b; breadcrumbs, command palette ⏳ Phase 2 |
 | Every metric drills down to records (permission-aware) | roadmap Phase 2 | ⏳ 2 |
 | Answers: what's happening, projects at risk / over budget, over/under-utilized people, overdue tasks, hours remaining, outstanding invoices, expiring contracts, pending leave, issues needing attention | roadmap Phase 2 + module dashboards | ⏳ 2 → 14 |
 | Not overcrowded; payroll hidden without permission | design-system.md §4, permissions.md | ⏳ 2 |
@@ -222,14 +222,14 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 ## §24 Final acceptance criteria
 | Criterion | Status |
 |---|---|
-| Premium coherent UI, reusable components | 🟡 design system ✅ 1.4a; screens 1.4b → |
+| Premium coherent UI, reusable components | 🟡 design system ✅ 1.4a; first screens ✅ 1.4b; each module adds its own |
 | Secure auth + MFA | ✅ 1.3a + 1.3b |
 | Reliable tenant isolation | 🟡 foundation ✅ 1.2, extended per module |
 | Server-enforced authorization; business vs technical admin separated | ✅ 1.3b (foundation; each module adds its checks) |
 | Correct record relationships; accurate budgets/allocations; planned vs actual hours | ⏳ 3–7 |
 | Reliable leave & attendance; verified payroll for jurisdiction | ⏳ 9–11 (❓ legal) |
 | Reliable invoices/payments; centralized secure notifications; module dashboards; audit history | ⏳ 12–14 |
-| Automated unit, integration, security, E2E tests | 🟡 unit/integration/security ✅; E2E 1.4 |
+| Automated unit, integration, security, E2E tests | ✅ unit/integration/security; E2E journey 1.4b (grows per phase) |
 | Organized code & docs; reproducible setup & deployment | 🟡 setup ✅; deployment 15 |
 | Documented security & compliance assessment | 🟡 security.md + compliance.md ongoing |
 | Ready for React Native client | 🟡 shared contracts ✅ |

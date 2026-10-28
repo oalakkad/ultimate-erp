@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { type Locale } from '@ultimate-erp/i18n';
-import { type AppConfig } from '../../platform/config/config.js';
+import { type AppConfig, webPublicUrl } from '../../platform/config/config.js';
 import { APP_CONFIG } from '../../platform/config/config.module.js';
 import { type EmailTemplate, Mailer } from '../../platform/mail/mailer.js';
 
@@ -23,15 +23,14 @@ export class IdentityEmails {
 
   verifyEmail(user: EmailRecipient, token: string): Promise<void> {
     return this.send(user, 'verifyEmail', {
-      url: this.link('/api/v1/auth/verify-email', token),
+      url: this.link('/verify-email', token),
     });
   }
 
   resetPassword(user: EmailRecipient, token: string): Promise<void> {
-    // Milestone 1.4 points this at the web app's reset page; until then the API endpoint
-    // `GET /api/v1/auth/password/reset?token=` reports whether the link is still valid.
+    // Opens the web app's reset page, which checks the link via GET /api/v1/auth/password/reset.
     return this.send(user, 'resetPassword', {
-      url: this.link('/api/v1/auth/password/reset', token),
+      url: this.link('/reset-password', token),
     });
   }
 
@@ -60,7 +59,7 @@ export class IdentityEmails {
   }
 
   private link(path: string, token: string): string {
-    const url = new URL(path, this.config.APP_PUBLIC_URL);
+    const url = new URL(path, webPublicUrl(this.config));
     url.searchParams.set('token', token);
     return url.toString();
   }

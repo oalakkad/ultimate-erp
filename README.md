@@ -24,6 +24,7 @@ pnpm install
 | `pnpm format` / `pnpm format:check` | Prettier: fix / check formatting |
 | `pnpm check` | Format check, lint, typecheck, tests (CI `check` job) |
 | `pnpm e2e` | Browser tests (Playwright + axe). First time: `pnpm --filter @ultimate-erp/web exec playwright install chromium` |
+| `pnpm e2e:journey` | The whole first-day journey (sign up → company → two-factor → invite) in a real browser, EN and AR. Start `pnpm dev` first |
 | `pnpm security` | Vulnerability audit, licence check, secret scan (CI `security` job; needs Docker) |
 | `pnpm build` | Compile all packages to `dist/` |
 | `pnpm services:up` / `services:down` / `services:logs` | Start / stop / follow the Docker services |

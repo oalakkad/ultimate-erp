@@ -50,6 +50,34 @@ jobs:
       - run: pnpm --filter @ultimate-erp/web exec playwright install --with-deps chromium
       - run: pnpm e2e
 
+  # Full first-day journey in EN and AR against the real stack: Postgres + Mailpit (Docker
+  # Compose, same as local development), the built API and the web dev server.
+  journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @ultimate-erp/web exec playwright install --with-deps chromium
+      - run: pnpm env:init
+      - run: pnpm services:up
+      - run: pnpm db:setup
+      - run: pnpm build
+      - name: Start the API
+        working-directory: apps/api
+        run: |
+          node --env-file=../../.env --enable-source-maps dist/main.js > ../../api.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:3000/api/v1/health && exit 0; sleep 1; done
+          cat ../../api.log; exit 1
+      - run: pnpm --filter @ultimate-erp/web e2e:journey
+      - if: failure()
+        run: cat api.log
+
   # Release-blocking supply-chain gates (security.md R10/R11, compliance.md §3).
   security:
     runs-on: ubuntu-latest

@@ -6,6 +6,47 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-28 — Session 4 (continued): Milestone 1.4b built, awaiting owner approval
+
+### Where we are
+1.4a approved and committed `b875341`. **Milestone 1.4b is built and verified, NOT committed**, and waits for the owner to test and approve. After "approved": commit 1.4b, then plan Milestone 1.5 (worker, files, notifications, monitoring). Present that plan with its owner decisions before building it.
+
+### Build plan
+- [x] API: `WEB_PUBLIC_URL` for email links; same-origin check for company web origins.
+- [x] API: `sessions.authenticated_at`, `handoff_tickets`, `GET /auth/companies`, `POST /auth/handoff` + `/redeem`, `PATCH /auth/me` (migrations 0006/0007).
+- [x] Web: API client, translated error codes, react-hook-form + contract schemas, QR via `qrcode` (drawn locally).
+- [x] Web screens: all listed in `modules/web-ui.md` §9 (auth pages, companies, hand-off, invitation, shell, dashboard, members, account). MFA-required → `/account`.
+- [x] E2E `apps/web/e2e/journey.spec.ts` (EN + AR, axe on 12 screens each); CI `journey` job added.
+- [x] Docs: web-ui.md §8–§14, api.md, testing.md, README, checklist, roadmap, compliance, project-status.
+
+### Changes made late in this session (beyond the plan)
+- `safeReturnTo` hardened: also rejects backslashes, spaces and control characters. Before this, `/\t/evil.example` would have become `//evil.example`, an open redirect. Unit-tested.
+- Sign-in navigates to `returnTo` as an href, so the invitation token in the query string survives.
+- Duplicate toast provider removed (`UiProvider` already provides one).
+- `LanguageSwitch` saves the choice to the account (`PATCH /auth/me`) when signed in.
+- Removed the 1.4a placeholder `routes/home.tsx`. `/gallery` stays.
+- Playwright projects: `ui` (`pnpm e2e`) and `journey` (`pnpm e2e:journey`, needs `pnpm dev`).
+
+### Repo state
+- Last commit `b875341` (1.4a). All 1.4b work is uncommitted (API, db migrations 0006/0007, contracts, i18n, ui fields, web app, e2e, CI, docs).
+- Local `.env`: added `WEB_PUBLIC_URL=http://localhost:5173` (also in `.env.example`).
+- Dev DB: migrations 0006/0007 applied (`pnpm db:setup`). Contains `e2e-*` companies and `*@example.test` accounts from journey runs. Mailpit was cleaned by the tests.
+- `pnpm dev` was started by Claude in the background (API :3000, web :5173) and may still be running.
+
+### Verification (real results, 2026-10-28)
+- `pnpm check`: passed. Tests: api 127, db 32, contracts 27, web 18, i18n 10, ui 9 = **223**.
+- Browser: `playwright test` → **8 passed** (6 gallery + journey EN + journey AR). The journey passed on 2 consecutive runs.
+- `pnpm security`: licence check passed (284 packages), no leaked secrets. Audit: only the accepted moderate esbuild advisory GHSA-67mh-4wv8-2f99.
+
+### Waiting on owner
+- Test 1.4b by hand (project-status.md "How to verify Milestone 1.4b") and approve.
+- Known gaps (project-status Known issues): no password-change screen yet, phone-width layout not tuned, bundle > 500 kB.
+
+### Next step
+Owner approval → `git add -A && git commit` "Milestone 1.4b: screens and end-to-end journey" → plan Milestone 1.5.
+
+---
+
 ## 2026-10-28 — Session 4: 1.3b committed, Milestone 1.4a design system built
 
 ### Where we finished

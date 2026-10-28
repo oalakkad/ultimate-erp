@@ -26,6 +26,7 @@ Fixtures: test data is created by each test (factories in `test/fixtures/`), nev
 | `pnpm check` | Format check, lint, typecheck, tests (what CI's `check` job runs) |
 | `pnpm security` | Vulnerability audit, licence check, secret scan (what CI's `security` job runs) |
 | `pnpm e2e` | Builds, then runs Playwright browser tests (gallery, accessibility, RTL). Screenshots: `apps/web/e2e/screenshots/` |
+| `pnpm e2e:journey` | Full first-day journey in EN and AR against the running dev stack — start `pnpm dev` first. Reads real emails from Mailpit, deletes them afterwards (CI `journey` job) |
 
 ## 3. Release-blocking suites
 
@@ -39,7 +40,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 
 | # | Workflow | Phase |
 |---|---|---|
-| 1 | Authorized company administrator logs in securely (incl. MFA) | 1.3 / 1.4 |
+| 1 | Authorized company administrator logs in securely (incl. MFA) | ✅ 1.4b (`e2e/journey.spec.ts`) |
 | 2 | Administrator creates a client | 3 |
 | 3 | Administrator creates a contract or engagement letter | 4 |
 | 4 | Administrator creates a project for that client | 5 |
@@ -92,6 +93,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 1.4b | + hand-off API suite (6), web unit (error translations, open-redirect guard), **full-stack journey** EN + AR (sign up → confirm email → sign in → create company → hand-off → two-factor → invite → colleague joins) with axe on 12 screens per language | 223 unit/integration (api 127, db 32, contracts 27, web 18, i18n 10, ui 9) + 8 browser (6 gallery + 2 journey) |
 | 1.4a | + i18n formatting (ICU plurals EN/AR, exact money strings, Kuwait dates), UI component tests (9 incl. logical-CSS guard), **browser tests** (Playwright: gallery EN/AR × light/dark with axe WCAG 2.2 AA, RTL flip, dialog keyboard) | 199 unit/integration + 6 browser |
 | 1.3b | + permission model & matrix-vs-docs (22), access suite against Postgres + Mailpit (25: onboarding, MFA block, invitation lifecycle incl. stolen/expired/revoked/reused, no escalation, forced-concurrency last-Owner, cross-company 404, removal, company sign-in policy, trusted devices, audit + pagination + immutability), OpenAPI (3) | 184 passed (i18n 4, contracts 27, db 32, api 121) |
 | 1.3a | + identity suite against real Postgres **and real Mailpit** (31: verification, enumeration, validation, breached passwords, lockout, IP limits, fixation, CSRF, new-device notice, sessions incl. idle/absolute expiry, reset single-use/expiry/hashing, password change, 2FA incl. replay, backup codes, trusted device, encrypted secrets) + unit tests (breach checker fail-open, error mapping, log redaction, i18n catalogs) + global-table guard | 134 passed (i18n 4, contracts 5, db 32, api 93 incl. mailer HTML) |

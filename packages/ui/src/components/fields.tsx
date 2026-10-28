@@ -51,10 +51,10 @@ const describedBy = (id: string, hint?: string, error?: string) =>
 
 export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
   label: string;
-  hint?: string;
-  error?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
   /** Shown next to the label when the field is not required, e.g. "Optional". */
-  optionalLabel?: string;
+  optionalLabel?: string | undefined;
   ref?: Ref<HTMLInputElement>;
 }
 
@@ -82,9 +82,9 @@ export function TextField({
 
 export interface TextAreaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> {
   label: string;
-  hint?: string;
-  error?: string;
-  optionalLabel?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
+  optionalLabel?: string | undefined;
 }
 
 export function TextArea({
@@ -152,8 +152,8 @@ export interface SelectFieldProps {
   options: SelectOption[];
   value?: string;
   onValueChange?: (value: string) => void;
-  hint?: string;
-  error?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
 }
 
 /** Accessible select (Radix): keyboard, typeahead, right-to-left aware via DirectionProvider. */

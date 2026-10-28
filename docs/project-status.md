@@ -1,9 +1,9 @@
 # Project Status
 
-Last updated: 2026-10-24
+Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). **Milestone 1.4a (design system) approved 2026-10-28.** Next: Milestone 1.4b plan awaiting owner decisions. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). **Milestone 1.4b (real screens + E2E) built 2026-10-28, uncommitted, awaiting owner testing and approval.** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -35,6 +35,10 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - 1.4 split: **1.4a** web app + design system (tokens, fonts, EN/AR + RTL, core components, gallery page for visual review) and **1.4b** real screens (sign-up/in, two-factor with QR, onboarding, invitations, sessions, app shell) + Playwright E2E + axe.
 - Sidebar shows **only built modules** (no locked placeholders).
 - First-visit language: **company default on a company address, browser language on the main address**; a signed-in user's saved choice always wins.
+
+## Decisions 2026-10-28 (Milestone 1.4b)
+- Sign-in: **once on the main address, then a secure hand-off** to a company: one-time, 60-second, single-use ticket bound to that company, exchanged for a separate host-only session there (session age carried over so the 12 h limit cannot be extended).
+- 1.4b includes a **Members screen** for Owners/CEOs (invite, roles, remove, pending invitations).
 
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
@@ -76,10 +80,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Milestone 1.4a — Design system** (2026-10-28, approved; spec `modules/web-ui.md`): `apps/web` (React 19, Vite 8, TanStack Router/Query, same-origin /api proxy), `packages/ui` (tokens from the approved preview, light/dark/system, self-hosted fonts, Tailwind 4 + Radix: buttons, fields, select, checkbox, cards, tiles, stats, status chips, avatars, dialog, drawer, tooltip, toasts, tabs, loading/empty/error/denied states, app frame/sidebar/top bar), `packages/i18n` UI catalogs + ICU + money/date formatting, language/theme switches with RTL, gallery page. Tests: 199 unit/integration + 6 browser (axe clean in EN/AR × light/dark).
 
-## How to verify Milestone 1.4a
-1. `pnpm check` → i18n `10`, contracts `27`, ui `9`, db `32`, api `121` passed.
-2. `pnpm e2e` → `6 passed` (screenshots in `apps/web/e2e/screenshots/`).
-3. `pnpm dev`, open http://localhost:5173/gallery, switch English/العربية and System/Light/Dark.
+- **Milestone 1.4b — Screens & E2E** (2026-10-28, awaiting approval; spec `modules/web-ui.md` §8–§14): sign-up, check/confirm email, sign-in with two-factor/backup code, forgot/reset password, companies list + create, secure hand-off to the company address (one-time 60 s ticket), invitation accept, app shell (only built modules, profile, theme/language, sign out), dashboard empty state, Members (invite, roles, remove, pending/revoke), My account (language saved to account, two-factor setup with locally drawn QR + backup codes, sessions). Every API error translated EN/AR. API: `PATCH /auth/me`, `GET /auth/companies`, `POST /auth/handoff` + `/redeem`, `WEB_PUBLIC_URL`. Tests: 223 unit/integration + 8 browser (full journey EN + AR, axe on every screen).
+
+## How to verify Milestone 1.4b
+1. `pnpm check` → i18n `10`, contracts `27`, web `18`, ui `9`, db `32`, api `127` passed.
+2. `pnpm security` → licence check passed, no leaks; audit shows only the accepted moderate esbuild advisory.
+3. With `pnpm dev` running: `pnpm e2e:journey` → `2 passed`; `pnpm e2e` → `6 passed`.
+4. By hand: open http://localhost:5173/sign-up, create an account, open the email in Mailpit (http://localhost:8025), sign in, create a company → you land on http://<slug>.localhost:5173 without signing in again → set up two-factor → invite a second email → open that invitation in a private window.
 
 ## Known issues
 - CI workflow not yet run on GitHub (no remote). Locally the identical steps pass.
@@ -95,10 +102,14 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Role checks are company-wide for now; team/project-scoped resource checks arrive with those modules.
 - Light-mode colours `ink-3`, `butter-ink`, `warn` darkened vs. the approved preview for WCAG contrast (design-system.md).
 - Font licence texts (OFL) must ship in THIRD_PARTY_NOTICES before release.
-- Web bundle is ~527 kB (167 kB gzipped) in one file; route-level code splitting when real screens land.
+- Web bundle is one file over 500 kB (Vite warning); add route-level code splitting (Phase 2).
+- New accounts confirm their email on the main address; to finish joining a company, return to the invitation tab ("Back to sign in") or reopen the invitation email.
+- The journey test leaves its `e2e-*` companies and `*@example.test` accounts in the dev database (emails are deleted). Harmless; a dev reset clears them.
+- No password-change screen yet (API exists); no audit-log or company-settings screens yet.
+- Members table and app frame are not yet tuned for phone width (navigation drawer in Phase 2).
 - Dev DB contains rehearsal accounts/companies (`rehearsal-*@example.com`, `rehearsal-*` slugs) from verification runs.
 - `erp_platform` is NOLOGIN until platform-operator features are designed.
-- Not yet built by design: login/RBAC/audit (1.3), web app (1.4), worker, files, notifications, monitoring, Dockerfiles (1.5).
+- Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Owner reviews the gallery (look and feel, both languages and themes) and approves 1.4a → Milestone 1.4b (real screens + E2E journey). See the newest entry in `session-log.md`.
+Owner tests 1.4b (steps above) and approves → commit 1.4b → plan Milestone 1.5 (worker, files, notifications, monitoring). See the newest entry in `session-log.md`.

@@ -3,7 +3,7 @@ import { FOUNDER_ROLES } from '@ultimate-erp/contracts';
 import { membershipRoles, memberships, tenantDomains, tenants } from '@ultimate-erp/db';
 import { type Request } from 'express';
 import { AuditLog } from '../../platform/audit/audit-log.js';
-import { type AppConfig } from '../../platform/config/config.js';
+import { type AppConfig, companyWebOrigin } from '../../platform/config/config.js';
 import { APP_CONFIG } from '../../platform/config/config.module.js';
 import { pgErrorCode, UNIQUE_VIOLATION } from '../../platform/database/pg-error.js';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
@@ -12,13 +12,6 @@ import { RateLimiter } from '../../platform/rate-limit/rate-limiter.js';
 import { type Identity, IdentityService } from '../identity/identity.service.js';
 
 const CREATE_LIMIT = { name: 'company-create:user', limit: 5, windowSeconds: 24 * 60 * 60 };
-
-/** `http://<host>:<port>` of a company, derived from the API's public URL. */
-export function companyOrigin(config: AppConfig, hostname: string): string {
-  const url = new URL(config.APP_PUBLIC_URL);
-  url.hostname = hostname;
-  return url.origin;
-}
 
 /** Self-service company onboarding (brief §6; decision 2026-10-25: anyone after verification). */
 @Injectable()
@@ -87,7 +80,7 @@ export class CompaniesService {
     return {
       tenantId,
       slug: body.slug,
-      url: companyOrigin(this.config, hostname),
+      url: companyWebOrigin(this.config, hostname),
       twoFactorRequired: !user.twoFactorEnabled,
     };
   }

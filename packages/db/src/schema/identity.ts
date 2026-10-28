@@ -75,6 +75,11 @@ export const sessions = pgTable(
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
+    /**
+     * When the person actually authenticated (password + code). A company hand-off copies it to
+     * the new session, so the 12-hour absolute limit can never be extended by hopping hosts.
+     */
+    authenticatedAt: timestamp('authenticated_at', { withTimezone: true }).notNull().defaultNow(),
     ...timestamps(),
   },
   (t) => [index('sessions_user_id_idx').on(t.userId)],

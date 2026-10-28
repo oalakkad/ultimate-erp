@@ -4,7 +4,7 @@ import { API_PREFIX, REQUEST_ID_HEADER } from '@ultimate-erp/contracts';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module.js';
-import { type AppConfig } from './platform/config/config.js';
+import { type AppConfig, webPublicUrl } from './platform/config/config.js';
 import { originCheckMiddleware } from './platform/request-context/origin-check.middleware.js';
 import { jsonBodyMiddleware } from './platform/request-context/json-body.middleware.js';
 import { requestIdMiddleware } from './platform/request-context/request-id.middleware.js';
@@ -29,7 +29,9 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
       },
     }),
   );
-  app.use(originCheckMiddleware([config.APP_PUBLIC_URL, ...config.CORS_ORIGINS]));
+  app.use(
+    originCheckMiddleware([config.APP_PUBLIC_URL, webPublicUrl(config), ...config.CORS_ORIGINS]),
+  );
   app.use(jsonBodyMiddleware(config.HTTP_BODY_LIMIT));
 
   if (config.CORS_ORIGINS.length > 0) {

@@ -1,6 +1,6 @@
-# Module spec: Web app & design system (Milestone 1.4a)
+# Module spec: Web app & design system (Milestones 1.4a + 1.4b)
 
-Status: **Approved 2026-10-28 (Milestone 1.4a).** Owner decisions 2026-10-28: 1.4 split into 1.4a (look) and 1.4b (screens + E2E); sidebar shows only built modules; first-visit language = company default on a company address, browser language on the main address, saved user choice wins after sign-in.
+Status: **1.4a approved 2026-10-28. 1.4b built 2026-10-28, awaiting owner approval** (§8–§13). Owner decisions 2026-10-28: 1.4 split into 1.4a (look) and 1.4b (screens + E2E); sidebar shows only built modules; first-visit language = company default on a company address, browser language on the main address, saved user choice wins after sign-in.
 
 ## 1. Purpose and fit
 The visual and interaction foundation every screen is built from, so the whole ERP looks and behaves like one premium product (brief §5) in English and Arabic (ADR-0006). 1.4a delivers the design system and a **gallery page** for the owner to review the look before any real screen is built on it (1.4b).
@@ -43,5 +43,58 @@ Unit (Vitest + Testing Library, jsdom): components' accessible names/states, i18
 - Fonts are SIL OFL 1.1 (licence allow-list updated; licence texts must ship in THIRD_PARTY_NOTICES before release).
 - Vite listens on IPv6 loopback (`::1`); browsers reach `localhost` and `<company>.localhost` automatically.
 
-## 8. Out of scope (1.4b and later)
-Real screens (sign-up, sign-in, two-factor with QR, onboarding, invitations, sessions), app shell on live data, E2E journey via Mailpit, data tables, charts.
+---
+
+# Milestone 1.4b — real screens and the end-to-end journey
+
+Owner decisions 2026-10-28: **sign in once on the main address, then a secure hand-off** to the company address (no second sign-in); **include a Members screen** (invite, roles, remove, pending invitations).
+
+## 8. Purpose and fit
+Turns the identity (1.3a) and access (1.3b) APIs into the screens people actually use on their first day: create an account, confirm the email, sign in (with two-factor), create a company, land in it, secure the account, invite colleagues, and let them join. Every later module plugs into the same app shell, guards and error handling.
+
+## 9. Screens and flows
+| Address | Screen | What it does |
+|---|---|---|
+| main + company | `/sign-up` | Name, email, password (12+ chars, breached-password check on the server). Goes to `/check-email`. |
+| main + company | `/check-email` | "Check your email" + resend. Keeps `returnTo` so the "Back to sign in" link returns to an invitation. |
+| main (link in email) | `/verify-email?token=` | Confirms the address, then offers sign-in. |
+| main + company | `/sign-in` | Password step, then code step (authenticator or backup code, "trust this browser" when the role allows). Applies the account's saved language. Goes to `returnTo` (same-site paths only), else `/` on a company address or `/companies` on the main one. |
+| main + company | `/forgot-password`, `/reset-password?token=` | Request link (same answer whether or not the email exists); check link, choose new password (signs out everywhere). |
+| main | `/companies` | My companies (Open → hand-off) and "Create a company" (names EN/AR, web address, default language). Creating hands off straight into the new company. |
+| company | `/handoff?ticket=` | Redeems the one-time ticket for a session on this address, then opens the app (ticket removed from history). |
+| company | `/invitations/accept?token=` | Company, role, masked email, expiry. Signed out: sign in / create account with `returnTo`. Signed in: Accept. |
+| company | `/` (app shell) | Sidebar shows **only built modules** (Dashboard; Members if `access.members.read`), My account, profile card with roles; top bar: theme, language, sign out. Dashboard is an honest empty state with "Invite colleagues". |
+| company | `/members` | Members table; Invite dialog (role list limited by `canGrant`); pending invitations + revoke; change roles; remove (confirm). Buttons appear only when allowed. |
+| company | `/account` | Profile + preferred language (saved to the account), two-factor (password → QR drawn locally + manual key + 10 backup codes → confirm code; turn off; new backup codes), signed-in sessions (sign out one / all others). |
+
+Guards (in `AppLayout`): no company on this address → `/companies` or `/sign-in`; not signed in → `/sign-in?returnTo=…`; not a member → `/sign-in`; sensitive role without two-factor → `/account` with a required-notice (the server independently refuses everything else with `MFA_REQUIRED`).
+
+## 10. Secure hand-off (how "sign in once" works)
+Sessions are **host-only cookies**: a session on `localhost` is never sent to `acme.localhost` (and vice versa), so one company's address can never use another's session. To move between them:
+1. On the main address the browser calls `POST /auth/handoff { tenantId }`. The server checks the user is an active member, creates a random ticket, stores only its **hash** in `handoff_tickets` (tenant-bound, RLS-protected), valid **60 seconds**, and returns `https://<company>/handoff?ticket=…`.
+2. The company page calls `POST /auth/handoff/redeem { ticket }`. The server resolves the company **from the host**, atomically marks the ticket used (only if unused, unexpired and for this company), re-applies the company sign-in policy, creates a fresh session on this host and copies the original sign-in time (so the 12-hour absolute limit still counts from the real sign-in).
+3. A reused, expired, or other-company ticket fails with `INVALID_TOKEN`; the page offers sign-in instead.
+
+## 11. Data, dependencies, permissions, security
+- **New API (1.4b):** `PATCH /auth/me`, `GET /auth/companies`, `POST /auth/handoff`, `POST /auth/handoff/redeem` (docs/api.md §10); table `handoff_tickets` + `sessions.authenticated_at` (migrations 0006/0007); function `app.user_companies(uuid)`.
+- **Config:** `WEB_PUBLIC_URL` (web app base for email links and company addresses; falls back to `APP_PUBLIC_URL`), `PLATFORM_BASE_DOMAIN`. Origin check also accepts same-origin requests (Origin host = Host), which is how company subdomains call the API through the proxy.
+- **Web libraries:** react-hook-form + Zod resolvers (the same contract schemas the API validates with), `qrcode` (QR drawn in the browser — the two-factor secret never goes to a third-party service).
+- **Permissions:** the UI hides what you cannot do (`can`, `canGrant` from `@ultimate-erp/contracts`), but **only for convenience — the server checks every request**.
+- **Errors:** the API sends codes only; every code has an EN and AR sentence (unit-tested), plus a short request reference for support.
+- **Open redirects:** `returnTo` accepts only same-site paths and rejects `//`, backslashes, spaces and control characters (browsers drop tabs/newlines, which would otherwise turn `/\t/evil` into `//evil`). Unit-tested.
+
+## 12. Acceptance criteria (1.4b)
+1. A new person can sign up, confirm the email, sign in, create a company and arrive in it **without signing in twice**, in English and in Arabic.
+2. A sensitive role (Owner, CEO, …) is taken to two-factor setup first and can complete it with an authenticator app (QR or manual key) and sees backup codes once.
+3. The Owner can invite a colleague; the colleague opens the email link, creates an account, confirms the email, signs in and accepts, and lands in the company with only the screens their role allows.
+4. Every screen has loading, empty and error states; errors are translated.
+5. axe finds no WCAG 2.2 A/AA violations on any screen of the journey, in both languages.
+6. Language choice is saved on the account when signed in.
+
+## 13. Test plan and results
+- **Unit (Vitest):** every error code translated EN/AR; `safeReturnTo` (open-redirect cases).
+- **API integration:** hand-off suite in `apps/api/test/access.spec.ts` (6: happy path, single use, expiry, other company, non-member, sign-in time carried over).
+- **Browser, full stack (`pnpm e2e:journey`, Playwright):** the whole journey of criteria 1–3 in EN and AR against the real API, Postgres and Mailpit (emails read from Mailpit, TOTP computed from the shown key), axe on 12 screens per language. Test emails are deleted afterwards; the test resets dev rate-limit counters (refuses non-local databases). Runs in CI (`journey` job).
+
+## 14. Out of scope (later)
+Data tables with sort/filter/pagination (Phase 2–3), charts, command palette, company settings screen, audit log screen, mobile navigation drawer polish, password change screen (API exists; screen with the account settings expansion).

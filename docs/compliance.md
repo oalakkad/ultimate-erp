@@ -75,5 +75,5 @@ References: ASVS = OWASP ASVS 5.0 chapter; ISO = ISO/IEC 27002:2022 control. Map
 | API documentation complete and generated from contracts | ASVS V13, ISO 5.37 | `platform/openapi/` | `openapi.spec.ts`; mutation-checked | Implemented 1.3b |
 | Append-only audit log, written in the same transaction | ASVS V16, ISO 8.15 | `migrations/0005_access_security.sql` (grants + trigger), `platform/audit/audit-log.ts` | `access.spec.ts` (app and table owner cannot update/delete/truncate) | Implemented 1.3b |
 | Error monitoring and alerting | ISO 8.16 | — | — | Outstanding (1.5) |
-| Accessibility WCAG 2.2 AA | — | `packages/ui` (Radix primitives, labelled fields, focus ring, status = icon + text), tokens tuned for contrast | `apps/web/e2e/gallery.spec.ts`: axe on the gallery EN/AR × light/dark, dialog focus trap/Escape/focus return | Implemented 1.4a for components; per screen in 1.4b |
+| Accessibility WCAG 2.2 AA | — | `packages/ui` (Radix primitives, labelled fields, focus ring, status = icon + text), tokens tuned for contrast | `apps/web/e2e/gallery.spec.ts`: axe on the gallery EN/AR × light/dark, dialog focus trap/Escape/focus return | Implemented 1.4a for components; 1.4b: `e2e/journey.spec.ts` axe on every journey screen EN/AR |
 | Backup and restore verified | ISO 8.13 | — | Restore drill | Outstanding (15) |

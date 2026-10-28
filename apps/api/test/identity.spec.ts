@@ -316,7 +316,8 @@ describe('sessions', () => {
     await signUpAndVerify(email);
     const b = await signedIn(email);
     await admin.query(
-      `update sessions set created_at = now() - interval '13 hours'
+      `update sessions set created_at = now() - interval '13 hours',
+         authenticated_at = now() - interval '13 hours'
        where user_id = (select id from users where lower(email) = $1)`,
       [email],
     );

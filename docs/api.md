@@ -98,6 +98,10 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | POST | `/api/v1/auth/two-factor/verify-backup-code` | Pending 2FA | `{ code, trustDevice? }` → signed in (each code once) | 1.3a |
 | POST | `/api/v1/auth/sign-out` | Session | Ends this session | 1.3a |
 | GET | `/api/v1/auth/me` | Session | `{ user, session }` | 1.3a |
+| PATCH | `/api/v1/auth/me` | Session | `{ name?, locale? }` (at least one) → `user` | 1.4b |
+| GET | `/api/v1/auth/companies` | Session | Companies where I am an active member: `{ companies: [{ tenantId, slug, name, defaultLocale, url, roles }] }` | 1.4b |
+| POST | `/api/v1/auth/handoff` | Session | `{ tenantId }` (must be my company, else `404`) → `{ url }` = company address with a one-time ticket (60 s, stored hashed) | 1.4b |
+| POST | `/api/v1/auth/handoff/redeem` | Public, company host | `{ ticket }` → signed in on this host (new host-only session, original sign-in time kept); used/expired/other-company ticket ⇒ `400 INVALID_TOKEN` | 1.4b |
 | POST | `/api/v1/auth/password/forgot` | Public | `{ email }` → `202` always | 1.3a |
 | GET | `/api/v1/auth/password/reset?token=` | Public | Is the reset link still valid? (does not use it) | 1.3a |
 | POST | `/api/v1/auth/password/reset` | Public | `{ token, newPassword }`; revokes all sessions | 1.3a |

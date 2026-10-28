@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Query,
   Req,
@@ -15,13 +16,19 @@ import {
   acceptedResponseSchema,
   changePasswordRequestSchema,
   emailOnlyRequestSchema,
+  handoffRequestSchema,
+  handoffResponseSchema,
   meResponseSchema,
+  myCompaniesResponseSchema,
   okResponseSchema,
+  redeemHandoffRequestSchema,
   resetPasswordRequestSchema,
   signInRequestSchema,
   type SignInResponse,
   signInResponseSchema,
   signUpRequestSchema,
+  updateMeRequestSchema,
+  userSchema,
   verifyEmailQuerySchema,
 } from '@ultimate-erp/contracts';
 import { type Request, type Response } from 'express';
@@ -124,6 +131,68 @@ export class AuthController {
   @UseGuards(SessionGuard)
   me(@CurrentIdentity() identity: Identity) {
     return this.identity.me(identity);
+  }
+
+  /** Name and preferred language (the saved language wins over browser/company defaults). */
+  @Patch('me')
+  @ApiContract({
+    summary: 'Update my name or language',
+    auth: 'session',
+    body: updateMeRequestSchema,
+    response: userSchema,
+  })
+  @UseGuards(SessionGuard)
+  updateMe(
+    @CurrentIdentity() identity: Identity,
+    @Body(new ZodValidationPipe(updateMeRequestSchema)) body: z.infer<typeof updateMeRequestSchema>,
+  ) {
+    return this.identity.updateMe(identity, body);
+  }
+
+  @Get('companies')
+  @ApiContract({
+    summary: 'The companies I belong to',
+    auth: 'session',
+    response: myCompaniesResponseSchema,
+  })
+  @UseGuards(SessionGuard)
+  async companies(@CurrentIdentity() identity: Identity) {
+    return { companies: await this.identity.myCompanies(identity) };
+  }
+
+  /** Main address → company address: returns the company URL with a one-time ticket. */
+  @Post('handoff')
+  @HttpCode(HttpStatus.OK)
+  @ApiContract({
+    summary: 'Get a one-time ticket to open one of my companies',
+    auth: 'session',
+    body: handoffRequestSchema,
+    response: handoffResponseSchema,
+  })
+  @UseGuards(SessionGuard)
+  handoff(
+    @CurrentIdentity() identity: Identity,
+    @Body(new ZodValidationPipe(handoffRequestSchema)) body: { tenantId: string },
+  ) {
+    return this.identity.createHandoff(identity, body.tenantId);
+  }
+
+  /** On the company address: exchange the ticket for a session here. */
+  @Post('handoff/redeem')
+  @HttpCode(HttpStatus.OK)
+  @ApiContract({
+    summary: 'Exchange a hand-off ticket for a session on this company address',
+    auth: 'public',
+    companyHost: true,
+    body: redeemHandoffRequestSchema,
+    response: signInResponseSchema,
+  })
+  redeemHandoff(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Body(new ZodValidationPipe(redeemHandoffRequestSchema)) body: { ticket: string },
+  ): Promise<SignInResponse> {
+    return this.identity.redeemHandoff(req, res, body.ticket);
   }
 
   @Post('password/forgot')

@@ -11,6 +11,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { twoFactor } from 'better-auth/plugins';
 import { type PinoLogger } from 'nestjs-pino';
 import { type AppConfig } from '../../platform/config/config.js';
+import { handoffPlugin } from './handoff-plugin.js';
 import { type IdentityEmails } from './identity-emails.js';
 
 export const AUTH = Symbol('AUTH');
@@ -106,6 +107,7 @@ export function createAuth(deps: {
         trustDeviceMaxAge: TRUST_DEVICE_SECONDS,
         accountLockout: { enabled: true, maxFailedAttempts: 5, durationSeconds: 15 * 60 },
       }),
+      handoffPlugin(),
     ],
   });
 }

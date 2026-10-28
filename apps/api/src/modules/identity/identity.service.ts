@@ -1,25 +1,30 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { HttpStatus, Inject, Injectable, Optional } from '@nestjs/common';
 import {
   isRole,
   isSensitive,
   type Role,
   type Session,
+  type MyCompany,
   type SignInResponse,
   type User,
 } from '@ultimate-erp/contracts';
 import {
   type Database,
+  handoffTickets,
   sessions,
   usedTotpCodes,
   userKnownDevices,
   users,
   verifications,
 } from '@ultimate-erp/db';
-import { and, desc, eq, gt, inArray, lt, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
 import { type Request, type Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { type AppConfig, companyWebOrigin } from '../../platform/config/config.js';
+import { APP_CONFIG } from '../../platform/config/config.module.js';
 import { DB } from '../../platform/database/database.tokens.js';
+import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { AppError } from '../../platform/errors/app-error.js';
 import { messageFor } from '../../platform/errors/to-error-response.js';
 import { type RateLimitRule, RateLimiter } from '../../platform/rate-limit/rate-limiter.js';
@@ -40,10 +45,14 @@ export const RATE_LIMITS = {
   tokenIp: { name: 'token:ip', limit: 30, windowSeconds: 5 * 60 },
   twoFactorIp: { name: 'two-factor:ip', limit: 20, windowSeconds: 5 * 60 },
   sensitiveUser: { name: 'sensitive:user', limit: 10, windowSeconds: 15 * 60 },
+  handoffUser: { name: 'handoff:user', limit: 60, windowSeconds: 15 * 60 },
 } satisfies Record<string, RateLimitRule>;
 
 /** A TOTP code is valid for at most ~90 s (30 s step ± 1); keep used codes a bit longer. */
 const USED_CODE_RETENTION_SECONDS = 5 * 60;
+
+/** A hand-off ticket is only needed for one browser redirect. */
+const HANDOFF_SECONDS = 60;
 
 /** Better Auth two-factor plugin cookie (with our `erp` prefix; `__Secure-` added on https). */
 const TRUST_DEVICE_COOKIE = 'erp.trust_device';
@@ -95,6 +104,8 @@ export class IdentityService {
     private readonly breached: BreachedPasswordChecker,
     private readonly emails: IdentityEmails,
     @InjectPinoLogger(IdentityService.name) private readonly logger: PinoLogger,
+    private readonly tenantDb: TenantDatabase,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Optional() @Inject(SIGN_IN_POLICY) private readonly signInPolicy?: SignInPolicy,
   ) {}
 
@@ -301,7 +312,14 @@ export class IdentityService {
     forwardCookies(res, result.headers);
     const found = result.response as { session: AuthSession; user: { id: string } } | null;
     if (!found) return null;
-    const ageSeconds = (Date.now() - new Date(found.session.createdAt).getTime()) / 1000;
+    // The absolute limit counts from when the person actually authenticated (a company
+    // hand-off carries that moment over), not from when this particular session row began.
+    const [row] = await this.db
+      .select({ authenticatedAt: sessions.authenticatedAt })
+      .from(sessions)
+      .where(eq(sessions.id, found.session.id));
+    const since = row?.authenticatedAt ?? new Date(found.session.createdAt);
+    const ageSeconds = (Date.now() - since.getTime()) / 1000;
     if (ageSeconds > SESSION_ABSOLUTE_SECONDS) {
       await this.db.delete(sessions).where(eq(sessions.id, found.session.id));
       return null;
@@ -315,6 +333,124 @@ export class IdentityService {
         expiresAt: new Date(found.session.expiresAt),
       },
     };
+  }
+
+  // --- companies and hand-off (owner decision 2026-10-28) ----------------------------------
+
+  /** The companies this person belongs to, for the list on the main address. */
+  async myCompanies(identity: Identity): Promise<MyCompany[]> {
+    const result = await this.db.execute<{
+      tenant_id: string;
+      slug: string;
+      name_en: string;
+      name_ar: string;
+      default_locale: string;
+      hostname: string | null;
+      roles: string[];
+    }>(sql`select * from app.user_companies(${identity.userId})`);
+    return result.rows
+      .filter((row) => row.hostname !== null)
+      .map((row) => ({
+        tenantId: row.tenant_id,
+        slug: row.slug,
+        name: { en: row.name_en, ar: row.name_ar },
+        defaultLocale: row.default_locale === 'ar' ? 'ar' : 'en',
+        url: companyWebOrigin(this.config, row.hostname ?? ''),
+        roles: row.roles,
+      }));
+  }
+
+  /**
+   * Issues a one-time ticket (60 s, single use, bound to one company) that moves this signed-in
+   * person to the company's own address, where it becomes a separate session.
+   */
+  async createHandoff(identity: Identity, tenantId: string): Promise<{ url: string }> {
+    await this.limiter.consume(RATE_LIMITS.handoffUser, identity.userId);
+    const company = (await this.myCompanies(identity)).find((c) => c.tenantId === tenantId);
+    if (!company) throw new AppError('NOT_FOUND', HttpStatus.NOT_FOUND, messageFor('NOT_FOUND'));
+    const [current] = await this.db
+      .select({ authenticatedAt: sessions.authenticatedAt })
+      .from(sessions)
+      .where(eq(sessions.id, identity.session.id));
+    const ticket = randomBytes(32).toString('base64url');
+    await this.tenantDb.withTenant(tenantId, (tx) =>
+      tx.insert(handoffTickets).values({
+        tenantId,
+        userId: identity.userId,
+        tokenHash: sha256(ticket),
+        authenticatedAt: current?.authenticatedAt ?? identity.session.createdAt,
+        expiresAt: new Date(Date.now() + HANDOFF_SECONDS * 1000),
+      }),
+    );
+    const url = new URL('/handoff', company.url);
+    url.searchParams.set('ticket', ticket);
+    return { url: url.toString() };
+  }
+
+  /**
+   * Exchanges a ticket on the company host for a new session there. The ticket must belong to
+   * the company owning this host (row-level security), be unused and unexpired; it is consumed
+   * atomically, so two simultaneous uses cannot both succeed.
+   */
+  async redeemHandoff(req: Request, res: Response, ticket: string): Promise<SignInResponse> {
+    await this.limiter.consume(RATE_LIMITS.tokenIp, clientIp(req));
+    const invalid = () =>
+      new AppError('INVALID_TOKEN', HttpStatus.BAD_REQUEST, messageFor('INVALID_TOKEN'));
+    const tenantId = await this.tenantDb.resolveHost(req.hostname);
+    if (!tenantId) throw invalid();
+    const [used] = await this.tenantDb.withTenant(tenantId, (tx) =>
+      tx
+        .update(handoffTickets)
+        .set({ usedAt: new Date() })
+        .where(
+          and(
+            eq(handoffTickets.tokenHash, sha256(ticket)),
+            isNull(handoffTickets.usedAt),
+            gt(handoffTickets.expiresAt, new Date()),
+          ),
+        )
+        .returning({
+          userId: handoffTickets.userId,
+          authenticatedAt: handoffTickets.authenticatedAt,
+        }),
+    );
+    if (!used) throw invalid();
+    const [account] = await this.userSummaries([used.userId]);
+    if (
+      !account ||
+      (this.signInPolicy &&
+        !(await this.signInPolicy.allows(req.hostname, { id: used.userId, email: account.email })))
+    ) {
+      throw new AppError('FORBIDDEN', HttpStatus.FORBIDDEN, messageFor('FORBIDDEN'));
+    }
+    const result = await callAuth(() =>
+      this.auth.api.startHandoffSession({
+        body: { userId: used.userId },
+        headers: this.headersFor(req),
+        returnHeaders: true,
+      }),
+    );
+    const { token } = result.response;
+    await this.db
+      .update(sessions)
+      .set({ authenticatedAt: used.authenticatedAt })
+      .where(eq(sessions.token, token));
+    forwardCookies(res, result.headers);
+    return { status: 'signed_in', user: await this.userDto(used.userId) };
+  }
+
+  async updateMe(
+    identity: Identity,
+    changes: { name?: string | undefined; locale?: 'en' | 'ar' | undefined },
+  ) {
+    await this.db
+      .update(users)
+      .set({
+        ...(changes.name === undefined ? {} : { name: changes.name }),
+        ...(changes.locale === undefined ? {} : { locale: changes.locale }),
+      })
+      .where(eq(users.id, identity.userId));
+    return this.userDto(identity.userId);
   }
 
   async me(identity: Identity): Promise<{ user: User; session: Session }> {

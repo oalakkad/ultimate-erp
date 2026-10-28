@@ -40,6 +40,8 @@ export const configSchema = z
     AUTH_SECRET: z.string().min(32, 'must be at least 32 characters'),
     /** Public base URL of this API, used in email links and cookie security. */
     APP_PUBLIC_URL: z.url({ protocol: /^https?$/ }),
+    /** Public URL of the web app (email links open its pages). Defaults to APP_PUBLIC_URL. */
+    WEB_PUBLIC_URL: z.url({ protocol: /^https?$/ }).optional(),
     /** Companies live at <slug>.<PLATFORM_BASE_DOMAIN>, e.g. acme.localhost in development. */
     PLATFORM_BASE_DOMAIN: z
       .string()
@@ -110,4 +112,16 @@ export function loadConfig(env: Record<string, string | undefined>): AppConfig {
     (issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`,
   );
   throw new ConfigError(`Invalid configuration:\n${problems.join('\n')}`);
+}
+
+/** Where people open the app: the web app's public URL (same as the API's unless configured). */
+export function webPublicUrl(config: AppConfig): string {
+  return config.WEB_PUBLIC_URL ?? config.APP_PUBLIC_URL;
+}
+
+/** The web address of a company host, e.g. http://acme.localhost:5173. */
+export function companyWebOrigin(config: AppConfig, hostname: string): string {
+  const url = new URL(webPublicUrl(config));
+  url.hostname = hostname;
+  return url.origin;
 }

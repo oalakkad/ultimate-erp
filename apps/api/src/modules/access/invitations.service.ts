@@ -13,7 +13,7 @@ import { and, desc, eq, gt, isNotNull } from 'drizzle-orm';
 import { type Request } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { AuditLog } from '../../platform/audit/audit-log.js';
-import { type AppConfig } from '../../platform/config/config.js';
+import { type AppConfig, companyWebOrigin } from '../../platform/config/config.js';
 import { APP_CONFIG } from '../../platform/config/config.module.js';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { AppError } from '../../platform/errors/app-error.js';
@@ -23,7 +23,6 @@ import { RateLimiter } from '../../platform/rate-limit/rate-limiter.js';
 import { clientIp } from '../../platform/request-context/client-ip.js';
 import { type Identity, IdentityService } from '../identity/identity.service.js';
 import { type AccessContext } from './access-context.js';
-import { companyOrigin } from './companies.service.js';
 
 const VALID_DAYS = 7;
 const TOKEN_LIMIT = { name: 'invitation-token:ip', limit: 30, windowSeconds: 5 * 60 };
@@ -109,7 +108,7 @@ export class InvitationsService {
     // Sent after commit; the invitation stays valid if mail fails (it can be re-sent).
     const [inviter] = await this.identity.userSummaries([access.userId]);
     const locale = company.defaultLocale;
-    const url = new URL('/api/v1/invitations/preview', companyOrigin(this.config, host));
+    const url = new URL('/invitations/accept', companyWebOrigin(this.config, host));
     url.searchParams.set('token', token);
     try {
       await this.mailer.send({
