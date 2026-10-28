@@ -4,7 +4,7 @@ Purpose: every requirement in the owner's master project prompt (the "product br
 
 Status: ✅ done · 🟡 designed / partly built · ⏳ scheduled · ❓ needs owner decision
 
-Last reviewed: 2026-10-25 (after Milestone 1.3a). Source: `docs/product-brief.md` (§1–25, complete).
+Last reviewed: 2026-10-27 (after Milestone 1.3b). Source: `docs/product-brief.md` (§1–25, complete).
 
 ## §1 Role & §19 Teaching
 | Requirement | Where / how | Status |
@@ -58,8 +58,8 @@ Last reviewed: 2026-10-25 (after Milestone 1.3a). Source: `docs/product-brief.md
 | Requirement | Where | Status |
 |---|---|---|
 | Per-company profile, branding, domain, settings, data | domain-model.md (tenancy), ADR-0007 | 🟡 profile + domains ✅ 1.2; branding/settings 1.3+ |
-| Onboarding workflow (register → owner → domain → verify → branding → invite → roles → live) | ADR-0004, ADR-0007, roadmap 1.3 | ⏳ 1.3 |
-| Email domain is not proof of membership; invitations + domain verification (TXT) | ADR-0004, ADR-0007 | ⏳ 1.3 / custom domains later |
+| Onboarding workflow (register → owner → domain → verify → branding → invite → roles → live) | modules/access.md | 🟡 ✅ 1.3b except branding (company settings, later) and custom domains |
+| Email domain is not proof of membership; invitations + domain verification (TXT) | modules/access.md | ✅ invitations 1.3b; TXT verification with custom domains later |
 | Server-side isolation: RLS, composite FKs, never trust client company ID | ADR-0003, docs/database.md | ✅ 1.2 |
 | Isolation across API, URLs, jobs, files, search, reports, exports, notifications, real-time, queries | ADR-0003 §7, security.md §2a | 🟡 API + queries ✅ 1.2; others with their features |
 | Automated cross-tenant tests, release-blocking | testing.md §3, `packages/db/test/isolation.spec.ts`, `apps/api/test/tenancy.spec.ts` | ✅ 1.2 (extended per module) |
@@ -68,8 +68,8 @@ Last reviewed: 2026-10-25 (after Milestone 1.3a). Source: `docs/product-brief.md
 | Requirement | Where | Status |
 |---|---|---|
 | CEO, Manager, Team Leader, Employee, Technical Admin, Platform Operator distinguished; no unrestricted "Super Admin" | permissions.md §2 | ✅ designed |
-| RBAC with permission keys + scopes (own/team/project/company), server-side | permissions.md §1 | ⏳ 1.3 |
-| Separation of duties, least privilege, auditable permission changes, session revocation | permissions.md, security.md R4/R5 | ⏳ 1.3 |
+| RBAC with permission keys + scopes (own/team/project/company), server-side | permissions.md, modules/access.md | ✅ 1.3b (team/project resource checks with those modules) |
+| Separation of duties, least privilege, auditable permission changes, session revocation | modules/access.md, modules/identity.md | ✅ 1.3a/1.3b |
 | Technical admin has no business-data access | permissions.md, security.md R14 | ✅ designed |
 
 ## §8 Authentication & security
@@ -79,7 +79,7 @@ Last reviewed: 2026-10-25 (after Milestone 1.3a). Source: `docs/product-brief.md
 | Email verification, MFA (TOTP), recovery codes, password reset | modules/identity.md | ✅ 1.3a (email-OTP sign-in deliberately not enabled, ADR-0004 amendment) |
 | Sessions: expiry, logout one/all, remembered devices | modules/identity.md | ✅ 1.3a (no remembered device for sensitive roles: 1.3b) |
 | Rate limiting, credential stuffing, progressive throttling, suspicious login | modules/identity.md | ✅ 1.3a |
-| Secure invitation acceptance | ADR-0004 | ⏳ 1.3 |
+| Secure invitation acceptance | modules/access.md | ✅ 1.3b |
 | Defences: access control, SQLi, XSS, CSRF, SSRF, IDOR, session fixation, brute force, mass assignment, uploads, data exposure, reset, CORS, secrets, dependencies | security.md R1–R15, §2a | 🟡 CORS, secrets, deps, headers, error leakage ✅ 1.1; rest scheduled |
 | Security headers, no stack traces | bootstrap.ts | ✅ 1.1 |
 | Restricted financial/employee data, signed short-lived downloads, no sensitive logging | security.md §3, R8, R9 | 🟡 log redaction ✅; files ⏳ 1.5 |
@@ -109,7 +109,7 @@ Last reviewed: 2026-10-25 (after Milestone 1.3a). Source: `docs/product-brief.md
 | Expenses ("if implemented" in brief) | 12b — default: included | ⏳ |
 | L Notifications & announcements | infra 1.5, per module, complete 13 | ⏳ |
 | M Reports & analytics | 14 | ⏳ |
-| N Audit logs & administration | audit log 1.3; search 14 | ⏳ |
+| N Audit logs & administration | audit log ✅ 1.3b; search 14 | 🟡 |
 
 ## §11 Module connections
 | Requirement | Where | Status |
@@ -141,8 +141,8 @@ Last reviewed: 2026-10-25 (after Milestone 1.3a). Source: `docs/product-brief.md
 | Requirement | Where | Status |
 |---|---|---|
 | Consistent conventions, error codes, request tracing, structured logging, versioning | api.md, 1.1 code | ✅ 1.1 |
-| Validated schemas, pagination, filtering, sorting, rate limits, idempotency, API docs | api.md §5–9 | 🟡 validation + auth rate limits ✅ 1.3a; OpenAPI 1.3b; rest Phase 3+ |
-| Auth middleware, authorization policies, tenant-scoped access | ADR-0003/0004, permissions.md | 🟡 tenant-scoped access ✅ 1.2; auth/authz ⏳ 1.3 |
+| Validated schemas, pagination, filtering, sorting, rate limits, idempotency, API docs | api.md §5–9 | 🟡 validation, rate limits, OpenAPI, cursor pagination (audit) ✅; filtering/sorting/idempotency Phase 3+ |
+| Auth middleware, authorization policies, tenant-scoped access | ADR-0003/0004, permissions.md | ✅ 1.2 / 1.3a / 1.3b |
 | Safe file handling, background processing | roadmap 1.5 | ⏳ 1.5 |
 
 ## §15 Performance
@@ -223,9 +223,9 @@ Last reviewed: 2026-10-25 (after Milestone 1.3a). Source: `docs/product-brief.md
 | Criterion | Status |
 |---|---|
 | Premium coherent UI, reusable components | ⏳ 1.4 → |
-| Secure auth + MFA | 🟡 ✅ 1.3a; role-based MFA enforcement 1.3b |
+| Secure auth + MFA | ✅ 1.3a + 1.3b |
 | Reliable tenant isolation | 🟡 foundation ✅ 1.2, extended per module |
-| Server-enforced authorization; business vs technical admin separated | ⏳ 1.3 |
+| Server-enforced authorization; business vs technical admin separated | ✅ 1.3b (foundation; each module adds its checks) |
 | Correct record relationships; accurate budgets/allocations; planned vs actual hours | ⏳ 3–7 |
 | Reliable leave & attendance; verified payroll for jurisdiction | ⏳ 9–11 (❓ legal) |
 | Reliable invoices/payments; centralized secure notifications; module dashboards; audit history | ⏳ 12–14 |

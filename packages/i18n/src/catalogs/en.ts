@@ -1,5 +1,15 @@
 /** English catalog — the reference: every other locale must have exactly these keys. */
 export const en = {
+  roles: {
+    owner: 'Owner',
+    ceo: 'CEO',
+    manager: 'Manager',
+    team_leader: 'Team Leader',
+    employee: 'Employee',
+    finance: 'Finance',
+    hr_payroll: 'HR & Payroll',
+    technical_admin: 'Technical Administrator',
+  },
   email: {
     signature: 'Ultimate ERP',
     ignoreNotice: 'If you did not request this, you can ignore this email.',
@@ -30,6 +40,10 @@ export const en = {
     twoFactorEnabled: {
       subject: 'Two-factor authentication turned on',
       body: 'Hello {name},\n\nTwo-factor authentication is now on for your account. Keep your backup codes somewhere safe.',
+    },
+    invitation: {
+      subject: 'You are invited to join {company}',
+      body: 'Hello,\n\n{inviter} invited you to join {company} on Ultimate ERP as {role}.\n\nOpen this link to see the invitation:\n\n{url}\n\nThe invitation expires in 7 days. You will need to sign in (or create an account) with this email address to accept it.',
     },
     twoFactorDisabled: {
       subject: 'Two-factor authentication turned off',

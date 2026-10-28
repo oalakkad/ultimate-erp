@@ -1,8 +1,22 @@
 import { createHash } from 'node:crypto';
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { type Session, type SignInResponse, type User } from '@ultimate-erp/contracts';
-import { type Database, sessions, usedTotpCodes, userKnownDevices, users } from '@ultimate-erp/db';
-import { and, desc, eq, gt, lt, ne, sql } from 'drizzle-orm';
+import { HttpStatus, Inject, Injectable, Optional } from '@nestjs/common';
+import {
+  isRole,
+  isSensitive,
+  type Role,
+  type Session,
+  type SignInResponse,
+  type User,
+} from '@ultimate-erp/contracts';
+import {
+  type Database,
+  sessions,
+  usedTotpCodes,
+  userKnownDevices,
+  users,
+  verifications,
+} from '@ultimate-erp/db';
+import { and, desc, eq, gt, inArray, lt, ne, sql } from 'drizzle-orm';
 import { type Request, type Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { DB } from '../../platform/database/database.tokens.js';
@@ -14,6 +28,7 @@ import { AUTH, type Auth, CLIENT_IP_HEADER, SESSION_ABSOLUTE_SECONDS } from './a
 import { authErrorCode, callAuth, toAppError } from './auth-errors.js';
 import { BreachedPasswordChecker } from './breached-password.js';
 import { IdentityEmails } from './identity-emails.js';
+import { SIGN_IN_POLICY, type SignInPolicy } from './sign-in-policy.js';
 
 /** Limits per docs/modules/identity.md §2. Subjects are hashed before storage. */
 export const RATE_LIMITS = {
@@ -29,6 +44,9 @@ export const RATE_LIMITS = {
 
 /** A TOTP code is valid for at most ~90 s (30 s step ± 1); keep used codes a bit longer. */
 const USED_CODE_RETENTION_SECONDS = 5 * 60;
+
+/** Better Auth two-factor plugin cookie (with our `erp` prefix; `__Secure-` added on https). */
+const TRUST_DEVICE_COOKIE = 'erp.trust_device';
 
 interface AuthSession {
   id: string;
@@ -77,6 +95,7 @@ export class IdentityService {
     private readonly breached: BreachedPasswordChecker,
     private readonly emails: IdentityEmails,
     @InjectPinoLogger(IdentityService.name) private readonly logger: PinoLogger,
+    @Optional() @Inject(SIGN_IN_POLICY) private readonly signInPolicy?: SignInPolicy,
   ) {}
 
   // --- sign-up and email verification ------------------------------------------------------
@@ -132,13 +151,23 @@ export class IdentityService {
       throw toAppError(err);
     }
     await this.limiter.reset(RATE_LIMITS.signInAccountFailures, body.email);
-    forwardCookies(res, result.headers);
 
-    const response = result.response as { twoFactorRedirect?: boolean; user?: { id: string } };
-    if (response.twoFactorRedirect) return { status: 'two_factor_required' };
-    if (!response.user) throw new Error('Sign-in succeeded without a user');
-    await this.noteDevice(response.user.id, req);
-    return { status: 'signed_in', user: await this.userDto(response.user.id) };
+    const response = result.response as {
+      twoFactorRedirect?: boolean;
+      token?: string;
+      user?: { id: string };
+    };
+    if (response.twoFactorRedirect) {
+      forwardCookies(res, result.headers);
+      return { status: 'two_factor_required' };
+    }
+    if (!response.user || !response.token) throw new Error('Sign-in succeeded without a session');
+    return this.completeSignIn(req, res, {
+      userId: response.user.id,
+      sessionToken: response.token,
+      headers: result.headers,
+      trustRequested: false,
+    });
   }
 
   /** Second sign-in step with an authenticator code. Each code works only once per user. */
@@ -158,9 +187,12 @@ export class IdentityService {
       await this.db.delete(sessions).where(eq(sessions.token, token));
       throw new AppError('INVALID_CODE', HttpStatus.UNAUTHORIZED, messageFor('INVALID_CODE'));
     }
-    forwardCookies(res, result.headers);
-    await this.noteDevice(user.id, req);
-    return { status: 'signed_in', user: await this.userDto(user.id) };
+    return this.completeSignIn(req, res, {
+      userId: user.id,
+      sessionToken: token,
+      headers: result.headers,
+      trustRequested: body.trustDevice,
+    });
   }
 
   /** Second sign-in step with a backup code (Better Auth makes each backup code single-use). */
@@ -173,10 +205,87 @@ export class IdentityService {
     const result = await callAuth(() =>
       this.auth.api.verifyBackupCode({ body, headers: this.headersFor(req), returnHeaders: true }),
     );
-    const { user } = result.response as { user: { id: string } };
-    forwardCookies(res, result.headers);
-    await this.noteDevice(user.id, req);
-    return { status: 'signed_in', user: await this.userDto(user.id) };
+    const { token, user } = result.response as { token: string; user: { id: string } };
+    return this.completeSignIn(req, res, {
+      userId: user.id,
+      sessionToken: token,
+      headers: result.headers,
+      trustRequested: body.trustDevice,
+    });
+  }
+
+  /**
+   * Final step of every successful sign-in: the company-host policy (members and invitees
+   * only), no trusted devices for sensitive roles, cookies, and the new-device notice.
+   */
+  private async completeSignIn(
+    req: Request,
+    res: Response,
+    done: { userId: string; sessionToken: string; headers: Headers; trustRequested: boolean },
+  ): Promise<SignInResponse> {
+    const [account] = await this.userSummaries([done.userId]);
+    if (
+      this.signInPolicy &&
+      !(await this.signInPolicy.allows(req.hostname, {
+        id: done.userId,
+        email: account?.email ?? '',
+      }))
+    ) {
+      await this.db.delete(sessions).where(eq(sessions.token, done.sessionToken));
+      throw new AppError('FORBIDDEN', HttpStatus.FORBIDDEN, messageFor('FORBIDDEN'));
+    }
+    let cookies = done.headers.getSetCookie();
+    if (done.trustRequested && (await this.holdsSensitiveRole(done.userId))) {
+      // Sensitive roles must always enter a code: drop the trust cookie Better Auth just set.
+      cookies = cookies.filter((cookie) => !cookie.split('=')[0]?.endsWith(TRUST_DEVICE_COOKIE));
+    }
+    if (cookies.length > 0) res.append('Set-Cookie', cookies);
+    await this.noteDevice(done.userId, req);
+    return { status: 'signed_in', user: await this.userDto(done.userId) };
+  }
+
+  /** Whether the user holds a role needing two-factor in any company. */
+  async holdsSensitiveRole(userId: string): Promise<boolean> {
+    const result = await this.db.execute<{ role: string }>(
+      sql`select app.user_role_names(${userId}) as role`,
+    );
+    const roles = result.rows.map((r) => r.role).filter((r): r is Role => isRole(r));
+    return isSensitive(roles);
+  }
+
+  /**
+   * Cancels every "trust this device" grant of a user (called when they gain a sensitive role).
+   * Better Auth stores trust grants with hashed identifiers and the user ID as value, so all of
+   * the user's pending verification values go — this also voids an unused password-reset link,
+   * which is acceptable at a privilege change.
+   */
+  async revokeTrustedDevices(userId: string): Promise<void> {
+    await this.db.delete(verifications).where(eq(verifications.value, userId));
+  }
+
+  /** The account ID for an email address (case-insensitive), or null. */
+  async userIdByEmail(email: string): Promise<string | null> {
+    const [user] = await this.db
+      .select({ id: users.id })
+      .from(users)
+      .where(sql`lower(${users.email}) = lower(${email})`);
+    return user?.id ?? null;
+  }
+
+  /** Name, email and two-factor status for display in company member lists. */
+  async userSummaries(userIds: readonly string[]) {
+    if (userIds.length === 0) return [];
+    return this.db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        emailVerified: users.emailVerified,
+        twoFactorEnabled: users.twoFactorEnabled,
+        locale: users.locale,
+      })
+      .from(users)
+      .where(inArray(users.id, [...userIds]));
   }
 
   // --- sessions ----------------------------------------------------------------------------

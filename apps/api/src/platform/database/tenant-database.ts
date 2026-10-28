@@ -6,6 +6,7 @@ import {
   UnsafeDatabaseRoleError,
   withTenant,
 } from '@ultimate-erp/db';
+import { sql } from 'drizzle-orm';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { AppError } from '../errors/app-error.js';
 import { DatabaseRoleCheck } from './database-role-check.js';
@@ -32,6 +33,15 @@ export class TenantDatabase {
   async resolveHost(hostname: string): Promise<string | null> {
     await this.ensureSafeRole();
     return resolveTenantByHost(this.db, hostname);
+  }
+
+  /** A new time-ordered ID for a company about to be created (no context exists for it yet). */
+  async newTenantId(): Promise<string> {
+    await this.ensureSafeRole();
+    const result = await this.db.execute<{ id: string }>(sql`select uuidv7() as id`);
+    const id = result.rows[0]?.id;
+    if (!id) throw new Error('uuidv7() returned no value');
+    return id;
   }
 
   /** Unsafe role or unreachable database ⇒ 503: an honest "try again later", never data. */

@@ -5,6 +5,16 @@ import { type Catalog } from '../types.js';
  * (ADR-0006). The `Catalog` type makes the build fail if any key from `en` is missing.
  */
 export const ar: Catalog = {
+  roles: {
+    owner: 'المالك',
+    ceo: 'الرئيس التنفيذي',
+    manager: 'مدير',
+    team_leader: 'قائد فريق',
+    employee: 'موظف',
+    finance: 'المالية',
+    hr_payroll: 'الموارد البشرية والرواتب',
+    technical_admin: 'مسؤول تقني',
+  },
   email: {
     signature: 'Ultimate ERP',
     ignoreNotice: 'إذا لم تطلب ذلك، يمكنك تجاهل هذه الرسالة.',
@@ -35,6 +45,10 @@ export const ar: Catalog = {
     twoFactorEnabled: {
       subject: 'تم تفعيل المصادقة الثنائية',
       body: 'مرحبًا {name}،\n\nتم تفعيل المصادقة الثنائية لحسابك. احتفظ برموز الاسترداد في مكان آمن.',
+    },
+    invitation: {
+      subject: 'أنت مدعو للانضمام إلى {company}',
+      body: 'مرحبًا،\n\nدعاك {inviter} للانضمام إلى {company} على Ultimate ERP بدور {role}.\n\nافتح هذا الرابط لعرض الدعوة:\n\n{url}\n\nتنتهي صلاحية الدعوة خلال 7 أيام. ستحتاج إلى تسجيل الدخول (أو إنشاء حساب) بهذا البريد الإلكتروني لقبولها.',
     },
     twoFactorDisabled: {
       subject: 'تم إيقاف المصادقة الثنائية',

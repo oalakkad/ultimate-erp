@@ -3,3 +3,5 @@ export * from './health.js';
 export * from './http.js';
 export * from './tenancy.js';
 export * from './auth.js';
+export * from './permissions.js';
+export * from './access.js';

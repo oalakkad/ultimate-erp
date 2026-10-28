@@ -143,17 +143,24 @@ describe('every tenant-owned table is protected (catalog guard for future tables
         (select count(*)::int from pg_policies p
           where p.tablename = c.relname and 'erp_app' = any(p.roles)) as app_policies,
         exists (
+          -- a primary or unique key that includes tenant_id (target for composite foreign keys)
           select 1 from pg_constraint k
-          where k.conrelid = c.oid and k.contype in ('u', 'p')
-            and (select array_agg(a.attname::text order by a.attname) from pg_attribute a
-                 where a.attrelid = c.oid and a.attnum = any(k.conkey)) = array['id', 'tenant_id']
+          where k.conrelid = c.oid and k.contype in ('u', 'p') and array_length(k.conkey, 1) > 1
+            and exists (select 1 from pg_attribute a
+                        where a.attrelid = c.oid and a.attnum = any(k.conkey) and a.attname = 'tenant_id')
         ) as composite_key
       from pg_class c join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'public' and c.relkind = 'r'
         and exists (select 1 from pg_attribute a
                     where a.attrelid = c.oid and a.attname = 'tenant_id' and not a.attisdropped)
     `);
-    expect(rows.map((r) => r.table).sort()).toEqual(['memberships', 'tenant_domains']);
+    expect(rows.map((r) => r.table).sort()).toEqual([
+      'audit_events',
+      'invitations',
+      'membership_roles',
+      'memberships',
+      'tenant_domains',
+    ]);
     for (const row of rows) {
       expect(row, row.table).toMatchObject({ rls: true, forced: true, composite_key: true });
       expect(row.app_policies, row.table).toBeGreaterThan(0);

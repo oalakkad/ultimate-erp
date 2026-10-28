@@ -31,7 +31,10 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | Permission | Owner | CEO | Manager | Team Lead | Employee | Tech Admin |
 |---|---|---|---|---|---|---|
 | tenancy.settings.update | company | company | — | — | — | — |
-| access.roles.manage | company | company* | — | — | — | — |
+| access.members.read | company | company | company | — | — | — |
+| access.members.invite | company | company | — | — | — | — |
+| access.members.manage | company | company | — | — | — | — |
+| access.roles.assign | company | company* | — | — | — | — |
 | people.employee.read | company | company | team | team (basic fields) | own | — |
 | people.employee.read_restricted (civil ID, bank, emergency) | company | company* | — | — | own | — |
 | clients.client.create | company | company | company | — | — | — |
@@ -51,4 +54,6 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | exports.confidential | company* | company* | — | — | — | — |
 | system.health.read | — | — | — | — | — | platform |
 
-`*` = granted in template but requires MFA-verified session and is individually revocable. `—` = not granted.
+`*` = granted in template; sensitive (requires two-factor). `—` = not granted.
+
+This table is **machine-checked**: `packages/contracts/src/permissions.spec.ts` parses it and fails if `permissions.ts` differs. Finance and HR/Payroll role definitions live only in `permissions.ts` until those modules exist. Sensitive permissions (two-factor required, never trusted-device) are defined there too; a grant at `own` scope is never sensitive (an employee reading their own payslip does not force MFA on every employee). Milestone 1.3b renamed `access.roles.manage` to `access.roles.assign` (fixed roles: assigning, not editing).

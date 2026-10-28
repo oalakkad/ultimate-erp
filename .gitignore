@@ -11,3 +11,6 @@ coverage/
 Thumbs.db
 playwright-report/
 test-results/
+
+# Development helper cookie jars (scripts/dev-http.mjs)
+.dev-cookies/

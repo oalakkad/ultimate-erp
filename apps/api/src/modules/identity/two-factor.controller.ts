@@ -11,13 +11,18 @@ import {
 } from '@nestjs/common';
 import {
   backupCodeRequestSchema,
+  backupCodesResponseSchema,
+  okResponseSchema,
   passwordConfirmRequestSchema,
-  twoFactorConfirmRequestSchema,
-  twoFactorVerifyRequestSchema,
   type SignInResponse,
+  signInResponseSchema,
+  twoFactorConfirmRequestSchema,
+  twoFactorSetupResponseSchema,
+  twoFactorVerifyRequestSchema,
 } from '@ultimate-erp/contracts';
 import { type Request, type Response } from 'express';
 import { type z } from 'zod';
+import { ApiContract } from '../../platform/openapi/api-contract.js';
 import { NoStoreInterceptor } from '../../platform/http/no-store.interceptor.js';
 import { ZodValidationPipe } from '../../platform/validation/zod-validation.pipe.js';
 import { type Identity, IdentityService } from './identity.service.js';
@@ -30,6 +35,12 @@ export class TwoFactorController {
   constructor(private readonly identity: IdentityService) {}
 
   @Post('verify')
+  @ApiContract({
+    summary: 'Complete sign-in with an authenticator code',
+    auth: 'public',
+    body: twoFactorVerifyRequestSchema,
+    response: signInResponseSchema,
+  })
   @HttpCode(HttpStatus.OK)
   verify(
     @Req() req: Request,
@@ -41,6 +52,12 @@ export class TwoFactorController {
   }
 
   @Post('verify-backup-code')
+  @ApiContract({
+    summary: 'Complete sign-in with a backup code',
+    auth: 'public',
+    body: backupCodeRequestSchema,
+    response: signInResponseSchema,
+  })
   @HttpCode(HttpStatus.OK)
   verifyBackupCode(
     @Req() req: Request,
@@ -52,6 +69,12 @@ export class TwoFactorController {
   }
 
   @Post('enable')
+  @ApiContract({
+    summary: 'Start two-factor setup (password required)',
+    auth: 'session',
+    body: passwordConfirmRequestSchema,
+    response: twoFactorSetupResponseSchema,
+  })
   @HttpCode(HttpStatus.OK)
   @UseGuards(SessionGuard)
   enable(
@@ -63,6 +86,12 @@ export class TwoFactorController {
   }
 
   @Post('confirm')
+  @ApiContract({
+    summary: 'Activate two-factor with the first code',
+    auth: 'session',
+    body: twoFactorConfirmRequestSchema,
+    response: okResponseSchema,
+  })
   @HttpCode(HttpStatus.OK)
   @UseGuards(SessionGuard)
   async confirm(
@@ -76,6 +105,12 @@ export class TwoFactorController {
   }
 
   @Post('disable')
+  @ApiContract({
+    summary: 'Turn two-factor off (password required)',
+    auth: 'session',
+    body: passwordConfirmRequestSchema,
+    response: okResponseSchema,
+  })
   @HttpCode(HttpStatus.OK)
   @UseGuards(SessionGuard)
   async disable(
@@ -89,6 +124,12 @@ export class TwoFactorController {
   }
 
   @Post('backup-codes')
+  @ApiContract({
+    summary: 'Replace backup codes (password required)',
+    auth: 'session',
+    body: passwordConfirmRequestSchema,
+    response: backupCodesResponseSchema,
+  })
   @HttpCode(HttpStatus.OK)
   @UseGuards(SessionGuard)
   regenerateBackupCodes(

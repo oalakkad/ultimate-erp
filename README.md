@@ -2,7 +2,7 @@
 
 Multi-tenant, bilingual (English/Arabic) ERP for audit, risk & GRC firms and professional-services companies. Deployable as SaaS or on-premises.
 
-> Status: **Phase 1 — Milestone 1.3a (identity)**. Database-enforced company isolation, plus real accounts: sign-up with email verification, sign-in, two-factor, password reset, sessions. No web screens or business modules yet.
+> Status: **Phase 1 — Milestone 1.3b (access)**. Database-enforced company isolation, real accounts with two-factor, company onboarding, invitations, roles and permissions, append-only audit log, generated API docs (http://localhost:3000/api/v1/docs/openapi.json). No web screens or business modules yet.
 
 ## Prerequisites
 - **Node.js 24** (LTS) — `node -v`
@@ -28,6 +28,7 @@ pnpm install
 | `pnpm services:up` / `services:down` / `services:logs` | Start / stop / follow the Docker services |
 | `pnpm db:setup` | Create database roles + apply migrations (run by `pnpm dev`) |
 | `pnpm db:seed` | Starts the services, prepares the database, adds the two demo companies (dev only): http://acme.localhost:3000/api/v1/tenant |
+| `pnpm http <METHOD> <url> [key=value ...] [--as <person>]` | Development helper: call the API, including company addresses like `http://acme.localhost:3000` (PowerShell cannot resolve `*.localhost`). Keeps cookies per person in `.dev-cookies/` |
 | `pnpm db:generate -- --name=<what>` | Create a migration from schema changes (see [docs/database.md](docs/database.md)) |
 
 Stop `pnpm dev` with `Ctrl+C`. The Docker services keep running until `pnpm services:down`, and restart automatically with Docker Desktop. If a command says it cannot reach the database, start Docker Desktop, then `pnpm services:up`. Your data is kept in Docker volumes; `docker compose -f infra/compose/compose.dev.yaml --env-file .env down -v` deletes it.
@@ -44,7 +45,7 @@ All ports bind to `127.0.0.1` only. Values in `.env.example` are local throwaway
 
 ## Repository layout
 ```
-apps/api            NestJS API (platform: config, logging, request IDs, errors, database, health, mail, rate limits, validation; modules: tenancy, identity)
+apps/api            NestJS API (platform: config, logging, request IDs, errors, database, health, mail, rate limits, validation, audit, openapi; modules: tenancy, identity, access)
 packages/i18n       English/Arabic text catalogs (emails now, UI from 1.4)
 packages/db         Drizzle schema, SQL migrations, roles/RLS, withTenant, test database helper
 packages/contracts  Shared Zod schemas: error format, health responses, header names

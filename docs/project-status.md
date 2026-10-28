@@ -3,7 +3,7 @@
 Last updated: 2026-10-24
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). **Milestone 1.3a (identity) tested by the owner and approved 2026-10-27.** Next: Milestone 1.3b plan awaiting owner decisions. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). **Milestone 1.3b (access) approved 2026-10-28.** Next: Milestone 1.4 plan awaiting owner decisions. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -23,6 +23,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Company creation: **self-service for anyone after email verification** (rate-limited, audited).
 - MFA: **required for sensitive roles** (Owner, CEO, payroll, payments, roles, exports); optional for others; tenant can require for all.
 - Better Auth minimum raised to latest (1.7.13) after advisory GHSA-qq9h-g4jm-xgf3; email-OTP / magic-link sign-in not enabled.
+
+## Decisions 2026-10-27 (Milestone 1.3b)
+- Roles: **fixed system roles** from permissions.md now; custom roles later (company settings).
+- MFA: sensitive roles are **blocked until two-factor is set up** (only MFA setup allowed in that company); no trusted device for them.
+- Invitations: **Owner and CEO only**; expire after 7 days; accepted only by a signed-in account with the matching verified email.
+- **One account may belong to several companies** (company switcher in Phase 2).
+- Defaults accepted: audit log readable by Owner/CEO, kept indefinitely until legal retention is confirmed; API docs at /api/v1/docs in development only.
 
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
@@ -60,10 +67,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Milestone 1.3a — Identity** (2026-10-25, owner-tested and approved 2026-10-27; email links made clickable during owner testing): Better Auth 1.7.13 behind our own `/api/v1/auth` endpoints (spec: `modules/identity.md`): sign-up with email verification (Mailpit), enumeration-safe answers, sign-in, lockout after 5 failures + email, per-IP limits (Postgres-backed), TOTP two-factor with replay protection, single-use backup codes, trusted device, password forgot/reset/change with breached-password check, sessions list/revoke (30 min idle / 12 h absolute), new-device notices, CSRF origin check, strict validation, bilingual emails (`packages/i18n`), query-string redaction in logs, telemetry off, hashed tokens. Tests: 131 passing; four protections mutation-checked.
 
-## How to verify Milestone 1.3a
-1. `pnpm check` → i18n `4 passed`, contracts `5 passed`, db `32 passed`, api `90 passed`.
-2. `pnpm security` → `Severity: 1 moderate` (accepted, see security.md §2b), `Licence check passed`, `no leaks found`.
-3. `pnpm dev`, then the PowerShell walkthrough in the newest `session-log.md` entry (sign-up → email in http://localhost:8025 → verify → sign-in → me → sessions → sign-out).
+- **Milestone 1.3b — Access** (2026-10-27, approved 2026-10-28; spec `modules/access.md`): self-service company onboarding (Owner + CEO, subdomain, reserved/taken slugs refused), invitations (verified matching email, single use, 7 days, revocable, hashed token, bilingual email), fixed roles + permission keys + scopes in `packages/contracts` (matrix machine-checked against permissions.md), AccessGuard (session → membership → MFA for sensitive roles → permission), no self-change / no escalation / last Owner kept with serialized role changes, company-host sign-in limited to members and invitees, no trusted devices for sensitive roles, append-only audit log (DB trigger, same transaction, cursor pagination), OpenAPI 3.1 generated from route contracts (dev only), `pnpm http` dev helper. Tests: 184 passing; five protections mutation-checked.
+
+## How to verify Milestone 1.3b
+1. `pnpm check` → i18n `4 passed`, contracts `27 passed`, db `32 passed`, api `121 passed`.
+2. `pnpm security` → `Severity: 1 moderate` (accepted), `Licence check passed`, `no leaks found`.
+3. `pnpm dev`, then the walkthrough in the newest `session-log.md` entry using `pnpm http` (create company → MFA_REQUIRED → set up two-factor → invite → accept → permissions → audit). API docs: http://localhost:3000/api/v1/docs/openapi.json
 
 ## Known issues
 - CI workflow not yet run on GitHub (no remote). Locally the identical steps pass.
@@ -74,8 +83,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Arabic email texts are machine-drafted; native-speaker review needed before release.
 - Accepted moderate advisory GHSA-67mh-4wv8-2f99 (esbuild dev server, unused) — security.md §2b.
 - Right after enabling two-factor, the code just used cannot sign in again (replay protection); wait for the next code.
+- Windows PowerShell cannot resolve `*.localhost` company addresses → use `pnpm http` (dev helper) or a browser.
+- Cancelling trusted devices (on gaining a sensitive role) also voids an unused password-reset link at that moment.
+- Role checks are company-wide for now; team/project-scoped resource checks arrive with those modules.
+- Dev DB contains rehearsal accounts/companies (`rehearsal-*@example.com`, `rehearsal-*` slugs) from verification runs.
 - `erp_platform` is NOLOGIN until platform-operator features are designed.
 - Not yet built by design: login/RBAC/audit (1.3), web app (1.4), worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Owner verifies Milestone 1.3a and approves (and says whether to commit) → Milestone 1.3b (onboarding, invitations, RBAC + scopes, MFA enforcement for sensitive roles, audit log, OpenAPI). See the newest entry in `session-log.md`.
+Owner verifies Milestone 1.3b and approves (and says whether to commit) → Milestone 1.4 (design system & app shell: tokens, fonts, core components, EN/AR + RTL, sign-up/sign-in/onboarding screens on the real API, Playwright E2E + axe). See the newest entry in `session-log.md`.

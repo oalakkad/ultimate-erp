@@ -6,6 +6,58 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-27 — Session 3 (continued): Milestone 1.3b Access built
+
+### Where we finished
+**Milestone 1.3b (Access) is built and verified, awaiting the owner's review and approval. NOT committed** (last commit `253b180` = 1.3a). Do not start 1.4 until the owner approves 1.3b.
+
+### Done
+- Spec `docs/modules/access.md` first; permissions.md matrix extended (access.members.read/invite/manage, access.roles.assign) and now machine-checked.
+- `packages/contracts`: `permissions.ts` (permissions, scopes, 8 fixed roles, sensitive set, effectivePermissions, hasPermission, isSensitive, canGrant, FOUNDER_ROLES), `access.ts` (slug rules + reserved list, request/response schemas), error `MFA_REQUIRED`.
+- DB: migrations 0004 (membership_roles, invitations, audit_events) + 0005 (forced RLS, grants, append-only trigger incl. TRUNCATE, `app.user_role_names()`); isolation guard generalized (key containing tenant_id).
+- API: `platform/audit` (same-transaction AuditLog), `platform/openapi` (`@ApiContract`, generator, `/api/v1/docs/openapi.json` dev-only), `TenantDatabase.newTenantId()`, `pg-error.ts`, config `PLATFORM_BASE_DOMAIN`; `modules/access` (AccessGuard, AccessService with advisory-lock-serialized role changes, CompaniesService, InvitationsService, AuditEventsService, MembershipSignInPolicy via identity's `SIGN_IN_POLICY` hook); identity: `completeSignIn` (policy, trusted-device refusal for sensitive roles), `revokeTrustedDevices`, `userSummaries`, `userIdByEmail`; i18n: invitation email + role names.
+- Every existing route annotated with `@ApiContract` (~34).
+- Dev helper `pnpm http` (scripts/dev-http.mjs, `.dev-cookies/` git-ignored) because PowerShell cannot resolve `*.localhost`.
+
+### Findings worth remembering
+- Owner could never appoint a CEO under strict "grant ⊆ own" (Owner lacks payroll) → Owner grants any role to others; founder = Owner + CEO; no self-change.
+- Concurrency: without serialization two Owners demoting each other both succeed (`[200,200]`, zero Owners) — proven with a forced-overlap test (table lock + polling pg_stat_activity as superuser; non-superusers can't see others' wait states).
+- Audit cursor by UUIDv7 id (timestamps lose microseconds in JS).
+- Mutation checks (each made its test fail): invitation email match, MFA block, role-change lock, canGrant, missing @ApiContract.
+
+### State
+- Uncommitted: all 1.3b work. Dev DB migrated (0004/0005 applied with `pnpm db:setup`) and contains rehearsal data (`rehearsal-*`). Owner's `pnpm dev` was running and auto-reloaded. Rehearsal emails and cookie jars deleted; owner's Mailpit has only their own 2 emails.
+
+### Verification (last run)
+- `pnpm check`: **184 passed** (i18n 4, contracts 27, db 32, api 121). `pnpm security`: 1 moderate (accepted), licences OK (156), no leaks.
+- Cold PowerShell rehearsal with `pnpm http`: create company → sign-in on company host → MFA_REQUIRED → enable + confirm 2FA → members 200 → invite → invitee signs up, signs in on company host, accepts → roles employee → members 403 → audit lists events.
+
+### Next step
+Owner tests (needs an authenticator app on the phone for two-factor; the secret can be typed in manually from the `totpUri`), approves 1.3b, says whether to commit → Milestone 1.4 plan (design system & shell).
+
+---
+
+## 2026-10-27 — Session 3 (continued): 1.3a approved + committed, 1.3b planned
+
+### Where we finished
+**Milestone 1.3a approved by the owner and committed `253b180`.** Milestone 1.3b plan presented and the owner's decisions recorded (project-status "Decisions 2026-10-27"). Building 1.3b starts now: first `docs/modules/access.md`.
+
+### Decisions (owner, 2026-10-27)
+- Fixed system roles now (Owner, CEO, Manager, Team Leader, Employee, Finance, HR/Payroll, Technical Admin); custom roles later.
+- Sensitive roles blocked until two-factor is set up; no trusted device for them.
+- Only Owner and CEO can invite; invitations expire after 7 days; verified matching email required.
+- One account can belong to several companies.
+- Defaults: audit log readable by Owner/CEO, kept indefinitely pending legal retention; OpenAPI docs dev-only.
+
+### State
+- Clean working tree after commit `253b180` (plus this entry). Owner's `pnpm dev` may be running. My orphan node processes from 19:56 (local) still exist; harmless, gone after a reboot.
+- Verification at commit: `pnpm check` 134 passed (i18n 4, contracts 5, db 32, api 93); `pnpm security` 1 moderate (accepted), licences OK, no leaks.
+
+### Next step
+Write `docs/modules/access.md` (spec), then implement 1.3b: onboarding (tenant + subdomain + Owner membership, reserved slugs), invitations, RBAC permission keys + scopes in `packages/contracts`, server-side authorization guard, self-elevation and last-owner protection, MFA enforcement for sensitive roles, tenant sign-in requiring active membership, append-only audit log (DB-enforced), OpenAPI. Tests incl. invalid/expired/mismatched invitations, self-elevation, permission matrix, audit immutability, cross-tenant. Hand over in §22 A–H.
+
+---
+
 ## 2026-10-27 — Session 3: owner re-testing Milestone 1.3a
 
 ### Where we finished

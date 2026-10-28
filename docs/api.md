@@ -10,7 +10,7 @@ One API serves the web app, the future React Native app and integrations. The we
 - JSON only (`Content-Type: application/json`), UTF-8. Request bodies are limited (`HTTP_BODY_LIMIT`, default 1 MB); file uploads use a separate flow (Milestone 1.5).
 - Field names `camelCase`. IDs are UUID strings. Clients must treat IDs as opaque.
 - Contracts: every request and response schema is a Zod schema in `packages/contracts`, shared by server and clients.
-- **API documentation** *(planned, Milestone 1.3)*: OpenAPI 3.1 generated from those Zod schemas and served at `/api/v1/docs` in dev (disabled or authenticated in production). The schemas are the single source of truth, so docs cannot drift.
+- **API documentation** *(implemented 1.3b)*: every route declares `@ApiContract({ summary, auth, permission, body, query, params, response })`; OpenAPI 3.1 is generated from those Zod schemas at `GET /api/v1/docs/openapi.json` (not served in production). A test fails if any route lacks a contract.
 
 ## 2. Tenancy and authentication
 
@@ -41,6 +41,7 @@ All errors use one shape (`errorResponseSchema` in `packages/contracts`):
 | 400 | `BAD_REQUEST`, `MALFORMED_JSON` | Unparseable request |
 | 401 | `UNAUTHENTICATED` | No/expired session |
 | 403 | `FORBIDDEN` | Authenticated but lacks the permission or scope |
+| 403 | `MFA_REQUIRED` | Sensitive role without two-factor set up (company routes) |
 | 404 | `NOT_FOUND` | Missing, or exists in another tenant (indistinguishable on purpose) |
 | 405 | `METHOD_NOT_ALLOWED` | |
 | 409 | `CONFLICT` | Version conflict, invalid state transition, duplicate |
@@ -108,4 +109,15 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET | `/api/v1/auth/sessions` | Session | Own sessions (no tokens) | 1.3a |
 | DELETE | `/api/v1/auth/sessions/:id` | Session | Revoke one own session (others' IDs ⇒ 404) | 1.3a |
 | POST | `/api/v1/auth/sessions/revoke-others` | Session | Revoke all other own sessions | 1.3a |
+| POST | `/api/v1/companies` | Session (verified) | Create company + subdomain; caller becomes Owner + CEO → `201 { tenantId, slug, url, twoFactorRequired }`; taken slug ⇒ `409` | 1.3b |
+| GET | `/api/v1/access/me` | Member | My roles, permissions, whether two-factor setup is required (works before MFA) | 1.3b |
+| GET | `/api/v1/members` | `access.members.read` | Members with roles | 1.3b |
+| PUT | `/api/v1/members/:id/roles` | `access.roles.assign` | Replace another member's roles (no self-change, no escalation, last Owner kept) | 1.3b |
+| POST | `/api/v1/members/:id/remove` | `access.members.manage` | Mark removed | 1.3b |
+| POST/GET | `/api/v1/invitations` | `access.members.invite` | Invite (email + role) / list pending | 1.3b |
+| DELETE | `/api/v1/invitations/:id` | `access.members.invite` | Revoke | 1.3b |
+| GET | `/api/v1/invitations/preview?token=` | Public, company host | Company, role, masked email, expiry | 1.3b |
+| POST | `/api/v1/invitations/accept` | Session, company host | `{ token }`; verified matching email required | 1.3b |
+| GET | `/api/v1/audit-events?limit=&cursor=` | `audit.event.read` | Newest first; `nextCursor` | 1.3b |
+| GET | `/api/v1/docs/openapi.json` | Public, **dev/test only** | Generated OpenAPI 3.1 document | 1.3b |
 | GET | `/api/v1/tenant` | Public, tenant host | Public profile of the company owning the host: `{ slug, name: { en, ar }, defaultLocale }` (`tenantPublicProfileSchema`). Unknown/unverified/suspended host ⇒ 404. Database unavailable ⇒ 503. | 1.2 |

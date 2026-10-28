@@ -67,11 +67,11 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Employee accessing another employee's private data | 8 |
 | Manager accessing an unauthorized project | 5 |
 | User accessing another company's records | 1.2 onward (cross-tenant suite) |
-| User assigning themselves elevated privileges | 1.3 |
+| User assigning themselves elevated privileges | 1.3b ✅ |
 | Unauthorized user modifying payroll | 11 |
 | Duplicate payment or time-entry submissions (idempotency) | 7, 12 |
 | Expired or reused OTPs | 1.3a ✅ |
-| Invalid session and invitation tokens | sessions ✅ 1.3a; invitations 1.3b |
+| Invalid session and invitation tokens | ✅ 1.3a / 1.3b |
 | Concurrent hour allocations exceeding a budget | 6 |
 | Invalid status transitions | 4 onward (every state machine) |
 | Invalid or malicious file uploads | 1.5 |
@@ -92,5 +92,6 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 1.3b | + permission model & matrix-vs-docs (22), access suite against Postgres + Mailpit (25: onboarding, MFA block, invitation lifecycle incl. stolen/expired/revoked/reused, no escalation, forced-concurrency last-Owner, cross-company 404, removal, company sign-in policy, trusted devices, audit + pagination + immutability), OpenAPI (3) | 184 passed (i18n 4, contracts 27, db 32, api 121) |
 | 1.3a | + identity suite against real Postgres **and real Mailpit** (31: verification, enumeration, validation, breached passwords, lockout, IP limits, fixation, CSRF, new-device notice, sessions incl. idle/absolute expiry, reset single-use/expiry/hashing, password change, 2FA incl. replay, backup codes, trusted device, encrypted secrets) + unit tests (breach checker fail-open, error mapping, log redaction, i18n catalogs) + global-table guard | 134 passed (i18n 4, contracts 5, db 32, api 93 incl. mailer HTML) |
 | 1.2 | + 31 db isolation (roles, catalog guard, fail-closed, cross-tenant read/list/update/delete/insert/move/link, rollback, host resolution, platform role, idempotent migrations) + API tenancy (host routing, spoofed headers, client-supplied IDs, unsafe role) | 80 passed (5 + 31 + 44) |

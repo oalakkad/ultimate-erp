@@ -34,6 +34,7 @@ const MESSAGE_BY_CODE: Record<ErrorCode, string> = {
   EMAIL_NOT_VERIFIED: 'The email address has not been verified yet.',
   INVALID_TOKEN: 'The link is invalid or has expired.',
   INVALID_CODE: 'The code is invalid or has expired.',
+  MFA_REQUIRED: 'Two-factor authentication must be set up before using this company.',
   PASSWORD_COMPROMISED: 'This password appears in known data breaches; choose another.',
 };
 

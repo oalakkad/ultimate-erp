@@ -24,6 +24,8 @@ export const ERROR_CODES = [
   'INVALID_TOKEN',
   'INVALID_CODE',
   'PASSWORD_COMPROMISED',
+  // Access (Milestone 1.3b)
+  'MFA_REQUIRED',
 ] as const;
 
 export const errorCodeSchema = z.enum(ERROR_CODES);

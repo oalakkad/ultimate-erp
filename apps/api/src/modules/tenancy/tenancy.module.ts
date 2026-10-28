@@ -20,6 +20,9 @@ export class TenancyModule implements NestModule {
         { path: 'health', method: RequestMethod.GET },
         { path: 'health/live', method: RequestMethod.GET },
         { path: 'auth/*path', method: RequestMethod.ALL },
+        // Onboarding: the company does not exist yet.
+        { path: 'companies', method: RequestMethod.POST },
+        { path: 'docs/*path', method: RequestMethod.GET },
       )
       .forRoutes({ path: '*path', method: RequestMethod.ALL });
   }

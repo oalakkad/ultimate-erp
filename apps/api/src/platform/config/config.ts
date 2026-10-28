@@ -40,6 +40,11 @@ export const configSchema = z
     AUTH_SECRET: z.string().min(32, 'must be at least 32 characters'),
     /** Public base URL of this API, used in email links and cookie security. */
     APP_PUBLIC_URL: z.url({ protocol: /^https?$/ }),
+    /** Companies live at <slug>.<PLATFORM_BASE_DOMAIN>, e.g. acme.localhost in development. */
+    PLATFORM_BASE_DOMAIN: z
+      .string()
+      .regex(/^[a-z0-9.-]+$/, 'must be a lowercase domain name')
+      .default('localhost'),
     SMTP_HOST: z.string().min(1).default('127.0.0.1'),
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(1025),
     SMTP_SECURE: flag.default(false),
