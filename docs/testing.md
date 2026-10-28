@@ -25,7 +25,7 @@ Fixtures: test data is created by each test (factories in `test/fixtures/`), nev
 | `pnpm --filter @ultimate-erp/api exec vitest` | Watch mode while developing |
 | `pnpm check` | Format check, lint, typecheck, tests (what CI's `check` job runs) |
 | `pnpm security` | Vulnerability audit, licence check, secret scan (what CI's `security` job runs) |
-| `pnpm e2e` | Playwright end-to-end (from Milestone 1.4) |
+| `pnpm e2e` | Builds, then runs Playwright browser tests (gallery, accessibility, RTL). Screenshots: `apps/web/e2e/screenshots/` |
 
 ## 3. Release-blocking suites
 
@@ -92,6 +92,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 1.4a | + i18n formatting (ICU plurals EN/AR, exact money strings, Kuwait dates), UI component tests (9 incl. logical-CSS guard), **browser tests** (Playwright: gallery EN/AR × light/dark with axe WCAG 2.2 AA, RTL flip, dialog keyboard) | 199 unit/integration + 6 browser |
 | 1.3b | + permission model & matrix-vs-docs (22), access suite against Postgres + Mailpit (25: onboarding, MFA block, invitation lifecycle incl. stolen/expired/revoked/reused, no escalation, forced-concurrency last-Owner, cross-company 404, removal, company sign-in policy, trusted devices, audit + pagination + immutability), OpenAPI (3) | 184 passed (i18n 4, contracts 27, db 32, api 121) |
 | 1.3a | + identity suite against real Postgres **and real Mailpit** (31: verification, enumeration, validation, breached passwords, lockout, IP limits, fixation, CSRF, new-device notice, sessions incl. idle/absolute expiry, reset single-use/expiry/hashing, password change, 2FA incl. replay, backup codes, trusted device, encrypted secrets) + unit tests (breach checker fail-open, error mapping, log redaction, i18n catalogs) + global-table guard | 134 passed (i18n 4, contracts 5, db 32, api 93 incl. mailer HTML) |
 | 1.2 | + 31 db isolation (roles, catalog guard, fail-closed, cross-tenant read/list/update/delete/insert/move/link, rollback, host resolution, platform role, idempotent migrations) + API tenancy (host routing, spoofed headers, client-supplied IDs, unsafe role) | 80 passed (5 + 31 + 44) |

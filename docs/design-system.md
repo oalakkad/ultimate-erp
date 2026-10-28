@@ -1,6 +1,6 @@
 # Design System
 
-Status: **Direction v0.2 approved by owner (2026-10-24).** Tokens and components are implemented in Milestone 1.4 (`packages/ui`).
+Status: **Direction v0.2 approved by owner (2026-10-24). Implemented in Milestone 1.4a** (`packages/ui`, gallery at http://localhost:5173/gallery).
 Live reference: https://claude.ai/artifact/Ffk4Wtd2i9PGtVEK6FHA8H (private to the owner).
 
 v0.1 ("calm precision", neutral slate + teal) was rejected as too generic. v0.2 follows the owner's reference shots: vibrant, friendly, card-based.
@@ -26,14 +26,14 @@ v0.1 ("calm precision", neutral slate + teal) was rejected as too generic. v0.2 
 | frame | #f5f6f9 | #111014 | app canvas |
 | card | #ffffff | #19171d | cards, inputs |
 | line / line-2 | #eceef3 / #e1e4ea | #25222a / #2e2a34 | borders |
-| ink / ink-2 / ink-3 | #17141b / #5b5764 / #9893a1 | #f3f0f6 / #b4aebd / #7d7786 | text levels |
+| ink / ink-2 / ink-3 | #17141b / #5b5764 / #68636f (was #9893a1; darkened for WCAG AA 4.5:1) | #f3f0f6 / #b4aebd / #948e9e | text levels |
 | plum | #3b1f3e | #e4c9ea | active nav, primary button, today |
 | mint (bg / ink / solid) | #e2f5e9 / #1d7a46 / #34b46c | #12291c / #6fd69a / #34b46c | positive, collected, check-in |
 | blush | #fde7ea / #b52f49 / #ea5f78 | #31181e / #f59aab / #ea5f78 | outstanding, alerts, check-out |
 | lilac | #ede9fc / #5a45c2 / #8c78ee | #221d3a / #b6a8ff / #8c78ee | invoiced, filters, utilization |
-| butter | #fdf2d2 / #8a6100 / #f0b93a | #2e2510 / #f2c14e / #f0b93a | leave, near-limit |
+| butter | #fdf2d2 / #7a5600 (was #8a6100, contrast) / #f0b93a | #2e2510 / #f2c14e / #f0b93a | leave, near-limit |
 | sky | #e2eefd / #1d62b6 / #4f97ec | #13223a / #8cc0ff / #4f97ec | timesheets, planned |
-| status good / warn / bad | #1f9d55 / #d99a0b / #d63c4f | #3ccb78 / #f2b632 / #f06a7c | always with icon + label |
+| status good / warn / bad | #1f9d55 / #b47e00 (was #d99a0b, contrast) / #d63c4f | #3ccb78 / #f2b632 / #f06a7c | always with icon + label |
 
 Chart series (validated for color-blind separation with the dataviz palette validator): collected #1baf7a / #199e70, invoiced #7b5cd6 / #9178ea. Collected sits below 3:1 contrast on white, so charts always carry a legend and tooltips.
 

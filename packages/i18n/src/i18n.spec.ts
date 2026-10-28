@@ -15,6 +15,14 @@ function leaves(tree: Tree, prefix = ''): Map<string, string> {
 
 const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 
+/** Keys deliberately identical in every language: the product name and the language names. */
+const SAME_IN_BOTH = new Set([
+  'email.signature',
+  'ui.app.name',
+  'ui.common.english',
+  'ui.common.arabic',
+]);
+
 describe('catalogs', () => {
   const en = leaves(catalogs.en);
   const ar = leaves(catalogs.ar);
@@ -26,7 +34,7 @@ describe('catalogs', () => {
   it('no Arabic text is empty or left in English', () => {
     for (const [key, text] of ar) {
       expect(text.trim(), key).not.toBe('');
-      if (key !== 'email.signature') expect(text, key).not.toBe(en.get(key));
+      if (!SAME_IN_BOTH.has(key)) expect(text, key).not.toBe(en.get(key));
     }
   });
 

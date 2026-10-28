@@ -2,7 +2,7 @@
 
 Multi-tenant, bilingual (English/Arabic) ERP for audit, risk & GRC firms and professional-services companies. Deployable as SaaS or on-premises.
 
-> Status: **Phase 1 — Milestone 1.3b (access)**. Database-enforced company isolation, real accounts with two-factor, company onboarding, invitations, roles and permissions, append-only audit log, generated API docs (http://localhost:3000/api/v1/docs/openapi.json). No web screens or business modules yet.
+> Status: **Phase 1 — Milestone 1.4a (design system)**. Web app + design system with EN/AR and light/dark (gallery at http://localhost:5173/gallery). Earlier: Database-enforced company isolation, real accounts with two-factor, company onboarding, invitations, roles and permissions, append-only audit log, generated API docs (http://localhost:3000/api/v1/docs/openapi.json). No web screens or business modules yet.
 
 ## Prerequisites
 - **Node.js 24** (LTS) — `node -v`
@@ -17,12 +17,13 @@ pnpm install
 ## Everyday commands (run from the repo root)
 | Command | What it does |
 |---|---|
-| `pnpm dev` | Creates `.env` if missing, starts Postgres / object storage / Mailpit in Docker, then runs the API with auto-reload on http://127.0.0.1:3000/api/v1 |
+| `pnpm dev` | Creates `.env` if missing, starts Postgres / object storage / Mailpit in Docker, prepares the database, then runs the API (http://localhost:3000/api/v1) and the web app (http://localhost:5173) with auto-reload |
 | `pnpm test` | Unit + integration tests (integration tests start their own throwaway Postgres in Docker) |
 | `pnpm lint` | ESLint (code-quality rules) |
 | `pnpm typecheck` | TypeScript type checking |
 | `pnpm format` / `pnpm format:check` | Prettier: fix / check formatting |
 | `pnpm check` | Format check, lint, typecheck, tests (CI `check` job) |
+| `pnpm e2e` | Browser tests (Playwright + axe). First time: `pnpm --filter @ultimate-erp/web exec playwright install chromium` |
 | `pnpm security` | Vulnerability audit, licence check, secret scan (CI `security` job; needs Docker) |
 | `pnpm build` | Compile all packages to `dist/` |
 | `pnpm services:up` / `services:down` / `services:logs` | Start / stop / follow the Docker services |
@@ -36,6 +37,7 @@ Stop `pnpm dev` with `Ctrl+C`. The Docker services keep running until `pnpm serv
 ## Local services
 | Service | URL | Notes |
 |---|---|---|
+| Web app | http://localhost:5173 · gallery http://localhost:5173/gallery | Company addresses: http://<slug>.localhost:5173 |
 | API | http://127.0.0.1:3000/api/v1/health | Readiness incl. database |
 | PostgreSQL 18 | `127.0.0.1:5432` | Credentials in `.env` |
 | Object storage (RustFS, S3 API) | http://127.0.0.1:9000 · console http://127.0.0.1:9001 | Keys in `.env` |
@@ -46,7 +48,9 @@ All ports bind to `127.0.0.1` only. Values in `.env.example` are local throwaway
 ## Repository layout
 ```
 apps/api            NestJS API (platform: config, logging, request IDs, errors, database, health, mail, rate limits, validation, audit, openapi; modules: tenancy, identity, access)
-packages/i18n       English/Arabic text catalogs (emails now, UI from 1.4)
+apps/web            React web app (Vite, TanStack Router/Query); talks to the API via /api
+packages/ui         Design system: tokens (light/dark), fonts, components (Tailwind + Radix)
+packages/i18n       English/Arabic catalogs (UI + emails), ICU messages, money/date formatting
 packages/db         Drizzle schema, SQL migrations, roles/RLS, withTenant, test database helper
 packages/contracts  Shared Zod schemas: error format, health responses, header names
 packages/config     Shared TypeScript config

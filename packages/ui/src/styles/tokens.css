@@ -1,0 +1,120 @@
+/*
+ * Design tokens — design-system.md v0.2 (owner-approved 2026-10-24), values taken from the
+ * approved preview. Light by default; dark follows the system unless data-theme forces one.
+ * Components use these variables (through Tailwind utilities), never raw colours.
+ */
+:root {
+  --ground: #e7e9ef;
+  --frame: #f5f6f9;
+  --card: #ffffff;
+  --line: #eceef3;
+  --line-2: #e1e4ea;
+  --ink: #17141b;
+  --ink-2: #5b5764;
+  --ink-3: #68636f; /* preview used #9893a1; darkened to reach 4.5:1 on every background (WCAG AA; 4.8:1 on ground) */
+  --plum: #3b1f3e;
+  --plum-hover: #52305a;
+  --on-plum: #ffffff;
+  --plum-soft: #f1e9f2;
+  --mint: #e2f5e9;
+  --mint-ink: #1d7a46;
+  --mint-solid: #34b46c;
+  --blush: #fde7ea;
+  --blush-ink: #b52f49;
+  --blush-solid: #ea5f78;
+  --lilac: #ede9fc;
+  --lilac-ink: #5a45c2;
+  --lilac-solid: #8c78ee;
+  --butter: #fdf2d2;
+  --butter-ink: #7a5600; /* preview #8a6100; darkened for 4.5:1 on butter tiles */
+  --butter-solid: #f0b93a;
+  --sky: #e2eefd;
+  --sky-ink: #1d62b6;
+  --sky-solid: #4f97ec;
+  --good: #1f9d55;
+  --warn: #b47e00; /* preview #d99a0b; darkened for text contrast */
+  --bad: #d63c4f;
+  --focus: #6a55dc;
+  --shadow-frame: 0 40px 80px -30px rgb(30 24 48 / 0.25), 0 8px 24px -8px rgb(30 24 48 / 0.1);
+  --shadow-card: 0 1px 2px rgb(23 20 27 / 0.04);
+  --shadow-pop: 0 14px 30px -10px rgb(30 24 48 / 0.3);
+  --font-ui: 'Plus Jakarta Sans', 'Readex Pro', system-ui, 'Segoe UI', sans-serif;
+  --font-display: 'Instrument Serif', 'Amiri', Georgia, serif;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  color-scheme: light;
+}
+
+/* Dark values, used by system preference (unless forced light) or when forced dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ground: #08070a;
+    --frame: #111014;
+    --card: #19171d;
+    --line: #25222a;
+    --line-2: #2e2a34;
+    --ink: #f3f0f6;
+    --ink-2: #b4aebd;
+    --ink-3: #948e9e;
+    --plum: #e4c9ea;
+    --plum-hover: #f0dcf4;
+    --on-plum: #2a142d;
+    --plum-soft: #2a1f2e;
+    --mint: #12291c;
+    --mint-ink: #6fd69a;
+    --blush: #31181e;
+    --blush-ink: #f59aab;
+    --lilac: #221d3a;
+    --lilac-ink: #b6a8ff;
+    --butter: #2e2510;
+    --butter-ink: #f2c14e;
+    --sky: #13223a;
+    --sky-ink: #8cc0ff;
+    --good: #3ccb78;
+    --warn: #f2b632;
+    --bad: #f06a7c;
+    --focus: #b6a8ff;
+    --shadow-frame: 0 40px 80px -30px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.04);
+    --shadow-card: none;
+    --shadow-pop: 0 14px 30px -10px rgb(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ground: #08070a;
+  --frame: #111014;
+  --card: #19171d;
+  --line: #25222a;
+  --line-2: #2e2a34;
+  --ink: #f3f0f6;
+  --ink-2: #b4aebd;
+  --ink-3: #948e9e;
+  --plum: #e4c9ea;
+  --plum-hover: #f0dcf4;
+  --on-plum: #2a142d;
+  --plum-soft: #2a1f2e;
+  --mint: #12291c;
+  --mint-ink: #6fd69a;
+  --blush: #31181e;
+  --blush-ink: #f59aab;
+  --lilac: #221d3a;
+  --lilac-ink: #b6a8ff;
+  --butter: #2e2510;
+  --butter-ink: #f2c14e;
+  --sky: #13223a;
+  --sky-ink: #8cc0ff;
+  --good: #3ccb78;
+  --warn: #f2b632;
+  --bad: #f06a7c;
+  --focus: #b6a8ff;
+  --shadow-frame: 0 40px 80px -30px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.04);
+  --shadow-card: none;
+  --shadow-pop: 0 14px 30px -10px rgb(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+
+/* Arabic: Readex Pro for UI, Amiri for the greeting display. */
+:root[lang='ar'] {
+  --font-ui: 'Readex Pro', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'Amiri', 'Instrument Serif', serif;
+}

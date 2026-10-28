@@ -6,6 +6,32 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-28 — Session 4: 1.3b committed, Milestone 1.4a design system built
+
+### Where we finished
+1.3b approved ("go next") and committed `4ae3f76`. **Milestone 1.4a (design system) is built and verified, awaiting the owner's review of the gallery. NOT committed.** Do not start 1.4b until approved.
+
+### Decisions (owner, 2026-10-28)
+- 1.4 split into 1.4a (look) and 1.4b (screens + E2E). Sidebar shows only built modules. First-visit language: company default on a company address, browser language on the main address; saved choice wins.
+- Mine (documented): light `ink-3` → #68636f, `butter-ink` → #7a5600, `warn` → #b47e00, dark `ink-3` → #948e9e — required by axe for WCAG AA contrast; OFL-1.1 approved for fonts.
+
+### Done
+- Spec `docs/modules/web-ui.md`. New `packages/ui` (tokens.css from the approved preview, index.css with Tailwind 4 @theme, components: button, fields, data-display, overlays, states, shell), `apps/web` (Vite 8, TanStack Router/Query, i18n/theme providers with localStorage guarded, home page, `/gallery`), `packages/i18n` UI catalogs (`en-ui.ts`, `ar-ui.ts` machine-drafted) + `format.ts` (ICU translate, formatMoney from decimal strings, formatDate in Asia/Kuwait, latn digits).
+- Lint covers `.tsx` with strict TS + react-hooks; logical-CSS guard test (mutation-checked). Playwright + axe (`apps/web/e2e/gallery.spec.ts`), CI `e2e` job, `pnpm e2e`.
+- Visual check of screenshots by me: matched v0.2; fixed invisible skeletons and monospace "Ctrl K".
+
+### State
+- Uncommitted: all 1.4a work. `pnpm dev` started by me (background) and left running for the owner: API :3000, web :5173 (listens on ::1). Docker had stopped mid-session (restarted; containers auto-restarted).
+- Chromium for Playwright installed in the user profile (`ms-playwright`).
+
+### Verification (last run)
+- `pnpm check`: 199 passed (i18n 10, contracts 27, ui 9, db 32, api 121). `pnpm e2e`: 6 passed, axe clean EN/AR × light/dark. `pnpm security`: 1 moderate (accepted), 253 licences OK, no leaks.
+
+### Next step
+Owner opens http://localhost:5173/gallery (switch language/theme), gives feedback on the look; on approval (+ commit) → 1.4b plan: auth/onboarding screens on the real API, invitation accept, sessions, app shell, translated error codes, origin check must allow `*.localhost:5173` company origins (currently only APP_PUBLIC_URL + CORS_ORIGINS), Playwright journey via Mailpit in EN and AR.
+
+---
+
 ## 2026-10-27 — Session 3 (continued): Milestone 1.3b Access built
 
 ### Where we finished

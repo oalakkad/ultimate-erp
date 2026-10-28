@@ -13,3 +13,5 @@ export const catalogs: Record<Locale, Catalog> = { en, ar };
 export function format(template: string, params: Record<string, string> = {}): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) => params[key] ?? match);
 }
+
+export * from './format.js';

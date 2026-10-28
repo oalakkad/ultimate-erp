@@ -3,7 +3,7 @@
 Last updated: 2026-10-24
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). **Milestone 1.3b (access) approved 2026-10-28.** Next: Milestone 1.4 plan awaiting owner decisions. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). **Milestone 1.4a (design system) approved 2026-10-28.** Next: Milestone 1.4b plan awaiting owner decisions. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -30,6 +30,11 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Invitations: **Owner and CEO only**; expire after 7 days; accepted only by a signed-in account with the matching verified email.
 - **One account may belong to several companies** (company switcher in Phase 2).
 - Defaults accepted: audit log readable by Owner/CEO, kept indefinitely until legal retention is confirmed; API docs at /api/v1/docs in development only.
+
+## Decisions 2026-10-28 (Milestone 1.4)
+- 1.4 split: **1.4a** web app + design system (tokens, fonts, EN/AR + RTL, core components, gallery page for visual review) and **1.4b** real screens (sign-up/in, two-factor with QR, onboarding, invitations, sessions, app shell) + Playwright E2E + axe.
+- Sidebar shows **only built modules** (no locked placeholders).
+- First-visit language: **company default on a company address, browser language on the main address**; a signed-in user's saved choice always wins.
 
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
@@ -69,10 +74,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Milestone 1.3b — Access** (2026-10-27, approved 2026-10-28; spec `modules/access.md`): self-service company onboarding (Owner + CEO, subdomain, reserved/taken slugs refused), invitations (verified matching email, single use, 7 days, revocable, hashed token, bilingual email), fixed roles + permission keys + scopes in `packages/contracts` (matrix machine-checked against permissions.md), AccessGuard (session → membership → MFA for sensitive roles → permission), no self-change / no escalation / last Owner kept with serialized role changes, company-host sign-in limited to members and invitees, no trusted devices for sensitive roles, append-only audit log (DB trigger, same transaction, cursor pagination), OpenAPI 3.1 generated from route contracts (dev only), `pnpm http` dev helper. Tests: 184 passing; five protections mutation-checked.
 
-## How to verify Milestone 1.3b
-1. `pnpm check` → i18n `4 passed`, contracts `27 passed`, db `32 passed`, api `121 passed`.
-2. `pnpm security` → `Severity: 1 moderate` (accepted), `Licence check passed`, `no leaks found`.
-3. `pnpm dev`, then the walkthrough in the newest `session-log.md` entry using `pnpm http` (create company → MFA_REQUIRED → set up two-factor → invite → accept → permissions → audit). API docs: http://localhost:3000/api/v1/docs/openapi.json
+- **Milestone 1.4a — Design system** (2026-10-28, approved; spec `modules/web-ui.md`): `apps/web` (React 19, Vite 8, TanStack Router/Query, same-origin /api proxy), `packages/ui` (tokens from the approved preview, light/dark/system, self-hosted fonts, Tailwind 4 + Radix: buttons, fields, select, checkbox, cards, tiles, stats, status chips, avatars, dialog, drawer, tooltip, toasts, tabs, loading/empty/error/denied states, app frame/sidebar/top bar), `packages/i18n` UI catalogs + ICU + money/date formatting, language/theme switches with RTL, gallery page. Tests: 199 unit/integration + 6 browser (axe clean in EN/AR × light/dark).
+
+## How to verify Milestone 1.4a
+1. `pnpm check` → i18n `10`, contracts `27`, ui `9`, db `32`, api `121` passed.
+2. `pnpm e2e` → `6 passed` (screenshots in `apps/web/e2e/screenshots/`).
+3. `pnpm dev`, open http://localhost:5173/gallery, switch English/العربية and System/Light/Dark.
 
 ## Known issues
 - CI workflow not yet run on GitHub (no remote). Locally the identical steps pass.
@@ -86,9 +93,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Windows PowerShell cannot resolve `*.localhost` company addresses → use `pnpm http` (dev helper) or a browser.
 - Cancelling trusted devices (on gaining a sensitive role) also voids an unused password-reset link at that moment.
 - Role checks are company-wide for now; team/project-scoped resource checks arrive with those modules.
+- Light-mode colours `ink-3`, `butter-ink`, `warn` darkened vs. the approved preview for WCAG contrast (design-system.md).
+- Font licence texts (OFL) must ship in THIRD_PARTY_NOTICES before release.
+- Web bundle is ~527 kB (167 kB gzipped) in one file; route-level code splitting when real screens land.
 - Dev DB contains rehearsal accounts/companies (`rehearsal-*@example.com`, `rehearsal-*` slugs) from verification runs.
 - `erp_platform` is NOLOGIN until platform-operator features are designed.
 - Not yet built by design: login/RBAC/audit (1.3), web app (1.4), worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Owner verifies Milestone 1.3b and approves (and says whether to commit) → Milestone 1.4 (design system & app shell: tokens, fonts, core components, EN/AR + RTL, sign-up/sign-in/onboarding screens on the real API, Playwright E2E + axe). See the newest entry in `session-log.md`.
+Owner reviews the gallery (look and feel, both languages and themes) and approves 1.4a → Milestone 1.4b (real screens + E2E journey). See the newest entry in `session-log.md`.

@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import { importX } from 'eslint-plugin-import-x';
+import reactHooks from 'eslint-plugin-react-hooks';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -31,7 +32,7 @@ export default defineConfig(
   globalIgnores(['**/dist/**', '**/coverage/**', '**/.turbo/**', '**/node_modules/**']),
   js.configs.recommended,
   {
-    files: ['**/*.ts'],
+    files: ['**/*.{ts,tsx}'],
     extends: [tseslint.configs.strictTypeChecked],
     languageOptions: {
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
@@ -46,7 +47,7 @@ export default defineConfig(
   },
   {
     // Module boundaries (architecture.md §2): no circular imports anywhere.
-    files: ['**/*.ts'],
+    files: ['**/*.{ts,tsx}'],
     plugins: { 'import-x': importX },
     settings: {
       // Without these, import-x cannot parse the .ts files it follows and misses cycles.
@@ -94,6 +95,12 @@ export default defineConfig(
     // unscoped database handle — but still no raw drivers or admin/test helpers.
     files: ['apps/api/src/modules/identity/**/*.ts'],
     rules: { 'no-restricted-imports': ['error', { paths: RAW_DATABASE_IMPORTS }] },
+  },
+  {
+    // React rules of hooks (web app and design system).
+    files: ['apps/web/**/*.tsx', 'packages/ui/**/*.tsx'],
+    plugins: { 'react-hooks': reactHooks },
+    rules: reactHooks.configs.recommended.rules,
   },
   {
     files: ['**/*.{js,mjs}'],

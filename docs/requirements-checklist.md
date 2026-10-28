@@ -4,7 +4,7 @@ Purpose: every requirement in the owner's master project prompt (the "product br
 
 Status: ✅ done · 🟡 designed / partly built · ⏳ scheduled · ❓ needs owner decision
 
-Last reviewed: 2026-10-27 (after Milestone 1.3b). Source: `docs/product-brief.md` (§1–25, complete).
+Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md` (§1–25, complete).
 
 ## §1 Role & §19 Teaching
 | Requirement | Where / how | Status |
@@ -45,13 +45,13 @@ Last reviewed: 2026-10-27 (after Milestone 1.3b). Source: `docs/product-brief.md
 | Requirement | Where | Status |
 |---|---|---|
 | Premium, distinctive design direction | design-system.md v0.2 (owner-approved vibrant pastel; supersedes the brief's "restrained palette" wording by owner decision) | ✅ direction |
-| Tokens: color, type, spacing, radii, shadows, layout, breakpoints, icons | design-system.md §2 | 🟡 designed; built 1.4 (breakpoints to add in 1.4) |
-| Components: buttons … permission-denied states (full list in brief) | design-system.md §3 | ⏳ 1.4 |
-| Animations with reduced-motion; none on dense/financial data | design-system.md §1 | ⏳ 1.4 |
+| Tokens: color, type, spacing, radii, shadows, layout, breakpoints, icons | design-system.md §2, packages/ui | ✅ 1.4a |
+| Components: buttons … permission-denied states (full list in brief) | modules/web-ui.md §2 | 🟡 core set ✅ 1.4a; tables, pagination, filters, breadcrumbs, date picker, searchable select with their first use |
+| Animations with reduced-motion; none on dense/financial data | packages/ui | 🟡 transitions + reduced-motion ✅ 1.4a; richer motion with flows |
 | Tables: sort, filter, search, column control, pagination | design-system.md §4, api.md §7 | ⏳ 1.4 / Phase 3 |
 | Command palette / global search | design-system.md §3 (Ctrl K), roadmap Phase 2 | ⏳ Phase 2 |
-| Dark mode | design-system.md (light/dark tokens) | ⏳ 1.4 |
-| Keyboard accessibility, WCAG 2.2 AA | design-system.md §4, testing.md (axe) | ⏳ 1.4 |
+| Dark mode | packages/ui tokens | ✅ 1.4a |
+| Keyboard accessibility, WCAG 2.2 AA | e2e/gallery.spec.ts | 🟡 components ✅ 1.4a; every screen 1.4b |
 | Contextual help, smart defaults, confirmations for destructive actions | design-system.md §4 | ⏳ per module |
 
 ## §6 Multi-tenant architecture
@@ -222,7 +222,7 @@ Last reviewed: 2026-10-27 (after Milestone 1.3b). Source: `docs/product-brief.md
 ## §24 Final acceptance criteria
 | Criterion | Status |
 |---|---|
-| Premium coherent UI, reusable components | ⏳ 1.4 → |
+| Premium coherent UI, reusable components | 🟡 design system ✅ 1.4a; screens 1.4b → |
 | Secure auth + MFA | ✅ 1.3a + 1.3b |
 | Reliable tenant isolation | 🟡 foundation ✅ 1.2, extended per module |
 | Server-enforced authorization; business vs technical admin separated | ✅ 1.3b (foundation; each module adds its checks) |

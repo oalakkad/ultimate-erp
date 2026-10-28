@@ -31,7 +31,7 @@ Status: **Draft — Phase 0.** This is an engineering register, **not legal advi
 | Item | Status | Action |
 |---|---|---|
 | UI design v0.2 | Original work, inspired by general dashboard trends; no third-party code, images, logos or names copied. | Keep it that way: no copying of specific screens, illustrations or photos. |
-| Fonts (Plus Jakarta Sans, Readex Pro, Instrument Serif, Amiri) | SIL Open Font License 1.1, commercial use allowed. | Ship license texts in `THIRD_PARTY_NOTICES`; don't sell fonts standalone. |
+| Fonts (Plus Jakarta Sans, Readex Pro, Instrument Serif, Amiri) | SIL Open Font License 1.1, commercial use allowed. Self-hosted via @fontsource (1.4a); OFL-1.1 added to the licence allow-list 2026-10-28. | Ship license texts in `THIRD_PARTY_NOTICES` (before release, Phase 15); don't sell fonts standalone. |
 | Icons (Lucide) | ISC license, commercial use allowed. | Include license notice. |
 | npm dependencies | Production dependencies: MIT, ISC, BSD, Apache-2.0, 0BSD only (123 packages, checked 2026-10-24). | **Implemented:** `scripts/check-licenses.mjs` in CI blocks any licence outside the allow-list; copyleft needs a documented review. |
 | Product name "Ultimate ERP" | Not checked. | ⚖️ Trademark search (Kuwait MOCI + WIPO) before launch; register if clear. |
@@ -75,5 +75,5 @@ References: ASVS = OWASP ASVS 5.0 chapter; ISO = ISO/IEC 27002:2022 control. Map
 | API documentation complete and generated from contracts | ASVS V13, ISO 5.37 | `platform/openapi/` | `openapi.spec.ts`; mutation-checked | Implemented 1.3b |
 | Append-only audit log, written in the same transaction | ASVS V16, ISO 8.15 | `migrations/0005_access_security.sql` (grants + trigger), `platform/audit/audit-log.ts` | `access.spec.ts` (app and table owner cannot update/delete/truncate) | Implemented 1.3b |
 | Error monitoring and alerting | ISO 8.16 | — | — | Outstanding (1.5) |
-| Accessibility WCAG 2.2 AA | — | — | axe checks | Outstanding (1.4) |
+| Accessibility WCAG 2.2 AA | — | `packages/ui` (Radix primitives, labelled fields, focus ring, status = icon + text), tokens tuned for contrast | `apps/web/e2e/gallery.spec.ts`: axe on the gallery EN/AR × light/dark, dialog focus trap/Escape/focus return | Implemented 1.4a for components; per screen in 1.4b |
 | Backup and restore verified | ISO 8.13 | — | Restore drill | Outstanding (15) |

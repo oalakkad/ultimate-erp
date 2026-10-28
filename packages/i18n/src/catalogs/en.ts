@@ -1,5 +1,8 @@
+import { enUi } from './en-ui.js';
+
 /** English catalog — the reference: every other locale must have exactly these keys. */
 export const en = {
+  ui: enUi,
   roles: {
     owner: 'Owner',
     ceo: 'CEO',

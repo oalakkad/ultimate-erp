@@ -14,6 +14,9 @@ const ALLOWED = new Set([
   'CC0-1.0',
   // MIT No Attribution: MIT without even the notice requirement (nodemailer). Reviewed 2026-10-25.
   'MIT-0',
+  // SIL Open Font License: our self-hosted fonts. Commercial use allowed; ship the licence text,
+  // never sell the fonts on their own (compliance.md §3). Reviewed 2026-10-28.
+  'OFL-1.1',
 ]);
 
 // Reviewed exceptions: "package-name": "reason and date".

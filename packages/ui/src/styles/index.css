@@ -1,0 +1,97 @@
+/* Entry stylesheet of the design system. Apps import this once: `@ultimate-erp/ui/styles.css`. */
+@import 'tailwindcss';
+
+/* Self-hosted fonts (SIL Open Font License) — no external font service, works offline. */
+@import '@fontsource/plus-jakarta-sans/400.css';
+@import '@fontsource/plus-jakarta-sans/500.css';
+@import '@fontsource/plus-jakarta-sans/600.css';
+@import '@fontsource/plus-jakarta-sans/700.css';
+@import '@fontsource/plus-jakarta-sans/800.css';
+@import '@fontsource/readex-pro/400.css';
+@import '@fontsource/readex-pro/500.css';
+@import '@fontsource/readex-pro/600.css';
+@import '@fontsource/readex-pro/700.css';
+@import '@fontsource/instrument-serif/400-italic.css';
+@import '@fontsource/amiri/700.css';
+
+@import './tokens.css';
+
+/* Tailwind must also read the design system's own components for class names. */
+@source '../components';
+
+/* Tokens → Tailwind utilities (bg-card, text-ink-2, rounded-card, shadow-pop, font-display …). */
+@theme inline {
+  --color-ground: var(--ground);
+  --color-frame: var(--frame);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-plum: var(--plum);
+  --color-plum-hover: var(--plum-hover);
+  --color-on-plum: var(--on-plum);
+  --color-plum-soft: var(--plum-soft);
+  --color-mint: var(--mint);
+  --color-mint-ink: var(--mint-ink);
+  --color-mint-solid: var(--mint-solid);
+  --color-blush: var(--blush);
+  --color-blush-ink: var(--blush-ink);
+  --color-blush-solid: var(--blush-solid);
+  --color-lilac: var(--lilac);
+  --color-lilac-ink: var(--lilac-ink);
+  --color-lilac-solid: var(--lilac-solid);
+  --color-butter: var(--butter);
+  --color-butter-ink: var(--butter-ink);
+  --color-butter-solid: var(--butter-solid);
+  --color-sky: var(--sky);
+  --color-sky-ink: var(--sky-ink);
+  --color-sky-solid: var(--sky-solid);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-focus: var(--focus);
+  --radius-frame: 30px;
+  --radius-card: 20px;
+  --radius-tile: 16px;
+  --radius-ctl: 12px;
+  --shadow-frame: var(--shadow-frame);
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+  --font-ui: var(--font-ui);
+  --font-display: var(--font-display);
+  --ease-brand: var(--ease);
+}
+
+@layer base {
+  html,
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Directional icons (arrows, chevrons) mirror in right-to-left layouts. */
+  [dir='rtl'] .mirror {
+    transform: scaleX(-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

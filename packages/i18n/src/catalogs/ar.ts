@@ -1,10 +1,12 @@
 import { type Catalog } from '../types.js';
+import { arUi } from './ar-ui.js';
 
 /**
  * Arabic catalog. Machine-drafted 2026-10-25 — NEEDS NATIVE-SPEAKER REVIEW before release
  * (ADR-0006). The `Catalog` type makes the build fail if any key from `en` is missing.
  */
 export const ar: Catalog = {
+  ui: arUi,
   roles: {
     owner: 'المالك',
     ceo: 'الرئيس التنفيذي',

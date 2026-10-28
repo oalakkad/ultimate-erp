@@ -18,5 +18,8 @@
   "devDependencies": {
     "@ultimate-erp/config": "workspace:*",
     "vitest": "5.0.5"
+  },
+  "dependencies": {
+    "intl-messageformat": "12.1.4"
   }
 }
