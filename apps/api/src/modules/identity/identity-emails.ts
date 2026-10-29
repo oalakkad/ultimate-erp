@@ -2,7 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { type Locale } from '@ultimate-erp/i18n';
 import { type AppConfig, webPublicUrl } from '../../platform/config/config.js';
 import { APP_CONFIG } from '../../platform/config/config.module.js';
-import { type EmailTemplate, Mailer } from '../../platform/mail/mailer.js';
+import { EmailOutbox } from '../../platform/mail/email-outbox.js';
+import { type EmailTemplate } from '../../platform/mail/mailer.js';
 
 /** The subset of a user that emails need. */
 export interface EmailRecipient {
@@ -13,11 +14,11 @@ export interface EmailRecipient {
 
 const localeOf = (user: EmailRecipient): Locale => (user.locale === 'ar' ? 'ar' : 'en');
 
-/** Every email the identity module sends, in the recipient's language. */
+/** Every email the identity module sends, in the recipient's language (queued, see EmailOutbox). */
 @Injectable()
 export class IdentityEmails {
   constructor(
-    private readonly mailer: Mailer,
+    private readonly outbox: EmailOutbox,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
 
@@ -64,8 +65,12 @@ export class IdentityEmails {
     return url.toString();
   }
 
-  private send(user: EmailRecipient, template: EmailTemplate, params: Record<string, string>) {
-    return this.mailer.send({
+  private async send(
+    user: EmailRecipient,
+    template: EmailTemplate,
+    params: Record<string, string>,
+  ): Promise<void> {
+    await this.outbox.enqueue({
       to: user.email,
       locale: localeOf(user),
       template,

@@ -57,6 +57,27 @@
       "when": 1793210231959,
       "tag": "0007_handoff_security",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793216579202,
+      "tag": "0008_jobs_notifications_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793216589409,
+      "tag": "0009_jobs_notifications_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793290101210,
+      "tag": "0010_notification_root_link",
+      "breakpoints": true
     }
   ]
 }

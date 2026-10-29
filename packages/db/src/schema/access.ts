@@ -13,6 +13,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { idColumn, timestamps } from './columns.js';
+import { emailDeliveries } from './mail.js';
 import { memberships, tenants } from './tenancy.js';
 
 // Access module tables (docs/modules/access.md §4). All tenant-owned: RLS forced, composite
@@ -60,6 +61,8 @@ export const invitations = pgTable(
     status: text('status', { enum: INVITATION_STATUSES }).notNull().default('pending'),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     acceptedMembershipId: uuid('accepted_membership_id'),
+    /** The invitation email's delivery status (Members screen shows a failed send). */
+    emailDeliveryId: uuid('email_delivery_id').references(() => emailDeliveries.id),
     ...timestamps(),
   },
   (t) => [

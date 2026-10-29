@@ -20,6 +20,7 @@ import { LanguageSwitch, ThemeSwitch } from '../app/switches.js';
 import { api } from '../lib/api.js';
 import { errorReference, errorText } from '../lib/errors.js';
 import { can, useAccess, useMe, useTenant } from '../lib/session.js';
+import { NotificationBell } from './notification-bell.js';
 
 const initialsOf = (name: string) =>
   name
@@ -128,6 +129,8 @@ export function AppLayout() {
         <Topbar
           actions={
             <>
+              {/* Hidden until two-factor is set up: the server refuses it with MFA_REQUIRED. */}
+              {!access.data.twoFactorRequired && <NotificationBell />}
               <ThemeSwitch />
               <LanguageSwitch />
               <Button

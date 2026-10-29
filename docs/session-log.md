@@ -6,6 +6,61 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-29 — Session 5: Milestone 1.5a built, awaiting owner approval
+
+### Where we are
+The owner said "continue" after the gaming pause. Claude restarted Docker Desktop and finished 1.5a. **Everything is built and verified but NOT committed**; the owner tests it and approves. After "approved": commit "Milestone 1.5a: background jobs and notifications", then plan **1.5b** (files with ClamAV, monitoring configurable and off by default, Dockerfiles). Its decisions were already made on 2026-10-28; still present the short plan before building.
+
+### What was done this session
+- Fixed the paused compile error (identity emails return `Promise<void>` again).
+- Worker added to `pnpm dev` (api `dev` script: tsc, api, worker) and to the CI `journey` job. Identity and access tests start a worker in-process (`createWorker`).
+- `apps/api/test/jobs.spec.ts`: 5 outbox tests, with a real SMTP outage simulated by a switchable relay. Mutation-checked: the rollback test and the encryption test each fail when their protection is removed.
+- Notifications: `platform/notifications/notifier.ts` (send side, cap 200, audited), `modules/notifications/` (4 endpoints), hooked into invitation accept (Owners/CEOs) and role change (that member). Tests in `access.spec.ts`; the audit test now expects `notifications.notification.sent` events.
+- **Bug found by the database guard:** the notification link rule rejected `/`. Fixed in migration 0010.
+- Web: `components/notification-bell.tsx` (bell, unread count every 60 s, panel, mark read / all, "Show older"), hidden while two-factor setup is required. Members shows "Email not delivered" on a failed invitation. EN/AR texts added. The journey now checks the bell (axe on the panel).
+- Docs: platform-jobs.md (status, corrections: 6 attempts in total; cross-tenant job test deferred to the first company-data job; §9 results), api.md, testing.md, database.md (job queue section), README (worker; `db:generate --name=` without `--`), checklist, roadmap, project-status.
+
+### Verification (real results, 2026-10-29)
+- `pnpm check`: passed. api 148, db 37, contracts 27, web 18, i18n 10, ui 9 = **249**.
+- `pnpm e2e:journey`: **2 passed** (EN, AR). `pnpm e2e`: **6 passed**.
+- `pnpm security`: licences OK (294 packages), no leaks. Audit: only the accepted moderate esbuild advisory.
+
+### Repo state
+- Last commit `f1f9276` (1.4b). All 1.5a work is uncommitted: migrations 0008–0010, new deps pg-boss (api, db), the new files above.
+- Dev DB migrated to 0010. `pnpm dev` is running in the background (started by Claude: API :3000, worker, web :5173). Docker Desktop is running.
+- The dev DB has more `e2e-*` companies and `@example.test` accounts from journey runs (harmless).
+
+### Waiting on owner
+Test 1.5a (project-status.md "How to verify Milestone 1.5a") and approve.
+
+---
+
+## 2026-10-28 — Session 4 (continued): 1.4b approved + committed, 1.5a planned
+
+### Where we are
+Owner said "next" → 1.4b committed `f1f9276`. Milestone 1.5 planned and split. Owner decisions: split 1.5a/1.5b; monitoring configurable + off by default; ClamAV scanning; notification bell in 1.5a. Spec written: `docs/modules/platform-jobs.md`. **Building 1.5a.**
+
+### Build plan (continue from the first unticked item)
+- [x] pg-boss 12.38.0 dependency; schema `pgboss` created by migrator; erp_app grants; migration for `notifications` (RLS) + `email_deliveries`.
+- [x] API platform/jobs: JobQueue.enqueue(tx) in caller's transaction; payload encryption (HKDF from AUTH_SECRET); worker entry `apps/api/src/worker.ts`; `pnpm dev` runs it.
+- [x] Email via job (identity + invitation emails), retries 5 × backoff, delivery status; invitations list shows delivery.
+- [x] Notifier + notifications API; types member_joined, roles_changed; audit; cap 200.
+- [x] Web: bell + panel; Members shows email failed. i18n EN/AR.
+- [x] Tests (spec §8), journey extended; docs; hand-over A–H (see Session 5 entry).
+
+### Paused mid-build (owner asked to stop Docker)
+- Done, uncommitted: pg-boss 12.38.0 (api + db). `packages/db/src/jobs.ts` (queues installed by the migrator, erp_app gets row privileges only, `transactionExecutor` = pg-boss `fromDrizzle`). Tables `notifications` (RLS) + `email_deliveries` (global), with migrations 0008/0009 applied to the dev DB. db tests: **37 passed**, including the new queue-privilege and notification-isolation tests.
+- API, written but **not compiling yet**: `platform/jobs/` (JobQueue, PayloadSealer, JobsModule), `platform/mail/email-outbox.ts` (EmailOutbox + EmailDeliveryHandler), `worker.ts`, `worker.module.ts`, `worker-bootstrap.ts`. Identity emails and invitations now use EmailOutbox; invitations carry a `delivery` status (contract updated).
+- **Next fix:** `IdentityEmails` methods now return `Promise<string>`, but Better Auth callbacks and `identity.service.ts` expect `Promise<void>`. Wrap them (`.then(() => undefined)`) or change the methods back to `Promise<void>`. The other typecheck errors (`auth.api.verifyTOTP` etc.) are knock-on effects of the `auth.ts` plugin type breaking, so re-check after that fix.
+- Then: add the worker to the api `dev` script, start the worker in the identity/access tests (`createWorker`), and write the outbox/retry/rollback/encryption tests. Spec correction: `retryLimit` 5 means 6 attempts in total.
+- README fix needed: with pnpm 12, use `pnpm db:generate --name=…` (no `--`).
+- Docker Desktop and `pnpm dev` were stopped at the owner's request. To resume: start Docker Desktop, then `pnpm dev`.
+
+### Repo state
+Last commit `f1f9276` (1.4b). Everything above is uncommitted.
+
+---
+
 ## 2026-10-28 — Session 4 (continued): Milestone 1.4b built, awaiting owner approval
 
 ### Where we are

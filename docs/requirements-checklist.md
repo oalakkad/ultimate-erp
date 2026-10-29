@@ -107,7 +107,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | J Payroll (versioned rules, no invented formulas, SoD, payslips) | 11 — after jurisdiction rules verified | ⏳ ❓ legal |
 | K Invoicing & payments (states, PDF, partial payments, credit notes, aging, decimal money) | 12 | ⏳ |
 | Expenses ("if implemented" in brief) | 12b — default: included | ⏳ |
-| L Notifications & announcements | infra 1.5, per module, complete 13 | ⏳ |
+| L Notifications & announcements | infra 1.5a, per module, complete 13 | 🟡 in-app + email with retries, read/unread, deep links, cap + audit ✅ 1.5a; preferences + announcements ⏳ 13 |
 | M Reports & analytics | 14 | ⏳ |
 | N Audit logs & administration | audit log ✅ 1.3b; search 14 | 🟡 |
 
@@ -116,7 +116,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Documented domain model + relationship diagram, data ownership | domain-model.md §1–2 | ✅ draft |
 | Transactions, idempotency, explicit state transitions, server-side truth, no circular deps | domain-model §3–4, api.md §8, eslint import-x/no-cycle | 🟡 transactions + no-cycle lint ✅ 1.2; rest per module |
-| Domain events / jobs only where useful | architecture §2 (outbox), roadmap 1.5 | ⏳ 1.5 |
+| Domain events / jobs only where useful | architecture §2 (outbox), roadmap 1.5 | ✅ 1.5a (pg-boss, transactional outbox) |
 
 ## §12 Architecture & files
 | Requirement | Where | Status |
@@ -143,7 +143,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Consistent conventions, error codes, request tracing, structured logging, versioning | api.md, 1.1 code | ✅ 1.1 |
 | Validated schemas, pagination, filtering, sorting, rate limits, idempotency, API docs | api.md §5–9 | 🟡 validation, rate limits, OpenAPI, cursor pagination (audit) ✅; filtering/sorting/idempotency Phase 3+ |
 | Auth middleware, authorization policies, tenant-scoped access | ADR-0003/0004, permissions.md | ✅ 1.2 / 1.3a / 1.3b |
-| Safe file handling, background processing | roadmap 1.5 | ⏳ 1.5 |
+| Safe file handling, background processing | roadmap 1.5 | 🟡 background processing ✅ 1.5a; files ⏳ 1.5b |
 
 ## §15 Performance
 | Requirement | Where | Status |
@@ -165,7 +165,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Consistent errors, safe logging, correlation IDs, health + DB health, graceful dependency failure | 1.1 code, api.md §3–4 | ✅ 1.1 |
 | User-friendly (translated) error messages | ADR-0006, error codes, apps/web/src/lib/errors.ts | ✅ 1.4b (every code EN/AR, unit-tested; request reference shown) |
-| Error monitoring, job-failure monitoring, retries, alerting | roadmap 1.5 | ⏳ 1.5 |
+| Error monitoring, job-failure monitoring, retries, alerting | roadmap 1.5 | 🟡 retries + recorded failures ✅ 1.5a; monitoring/alerting ⏳ 1.5b |
 | Never blindly retry non-idempotent financial operations | api.md §8 | ✅ rule |
 
 ## §18 Development workflow (phases 0–16)

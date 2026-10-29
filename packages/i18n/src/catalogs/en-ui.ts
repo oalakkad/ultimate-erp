@@ -185,6 +185,7 @@ export const enUi = {
     removeTitle: 'Remove {name}?',
     removeBody: 'They lose access to this company immediately. Their history is kept.',
     removed: '{name} was removed.',
+    deliveryFailed: 'Email not delivered. Invite again to retry.',
   },
   account: {
     title: 'My account',
@@ -219,6 +220,18 @@ export const enUi = {
     signOutSession: 'Sign out',
     signOutOthers: 'Sign out everywhere else',
     signedOutOthers: 'All other sessions were signed out.',
+  },
+  notifications: {
+    title: 'Notifications',
+    open: 'Notifications ({count} unread)',
+    empty: 'You have no notifications yet.',
+    markAllRead: 'Mark all as read',
+    older: 'Show older',
+    unread: 'Unread',
+    types: {
+      access_member_joined: '{name} joined the company.',
+      access_roles_changed: 'Your roles are now: {roles}.',
+    },
   },
   gallery: {
     title: 'Component gallery',

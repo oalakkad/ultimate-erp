@@ -156,6 +156,18 @@ for (const locale of ['en', 'ar'] as const) {
       // --- Owner sees the new member ---------------------------------------------------------
       await page.reload();
       await expect(page.getByRole('cell', { name: invitee.email })).toBeVisible();
+
+      // --- …and is notified (Milestone 1.5a): bell → panel → open → read --------------------
+      const bell = page.getByRole('button', { name: t('ui.notifications.open', { count: 1 }) });
+      await bell.click();
+      const joined = t('ui.notifications.types.access_member_joined', { name: invitee.name });
+      await expect(page.getByRole('dialog').getByText(joined)).toBeVisible();
+      await expectAccessible(page, 'notifications panel');
+      await page.getByRole('dialog').getByText(joined).click();
+      await expect(page.getByRole('heading', { name: t('ui.members.title') })).toBeVisible();
+      await expect(
+        page.getByRole('button', { name: t('ui.notifications.open', { count: 0 }) }),
+      ).toBeVisible();
     } finally {
       await deleteEmailsTo(owner.email, invitee.email);
     }

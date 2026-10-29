@@ -1,5 +1,5 @@
 import { type Server } from 'node:http';
-import { type INestApplication } from '@nestjs/common';
+import { type INestApplication, type INestApplicationContext } from '@nestjs/common';
 import {
   accessMeResponseSchema,
   auditListResponseSchema,
@@ -10,6 +10,8 @@ import {
   invitationPreviewResponseSchema,
   memberListResponseSchema,
   myCompaniesResponseSchema,
+  NOTIFICATION_RECIPIENT_LIMIT,
+  notificationListResponseSchema,
   type Role,
   twoFactorSetupResponseSchema,
 } from '@ultimate-erp/contracts';
@@ -18,6 +20,8 @@ import pg from 'pg';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../src/bootstrap.js';
+import { Notifier } from '../src/platform/notifications/notifier.js';
+import { createWorker } from '../src/worker-bootstrap.js';
 import { testConfig } from './support/config.js';
 import { TestMailpit, tokenFrom } from './support/mailpit.js';
 import { codeAt } from './support/totp.js';
@@ -29,6 +33,8 @@ const PASSWORD = 'correct horse battery staple';
 let database: TestDatabase;
 let mailpit: TestMailpit;
 let app: INestApplication;
+/** Delivers queued emails, as the worker process does in production. */
+let worker: INestApplicationContext;
 let server: Server;
 let admin: pg.Pool;
 let appRole: pg.Pool;
@@ -134,12 +140,15 @@ beforeAll(async () => {
   admin = new pg.Pool({ connectionString: database.migratorUrl, max: 2 });
   appRole = new pg.Pool({ connectionString: database.appUrl, max: 1 });
   superuser = new pg.Pool({ connectionString: database.adminUrl, max: 1 });
-  app = await createApp(testConfig({ DATABASE_URL: database.appUrl, ...mailpit.smtpConfig }));
+  const config = testConfig({ DATABASE_URL: database.appUrl, ...mailpit.smtpConfig });
+  app = await createApp(config);
   await app.init();
+  worker = await createWorker(config);
   server = app.getHttpServer() as Server;
 });
 
 afterAll(async () => {
+  await worker.close();
   await app.close();
   await Promise.all([admin.end(), appRole.end(), superuser.end()]);
   await Promise.all([database.stop(), mailpit.stop()]);
@@ -576,6 +585,99 @@ describe('company hand-off (sign in once)', () => {
   });
 });
 
+describe('notifications (Milestone 1.5a)', () => {
+  const inbox = async (p: Person, host: string) =>
+    notificationListResponseSchema.parse((await p.get('/api/v1/notifications', host)).body).items;
+  const unread = async (p: Person, host: string) =>
+    ((await p.get('/api/v1/notifications/unread-count', host)).body as { count: number }).count;
+
+  it('tells the Owner/CEO when someone joins, not the newcomer; read state is tracked', async () => {
+    const { owner, host } = await founder();
+    const bob = await person('bob');
+    await join(bob, host, owner, 'employee');
+
+    const items = await inbox(owner, host);
+    expect(items).toHaveLength(1); // Owner + CEO is one person: one notification
+    expect(items[0]).toMatchObject({
+      type: 'access.member_joined',
+      params: { name: 'bob' },
+      link: '/members',
+      read: false,
+    });
+    expect(await inbox(bob, host)).toEqual([]);
+    expect(await unread(owner, host)).toBe(1);
+
+    const id = items[0]?.id ?? '';
+    expect((await owner.post(`/api/v1/notifications/${id}/read`, {}, host)).status).toBe(200);
+    expect(await unread(owner, host)).toBe(0);
+    expect((await inbox(owner, host))[0]?.read).toBe(true);
+  });
+
+  it('tells a member when their roles change', async () => {
+    const { owner, host } = await founder();
+    const bob = await person('bob');
+    const bobId = await join(bob, host, owner, 'employee');
+    expect(
+      (await owner.put(`/api/v1/members/${bobId}/roles`, { roles: ['team_leader'] }, host)).status,
+    ).toBe(200);
+    const [item] = await inbox(bob, host);
+    expect(item).toMatchObject({ type: 'access.roles_changed', params: { roles: 'team_leader' } });
+    expect((await bob.post('/api/v1/notifications/read-all', {}, host)).status).toBe(200);
+    expect(await unread(bob, host)).toBe(0);
+  });
+
+  it('nobody can read or mark another member’s notification, in this or another company', async () => {
+    const { owner, host } = await founder();
+    const bob = await person('bob');
+    await join(bob, host, owner, 'employee');
+    const [ownersItem] = await inbox(owner, host);
+    const id = ownersItem?.id ?? '';
+
+    const sameCompany = await bob.post(`/api/v1/notifications/${id}/read`, {}, host);
+    expect(sameCompany.status).toBe(404);
+    expect(await unread(owner, host)).toBe(1);
+
+    const other = await founder();
+    const elsewhere = await other.owner.post(`/api/v1/notifications/${id}/read`, {}, other.host);
+    expect(elsewhere.status).toBe(404);
+    expect(await inbox(other.owner, other.host)).toEqual([]);
+    // Bob's session is not valid on another company's address at all.
+    expect((await bob.get('/api/v1/notifications', other.host)).status).not.toBe(200);
+  });
+
+  it('refuses to notify more than the recipient limit in one call', async () => {
+    const notifier = app.get(Notifier);
+    const recipients = Array.from(
+      { length: NOTIFICATION_RECIPIENT_LIMIT + 1 },
+      (_, i) => `00000000-0000-7000-8000-${String(i).padStart(12, '0')}`,
+    );
+    await expect(
+      notifier.notify({} as never, {} as never, {
+        tenantId: '00000000-0000-7000-8000-000000000000',
+        type: 'access.member_joined',
+        recipients,
+        actor: { userId: '00000000-0000-7000-8000-000000000000' },
+      }),
+    ).rejects.toThrow(/exceeds/);
+  });
+
+  it('shows the invitation email’s delivery status', async () => {
+    const { owner, host } = await founder();
+    const email = `${unique('carol')}@example.com`;
+    await invite(owner, host, email, 'employee');
+    // The email has arrived, so the worker has recorded it (or is about to).
+    let delivery: string | null | undefined;
+    for (let i = 0; i < 50 && delivery !== 'sent'; i++) {
+      const { invitations } = invitationListResponseSchema.parse(
+        (await owner.get('/api/v1/invitations', host)).body,
+      );
+      delivery = invitations.find((x) => x.email === email)?.delivery;
+      if (delivery !== 'sent') await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    expect(delivery).toBe('sent');
+  });
+});
+
 describe('audit log', () => {
   it('records each change, readable by the Owner with pagination', async () => {
     const { owner, host } = await founder();
@@ -587,22 +689,25 @@ describe('audit log', () => {
       (await owner.get('/api/v1/audit-events?limit=50', host)).body,
     );
     expect(all.items.map((e) => e.action)).toEqual([
+      'notifications.notification.sent', // Bob is told about his new role
       'access.member.roles_changed',
+      'notifications.notification.sent', // the Owner is told Bob joined
       'access.invitation.accepted',
       'access.invitation.created',
       'access.company.created',
     ]);
-    expect(all.items[0]?.details).toEqual({ before: ['employee'], after: ['manager'] });
-    expect(all.items[0]?.requestId).toBeTruthy();
+    expect(all.items[0]?.details).toEqual({ type: 'access.roles_changed', recipients: 1 });
+    expect(all.items[1]?.details).toEqual({ before: ['employee'], after: ['manager'] });
+    expect(all.items[1]?.requestId).toBeTruthy();
 
     const first = auditListResponseSchema.parse(
-      (await owner.get('/api/v1/audit-events?limit=2', host)).body,
+      (await owner.get('/api/v1/audit-events?limit=3', host)).body,
     );
-    expect(first.items).toHaveLength(2);
+    expect(first.items).toHaveLength(3);
     const second = auditListResponseSchema.parse(
-      (await owner.get(`/api/v1/audit-events?limit=2&cursor=${first.nextCursor}`, host)).body,
+      (await owner.get(`/api/v1/audit-events?limit=3&cursor=${first.nextCursor}`, host)).body,
     );
-    expect(second.items.map((e) => e.id)).toEqual(all.items.slice(2, 4).map((e) => e.id));
+    expect(second.items.map((e) => e.id)).toEqual(all.items.slice(3, 6).map((e) => e.id));
     expect(second.nextCursor).toBeNull();
   });
 

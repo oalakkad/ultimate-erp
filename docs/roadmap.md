@@ -5,7 +5,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Discovery & architecture (this set of docs) | Approved 2026-10-24 |
-| 1 | Foundation — split into milestones below | **In progress** — 1.1–1.4a approved; 1.4b built, awaiting approval |
+| 1 | Foundation — split into milestones below | **In progress** — 1.1–1.4b approved; 1.5a built, awaiting approval |
 | 2 | Executive shell & dashboard (honest empty states until modules exist) | — |
 | 3 | Clients / CRM | — |
 | 4 | Contracts & engagement letters (incl. bilingual templates, PDF) | — |
@@ -38,7 +38,9 @@ Note: Phase 8 (employees) is a dependency of tasks/timesheets. Phase 1 creates a
 | **1.4a Design system** (split 2026-10-28) | apps/web (React 19, Vite 8, TanStack Router/Query), packages/ui tokens (light/dark), self-hosted fonts, EN/AR catalogs + RTL switch, core components, loading/empty/error/permission-denied states, component gallery page. | Owner reviews the gallery in both languages and themes; unit tests for components and i18n; lint bans physical CSS. |
 | **1.4b Screens & E2E** | Sign-up, verify, sign-in, two-factor (QR) + backup codes, forgot/reset, onboarding, invitation accept, sessions, app shell with only built modules; error codes translated. | Playwright E2E full journey in EN and AR via Mailpit; axe checks. |
 | **1.4 Design system & shell (original scope, now 1.4a + 1.4b)** | Tokens (light/dark), fonts, core components, app shell, EN/AR switch with RTL, login/onboarding screens wired to real auth, component preview page. | Playwright E2E: sign up → verify email (Mailpit) → enable MFA → log in, in both languages; axe accessibility checks. |
-| **1.5 Platform services** | Background worker (pg-boss) + transactional outbox; files module (S3 storage, tenant-prefixed keys, upload allow-list + magic-byte check + size limits, short-lived signed downloads); notification foundation (in-app records + email via SMTP/Mailpit, delivery status, retries); error monitoring (Sentry SDK, PII-scrubbed), OpenTelemetry traces, slow-request logging; Dockerfile for API/worker. | Upload tests incl. malicious samples; failed email delivery is retried and recorded; job carries tenant context (cross-tenant test); errors reach monitoring without PII. |
+| **1.5a Jobs & notifications** (split 2026-10-28) | pg-boss worker, transactional outbox, email delivery with retries + status, in-app notifications with bell (spec `modules/platform-jobs.md`). | SMTP-down retry, rollback ⇒ no email, cross-tenant job, encrypted payloads, notification isolation, journey bell check. |
+| **1.5b Files, monitoring, packaging** | Files (S3, tenant keys, allow-list + magic bytes + size, ClamAV scan, signed downloads); error monitoring (Sentry protocol, configurable, off by default, PII-scrubbed), OpenTelemetry, slow-request logging; Dockerfiles. | Malicious upload samples, EICAR refused, errors reach monitoring without PII. |
+| **1.5 Platform services (original scope, now 1.5a + 1.5b)** | Background worker (pg-boss) + transactional outbox; files module (S3 storage, tenant-prefixed keys, upload allow-list + magic-byte check + size limits, short-lived signed downloads); notification foundation (in-app records + email via SMTP/Mailpit, delivery status, retries); error monitoring (Sentry SDK, PII-scrubbed), OpenTelemetry traces, slow-request logging; Dockerfile for API/worker. | Upload tests incl. malicious samples; failed email delivery is retried and recorded; job carries tenant context (cross-tenant test); errors reach monitoring without PII. |
 
 Also added to milestone scopes: **1.2** adds the lint rule against circular imports between modules (module boundaries start there). **1.3** adds OpenAPI generation, request validation (strict schemas), rate limits, remembered devices and suspicious-login notifications (see `security.md` §2a).
 

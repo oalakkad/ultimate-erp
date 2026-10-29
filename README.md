@@ -17,7 +17,7 @@ pnpm install
 ## Everyday commands (run from the repo root)
 | Command | What it does |
 |---|---|
-| `pnpm dev` | Creates `.env` if missing, starts Postgres / object storage / Mailpit in Docker, prepares the database, then runs the API (http://localhost:3000/api/v1) and the web app (http://localhost:5173) with auto-reload |
+| `pnpm dev` | Creates `.env` if missing, starts Postgres / object storage / Mailpit in Docker, prepares the database, then runs the API (http://localhost:3000/api/v1), the background worker (sends emails) and the web app (http://localhost:5173) with auto-reload |
 | `pnpm test` | Unit + integration tests (integration tests start their own throwaway Postgres in Docker) |
 | `pnpm lint` | ESLint (code-quality rules) |
 | `pnpm typecheck` | TypeScript type checking |
@@ -31,7 +31,7 @@ pnpm install
 | `pnpm db:setup` | Create database roles + apply migrations (run by `pnpm dev`) |
 | `pnpm db:seed` | Starts the services, prepares the database, adds the two demo companies (dev only): http://acme.localhost:3000/api/v1/tenant |
 | `pnpm http <METHOD> <url> [key=value ...] [--as <person>]` | Development helper: call the API, including company addresses like `http://acme.localhost:3000` (PowerShell cannot resolve `*.localhost`). Keeps cookies per person in `.dev-cookies/` |
-| `pnpm db:generate -- --name=<what>` | Create a migration from schema changes (see [docs/database.md](docs/database.md)) |
+| `pnpm db:generate --name=<what>` | Create a migration from schema changes (see [docs/database.md](docs/database.md)) |
 
 Stop `pnpm dev` with `Ctrl+C`. The Docker services keep running until `pnpm services:down`, and restart automatically with Docker Desktop. If a command says it cannot reach the database, start Docker Desktop, then `pnpm services:up`. Your data is kept in Docker volumes; `docker compose -f infra/compose/compose.dev.yaml --env-file .env down -v` deletes it.
 

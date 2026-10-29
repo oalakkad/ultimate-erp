@@ -118,10 +118,14 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET | `/api/v1/members` | `access.members.read` | Members with roles | 1.3b |
 | PUT | `/api/v1/members/:id/roles` | `access.roles.assign` | Replace another member's roles (no self-change, no escalation, last Owner kept) | 1.3b |
 | POST | `/api/v1/members/:id/remove` | `access.members.manage` | Mark removed | 1.3b |
-| POST/GET | `/api/v1/invitations` | `access.members.invite` | Invite (email + role) / list pending | 1.3b |
+| POST/GET | `/api/v1/invitations` | `access.members.invite` | Invite (email + role) / list pending; each invitation carries `delivery: queued \| sent \| failed` (1.5a) | 1.3b |
 | DELETE | `/api/v1/invitations/:id` | `access.members.invite` | Revoke | 1.3b |
 | GET | `/api/v1/invitations/preview?token=` | Public, company host | Company, role, masked email, expiry | 1.3b |
 | POST | `/api/v1/invitations/accept` | Session, company host | `{ token }`; verified matching email required | 1.3b |
+| GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
+| GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |
+| POST | `/api/v1/notifications/:id/read` | Member | Mark one of mine read (anyone else's ⇒ 404) | 1.5a |
+| POST | `/api/v1/notifications/read-all` | Member | Mark all of mine read | 1.5a |
 | GET | `/api/v1/audit-events?limit=&cursor=` | `audit.event.read` | Newest first; `nextCursor` | 1.3b |
 | GET | `/api/v1/docs/openapi.json` | Public, **dev/test only** | Generated OpenAPI 3.1 document | 1.3b |
 | GET | `/api/v1/tenant` | Public, tenant host | Public profile of the company owning the host: `{ slug, name: { en, ar }, defaultLocale }` (`tenantPublicProfileSchema`). Unknown/unverified/suspended host ⇒ 404. Database unavailable ⇒ 503. | 1.2 |

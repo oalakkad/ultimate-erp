@@ -187,6 +187,7 @@ export const arUi: Catalog['ui'] = {
     removeTitle: 'إزالة {name}؟',
     removeBody: 'سيفقد الوصول إلى هذه الشركة فورًا. يُحتفظ بسجله.',
     removed: 'تمت إزالة {name}.',
+    deliveryFailed: 'لم يتم تسليم البريد. أرسل الدعوة مرة أخرى لإعادة المحاولة.',
   },
   account: {
     title: 'حسابي',
@@ -220,6 +221,18 @@ export const arUi: Catalog['ui'] = {
     signOutSession: 'تسجيل الخروج',
     signOutOthers: 'تسجيل الخروج من كل الأماكن الأخرى',
     signedOutOthers: 'تم تسجيل الخروج من جميع الجلسات الأخرى.',
+  },
+  notifications: {
+    title: 'الإشعارات',
+    open: 'الإشعارات ({count} غير مقروءة)',
+    empty: 'لا توجد إشعارات بعد.',
+    markAllRead: 'تعليم الكل كمقروء',
+    older: 'عرض الأقدم',
+    unread: 'غير مقروء',
+    types: {
+      access_member_joined: 'انضم {name} إلى الشركة.',
+      access_roles_changed: 'أدوارك الآن: {roles}.',
+    },
   },
   gallery: {
     title: 'معرض المكونات',

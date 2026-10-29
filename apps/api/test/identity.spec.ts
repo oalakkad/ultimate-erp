@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import { type AddressInfo } from 'node:net';
-import { type INestApplication } from '@nestjs/common';
+import { type INestApplication, type INestApplicationContext } from '@nestjs/common';
 import {
   errorResponseSchema,
   meResponseSchema,
@@ -14,6 +14,7 @@ import pg from 'pg';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../src/bootstrap.js';
+import { createWorker } from '../src/worker-bootstrap.js';
 import { testConfig } from './support/config.js';
 import { TestMailpit, tokenFrom } from './support/mailpit.js';
 import { codeAt } from './support/totp.js';
@@ -28,6 +29,8 @@ let database: TestDatabase;
 let mailpit: TestMailpit;
 let breachApi: Server;
 let app: INestApplication;
+/** Delivers queued emails, as the worker process does in production. */
+let worker: INestApplicationContext;
 let server: Server;
 let admin: pg.Pool;
 let counter = 0;
@@ -85,19 +88,20 @@ beforeAll(async () => {
   await new Promise<void>((resolve) => breachApi.listen(0, '127.0.0.1', resolve));
   const { port } = breachApi.address() as AddressInfo;
 
-  app = await createApp(
-    testConfig({
-      DATABASE_URL: database.appUrl,
-      ...mailpit.smtpConfig,
-      PASSWORD_BREACH_CHECK: 'true',
-      PASSWORD_BREACH_API_URL: `http://127.0.0.1:${port}`,
-    }),
-  );
+  const config = testConfig({
+    DATABASE_URL: database.appUrl,
+    ...mailpit.smtpConfig,
+    PASSWORD_BREACH_CHECK: 'true',
+    PASSWORD_BREACH_API_URL: `http://127.0.0.1:${port}`,
+  });
+  app = await createApp(config);
   await app.init();
+  worker = await createWorker(config);
   server = app.getHttpServer() as Server;
 });
 
 afterAll(async () => {
+  await worker.close();
   await app.close();
   await admin.end();
   breachApi.close();

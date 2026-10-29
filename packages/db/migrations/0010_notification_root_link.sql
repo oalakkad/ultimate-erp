@@ -1,0 +1,2 @@
+ALTER TABLE "notifications" DROP CONSTRAINT "notifications_link_relative";--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_link_relative" CHECK ("notifications"."link" is null or "notifications"."link" ~ '^/([^/\\].*)?$');

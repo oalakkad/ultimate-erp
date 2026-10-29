@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { canGrant, isRole, isSensitive, type Role } from '@ultimate-erp/contracts';
 import {
+  emailDeliveries,
   invitations,
   membershipRoles,
   memberships,
@@ -9,16 +10,16 @@ import {
   tenants,
 } from '@ultimate-erp/db';
 import { catalogs } from '@ultimate-erp/i18n';
-import { and, desc, eq, gt, isNotNull } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, isNotNull, ne } from 'drizzle-orm';
 import { type Request } from 'express';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { AuditLog } from '../../platform/audit/audit-log.js';
 import { type AppConfig, companyWebOrigin } from '../../platform/config/config.js';
 import { APP_CONFIG } from '../../platform/config/config.module.js';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { AppError } from '../../platform/errors/app-error.js';
 import { messageFor } from '../../platform/errors/to-error-response.js';
-import { Mailer } from '../../platform/mail/mailer.js';
+import { EmailOutbox } from '../../platform/mail/email-outbox.js';
+import { Notifier } from '../../platform/notifications/notifier.js';
 import { RateLimiter } from '../../platform/rate-limit/rate-limiter.js';
 import { clientIp } from '../../platform/request-context/client-ip.js';
 import { type Identity, IdentityService } from '../identity/identity.service.js';
@@ -45,10 +46,10 @@ export class InvitationsService {
     private readonly database: TenantDatabase,
     private readonly identity: IdentityService,
     private readonly audit: AuditLog,
-    private readonly mailer: Mailer,
+    private readonly outbox: EmailOutbox,
+    private readonly notifier: Notifier,
     private readonly limiter: RateLimiter,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
-    @InjectPinoLogger(InvitationsService.name) private readonly logger: PinoLogger,
   ) {}
 
   async create(req: Request, access: AccessContext, email: string, role: Role) {
@@ -57,86 +58,88 @@ export class InvitationsService {
       throw new AppError('FORBIDDEN', HttpStatus.FORBIDDEN, 'You cannot invite into this role.');
     }
     const existingUserId = await this.identity.userIdByEmail(email);
+    const [inviter] = await this.identity.userSummaries([access.userId]);
     const token = randomBytes(32).toString('base64url');
     const expiresAt = new Date(Date.now() + VALID_DAYS * 24 * 60 * 60 * 1000);
 
-    const { invitation, company, host } = await this.database.withTenant(
-      access.tenantId,
-      async (tx) => {
-        if (existingUserId) {
-          const [member] = await tx
-            .select({ id: memberships.id })
-            .from(memberships)
-            .where(and(eq(memberships.userId, existingUserId), eq(memberships.status, 'active')));
-          if (member) throw new AppError('CONFLICT', HttpStatus.CONFLICT, 'Already a member.');
-        }
-        // A new invitation replaces any pending one for the same address.
-        await tx
-          .update(invitations)
-          .set({ status: 'revoked' })
-          .where(and(eq(invitations.email, email), eq(invitations.status, 'pending')));
-        const [created] = await tx
-          .insert(invitations)
-          .values({
-            tenantId: access.tenantId,
-            email,
-            role,
-            invitedByMembershipId: access.membershipId,
-            tokenHash: hashToken(token),
-            expiresAt,
-          })
-          .returning();
-        if (!created) throw new Error('invitation insert returned nothing');
-        await this.audit.record(tx, req, {
+    const invitation = await this.database.withTenant(access.tenantId, async (tx) => {
+      if (existingUserId) {
+        const [member] = await tx
+          .select({ id: memberships.id })
+          .from(memberships)
+          .where(and(eq(memberships.userId, existingUserId), eq(memberships.status, 'active')));
+        if (member) throw new AppError('CONFLICT', HttpStatus.CONFLICT, 'Already a member.');
+      }
+      // A new invitation replaces any pending one for the same address.
+      await tx
+        .update(invitations)
+        .set({ status: 'revoked' })
+        .where(and(eq(invitations.email, email), eq(invitations.status, 'pending')));
+      const [created] = await tx
+        .insert(invitations)
+        .values({
           tenantId: access.tenantId,
-          action: 'access.invitation.created',
-          actor: { userId: access.userId, membershipId: access.membershipId },
-          target: { type: 'invitation', id: created.id },
-          details: { email, role },
-        });
-        const [tenant] = await tx.select().from(tenants);
-        const [domain] = await tx
-          .select({ hostname: tenantDomains.hostname })
-          .from(tenantDomains)
-          .where(isNotNull(tenantDomains.verifiedAt))
-          .orderBy(tenantDomains.createdAt);
-        if (!tenant || !domain) throw new Error('tenant without profile or domain');
-        return { invitation: created, company: tenant, host: domain.hostname };
-      },
-    );
-
-    // Sent after commit; the invitation stays valid if mail fails (it can be re-sent).
-    const [inviter] = await this.identity.userSummaries([access.userId]);
-    const locale = company.defaultLocale;
-    const url = new URL('/invitations/accept', companyWebOrigin(this.config, host));
-    url.searchParams.set('token', token);
-    try {
-      await this.mailer.send({
-        to: email,
-        locale,
-        template: 'invitation',
-        params: {
-          company: locale === 'ar' ? company.nameAr : company.nameEn,
-          inviter: inviter?.name ?? '',
-          role: catalogs[locale].roles[role],
-          url: url.toString(),
-        },
+          email,
+          role,
+          invitedByMembershipId: access.membershipId,
+          tokenHash: hashToken(token),
+          expiresAt,
+        })
+        .returning();
+      if (!created) throw new Error('invitation insert returned nothing');
+      await this.audit.record(tx, req, {
+        tenantId: access.tenantId,
+        action: 'access.invitation.created',
+        actor: { userId: access.userId, membershipId: access.membershipId },
+        target: { type: 'invitation', id: created.id },
+        details: { email, role },
       });
-    } catch (err) {
-      this.logger.error({ err }, 'Failed to send invitation email');
-    }
-    return this.toDto(invitation);
+      const [tenant] = await tx.select().from(tenants);
+      const [domain] = await tx
+        .select({ hostname: tenantDomains.hostname })
+        .from(tenantDomains)
+        .where(isNotNull(tenantDomains.verifiedAt))
+        .orderBy(tenantDomains.createdAt);
+      if (!tenant || !domain) throw new Error('tenant without profile or domain');
+
+      // Queued in this transaction: no email for an invitation that rolled back.
+      const locale = tenant.defaultLocale;
+      const url = new URL('/invitations/accept', companyWebOrigin(this.config, domain.hostname));
+      url.searchParams.set('token', token);
+      const deliveryId = await this.outbox.enqueue(
+        {
+          to: email,
+          locale,
+          template: 'invitation',
+          params: {
+            company: locale === 'ar' ? tenant.nameAr : tenant.nameEn,
+            inviter: inviter?.name ?? '',
+            role: catalogs[locale].roles[role],
+            url: url.toString(),
+          },
+        },
+        tx,
+      );
+      await tx
+        .update(invitations)
+        .set({ emailDeliveryId: deliveryId })
+        .where(eq(invitations.id, created.id));
+      return created;
+    });
+
+    return this.toDto({ ...invitation, delivery: 'queued' });
   }
 
   async listPending(access: AccessContext) {
     const rows = await this.database.withTenant(access.tenantId, (tx) =>
       tx
-        .select()
+        .select({ invitation: invitations, delivery: emailDeliveries.status })
         .from(invitations)
+        .leftJoin(emailDeliveries, eq(emailDeliveries.id, invitations.emailDeliveryId))
         .where(and(eq(invitations.status, 'pending'), gt(invitations.expiresAt, new Date())))
         .orderBy(desc(invitations.createdAt)),
     );
-    return rows.map((row) => this.toDto(row));
+    return rows.map((row) => this.toDto({ ...row.invitation, delivery: row.delivery }));
   }
 
   async revoke(req: Request, access: AccessContext, invitationId: string) {
@@ -231,6 +234,26 @@ export class InvitationsService {
         target: { type: 'invitation', id: invitation.id },
         details: { role: invitation.role },
       });
+      // Tell the company's Owners and CEOs (not the newcomer) that someone joined.
+      const leaders = await tx
+        .selectDistinct({ userId: memberships.userId })
+        .from(memberships)
+        .innerJoin(membershipRoles, eq(membershipRoles.membershipId, memberships.id))
+        .where(
+          and(
+            eq(memberships.status, 'active'),
+            inArray(membershipRoles.role, ['owner', 'ceo']),
+            ne(memberships.userId, identity.userId),
+          ),
+        );
+      await this.notifier.notify(tx, req, {
+        tenantId,
+        type: 'access.member_joined',
+        recipients: leaders.map((l) => l.userId),
+        params: { name: user.name },
+        link: '/members',
+        actor: { userId: identity.userId, membershipId },
+      });
       return invitation.role;
     });
     if (isSensitive([role])) await this.identity.revokeTrustedDevices(identity.userId);
@@ -257,7 +280,11 @@ export class InvitationsService {
     return { ...invitation, role: invitation.role };
   }
 
-  private toDto(row: typeof invitations.$inferSelect) {
+  private toDto(
+    row: typeof invitations.$inferSelect & {
+      delivery: (typeof emailDeliveries.$inferSelect)['status'] | null;
+    },
+  ) {
     if (!isRole(row.role)) throw new Error(`unknown role ${row.role}`);
     return {
       id: row.id,
@@ -266,6 +293,7 @@ export class InvitationsService {
       status: row.status,
       expiresAt: row.expiresAt.toISOString(),
       createdAt: row.createdAt.toISOString(),
+      delivery: row.delivery,
     };
   }
 }

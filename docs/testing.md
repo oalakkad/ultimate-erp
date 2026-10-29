@@ -57,7 +57,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | 15 | Attendance is recorded and validated | 10 |
 | 16 | Authorized user prepares and approves payroll (different people) | 11 |
 | 17 | Authorized user creates an invoice and records a payment | 12 |
-| 18 | Notifications are delivered to the correct recipients | 1.5 (infra), 6+ (each module), 13 |
+| 18 | Notifications are delivered to the correct recipients | ✅ infra + first types 1.5a (`access.spec.ts`, `journey.spec.ts`); 6+ (each module), 13 |
 | 19 | Reports reflect the underlying business records | 14 |
 | 20 | Unauthorized users are blocked from restricted operations | 1.3 onward, every phase |
 
@@ -93,6 +93,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 1.5a | + outbox/worker suite (5, real SMTP outage via a switchable relay), notifications (5), sealer/error-code unit (11), db queue privileges + notification isolation (5); journey checks the bell | 249 unit/integration (api 148, db 37, contracts 27, web 18, i18n 10, ui 9) + 8 browser |
 | 1.4b | + hand-off API suite (6), web unit (error translations, open-redirect guard), **full-stack journey** EN + AR (sign up → confirm email → sign in → create company → hand-off → two-factor → invite → colleague joins) with axe on 12 screens per language | 223 unit/integration (api 127, db 32, contracts 27, web 18, i18n 10, ui 9) + 8 browser (6 gallery + 2 journey) |
 | 1.4a | + i18n formatting (ICU plurals EN/AR, exact money strings, Kuwait dates), UI component tests (9 incl. logical-CSS guard), **browser tests** (Playwright: gallery EN/AR × light/dark with axe WCAG 2.2 AA, RTL flip, dialog keyboard) | 199 unit/integration + 6 browser |
 | 1.3b | + permission model & matrix-vs-docs (22), access suite against Postgres + Mailpit (25: onboarding, MFA block, invitation lifecycle incl. stolen/expired/revoked/reused, no escalation, forced-concurrency last-Owner, cross-company 404, removal, company sign-in policy, trusted devices, audit + pagination + immutability), OpenAPI (3) | 184 passed (i18n 4, contracts 27, db 32, api 121) |

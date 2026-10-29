@@ -93,6 +93,8 @@ export const invitationSchema = z
     status: z.enum(['pending', 'accepted', 'revoked']),
     expiresAt: z.iso.datetime(),
     createdAt: z.iso.datetime(),
+    /** Invitation email: queued (being sent or retried), sent, or failed after all retries. */
+    delivery: z.enum(['queued', 'sent', 'failed']).nullable(),
   })
   .strict();
 export const invitationListResponseSchema = z

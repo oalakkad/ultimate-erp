@@ -22,6 +22,7 @@ import {
   LoadingState,
   PermissionDenied,
   SelectField,
+  StatusChip,
   TextField,
   useToast,
 } from '@ultimate-erp/ui';
@@ -297,6 +298,11 @@ export function MembersPage() {
                     {t(`roles.${item.role}`)} ·{' '}
                     {t('ui.members.expiresOn', { date: date(item.expiresAt) })}
                   </small>
+                  {item.delivery === 'failed' && (
+                    <span className="mt-1 block">
+                      <StatusChip status="bad" label={t('ui.members.deliveryFailed')} />
+                    </span>
+                  )}
                 </div>
                 <Button
                   size="sm"

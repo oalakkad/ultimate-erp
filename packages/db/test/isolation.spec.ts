@@ -7,6 +7,7 @@ import {
   createDatabase,
   type Database,
   memberships,
+  notifications,
   resolveTenantByHost,
   tenantDomains,
   tenants,
@@ -128,6 +129,13 @@ describe('database roles', () => {
       await pgErrorCode(app.execute(sql`drop policy memberships_isolation on memberships`)),
     ).toBe('42501');
   });
+
+  it('the app role uses the job queue but cannot change its structure', async () => {
+    expect(await pgErrorCode(app.execute(sql`create table pgboss.evil (id int)`))).toBe('42501');
+    expect(await pgErrorCode(app.execute(sql`drop table pgboss.job`))).toBe('42501');
+    const queues = await app.execute(sql`select name from pgboss.queue order by name`);
+    expect(queues.rows.map((r) => r.name)).toContain('email.send');
+  });
 });
 
 describe('every tenant-owned table is protected (catalog guard for future tables)', () => {
@@ -160,6 +168,7 @@ describe('every tenant-owned table is protected (catalog guard for future tables
       'invitations',
       'membership_roles',
       'memberships',
+      'notifications',
       'tenant_domains',
     ]);
     for (const row of rows) {
@@ -180,6 +189,7 @@ describe('every tenant-owned table is protected (catalog guard for future tables
     `);
     expect(rows.map((r) => r.table)).toEqual([
       'accounts',
+      'email_deliveries',
       'rate_limit_buckets',
       'sessions',
       'tenants',
@@ -318,6 +328,71 @@ describe('company B cannot reach company A', () => {
         withTenant(app, ids.tenantA, (tx) => tx.delete(tenants).where(eq(tenants.id, ids.tenantA))),
       ),
     ).toBe('42501');
+  });
+});
+
+describe('notifications', () => {
+  it('are visible only inside their company', async () => {
+    await withTenant(app, ids.tenantA, (tx) =>
+      tx
+        .insert(notifications)
+        .values({ tenantId: ids.tenantA, userId: ids.userA, type: 'test.created' }),
+    );
+    const inB = await withTenant(app, ids.tenantB, (tx) => tx.select().from(notifications));
+    expect(inB).toEqual([]);
+    const inA = await withTenant(app, ids.tenantA, (tx) => tx.select().from(notifications));
+    expect(inA).toHaveLength(1);
+  });
+
+  it('can only be addressed to a member of that company (composite foreign key)', async () => {
+    const [outsider] = await asMigrator
+      .insert(users)
+      .values({ email: 'outsider@example.com', name: 'Outsider' })
+      .returning({ id: users.id });
+    const code = await pgErrorCode(
+      withTenant(app, ids.tenantA, (tx) =>
+        tx
+          .insert(notifications)
+          .values({ tenantId: ids.tenantA, userId: outsider?.id ?? '', type: 'test.created' }),
+      ),
+    );
+    expect(code).toBe('23503');
+  });
+
+  it('links must be relative paths', async () => {
+    const code = await pgErrorCode(
+      withTenant(app, ids.tenantA, (tx) =>
+        tx.insert(notifications).values({
+          tenantId: ids.tenantA,
+          userId: ids.userA,
+          type: 'test.created',
+          link: '//evil.example',
+        }),
+      ),
+    );
+    expect(code).toBe('23514');
+    // The company app's home page is a valid link.
+    await withTenant(app, ids.tenantA, (tx) =>
+      tx
+        .insert(notifications)
+        .values({ tenantId: ids.tenantA, userId: ids.userA, type: 'test.created', link: '/' }),
+    );
+  });
+
+  it('the app role can mark read but not rewrite or delete them', async () => {
+    await withTenant(app, ids.tenantA, (tx) =>
+      tx.update(notifications).set({ readAt: new Date() }),
+    );
+    expect(
+      await pgErrorCode(
+        withTenant(app, ids.tenantA, (tx) =>
+          tx.update(notifications).set({ type: 'test.changed' }),
+        ),
+      ),
+    ).toBe('42501');
+    expect(await pgErrorCode(withTenant(app, ids.tenantA, (tx) => tx.delete(notifications)))).toBe(
+      '42501',
+    );
   });
 });
 

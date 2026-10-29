@@ -68,15 +68,16 @@ jobs:
       - run: pnpm services:up
       - run: pnpm db:setup
       - run: pnpm build
-      - name: Start the API
+      - name: Start the API and the worker
         working-directory: apps/api
         run: |
+          node --env-file=../../.env --enable-source-maps dist/worker.js > ../../worker.log 2>&1 &
           node --env-file=../../.env --enable-source-maps dist/main.js > ../../api.log 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:3000/api/v1/health && exit 0; sleep 1; done
           cat ../../api.log; exit 1
       - run: pnpm --filter @ultimate-erp/web e2e:journey
       - if: failure()
-        run: cat api.log
+        run: cat api.log worker.log
 
   # Release-blocking supply-chain gates (security.md R10/R11, compliance.md §3).
   security:

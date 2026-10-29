@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). **Milestone 1.4b (real screens + E2E) built 2026-10-28, uncommitted, awaiting owner testing and approval.** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a (background jobs & notifications) built 2026-10-29, uncommitted, awaiting owner approval.** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -39,6 +39,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 ## Decisions 2026-10-28 (Milestone 1.4b)
 - Sign-in: **once on the main address, then a secure hand-off** to a company: one-time, 60-second, single-use ticket bound to that company, exchanged for a separate host-only session there (session age carried over so the 12 h limit cannot be extended).
 - 1.4b includes a **Members screen** for Owners/CEOs (invite, roles, remove, pending invitations).
+
+## Decisions 2026-10-28 (Milestone 1.5)
+- 1.5 split: **1.5a** background worker + outbox + notifications (email retries + in-app); **1.5b** files, monitoring, Dockerfiles.
+- Error monitoring: **Sentry-protocol reporting, configurable, off by default** (works with Sentry cloud or self-hosted GlitchTip; nothing leaves the server unless configured).
+- Uploads: **virus-scanned with ClamAV** (files pending until clean).
+- 1.5a includes the **notification bell** (unread count + list).
 
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
@@ -82,6 +88,15 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Milestone 1.4b — Screens & E2E** (2026-10-28, awaiting approval; spec `modules/web-ui.md` §8–§14): sign-up, check/confirm email, sign-in with two-factor/backup code, forgot/reset password, companies list + create, secure hand-off to the company address (one-time 60 s ticket), invitation accept, app shell (only built modules, profile, theme/language, sign out), dashboard empty state, Members (invite, roles, remove, pending/revoke), My account (language saved to account, two-factor setup with locally drawn QR + backup codes, sessions). Every API error translated EN/AR. API: `PATCH /auth/me`, `GET /auth/companies`, `POST /auth/handoff` + `/redeem`, `WEB_PUBLIC_URL`. Tests: 223 unit/integration + 8 browser (full journey EN + AR, axe on every screen).
 
+- **Milestone 1.5a — Jobs & notifications** (2026-10-29, awaiting approval; spec `modules/platform-jobs.md`): pg-boss worker (own process, in `pnpm dev`), transactional outbox, every email queued with encrypted payload and retried (6 attempts) with recorded status, notifications (member joined, roles changed) with bell + panel, "email not delivered" on pending invitations. Tests: 249 unit/integration + 8 browser.
+
+## How to verify Milestone 1.5a
+1. `pnpm check` → api `148`, db `37`, contracts `27`, web `18`, i18n `10`, ui `9` passed.
+2. With `pnpm dev` running: `pnpm e2e:journey` → `2 passed`.
+3. By hand: sign up at http://localhost:5173/sign-up — the email arrives in Mailpit (http://localhost:8025) a moment later, sent by the worker (look for `Email sent` in the `worker` lines of the `pnpm dev` output).
+4. Retry: stop only Mailpit (`docker stop ultimate-erp-mailpit-1`), invite someone, wait a minute, start it again (`docker start ultimate-erp-mailpit-1`) — the invitation email still arrives at the next retry (waits double each time: 30 s, 1 min, 2 min, …, so allow a few minutes).
+5. Invite a colleague, let them join → the Owner's bell shows 1; open it → it takes you to Members and the count goes back to 0.
+
 ## How to verify Milestone 1.4b
 1. `pnpm check` → i18n `10`, contracts `27`, web `18`, ui `9`, db `32`, api `127` passed.
 2. `pnpm security` → licence check passed, no leaks; audit shows only the accepted moderate esbuild advisory.
@@ -93,7 +108,6 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Turborepo sends anonymous usage telemetry by default; opt out with `pnpm turbo telemetry disable` if preferred.
 - multer override must be removed once @nestjs/platform-express ships multer ≥ 2.5.0 (check on each NestJS upgrade).
 - Identity tables are global by design (decision in `modules/identity.md` §3), protected by module ownership + lint, not RLS.
-- Emails are sent synchronously (no retry yet) → Milestone 1.5 outbox.
 - Arabic email texts are machine-drafted; native-speaker review needed before release.
 - Accepted moderate advisory GHSA-67mh-4wv8-2f99 (esbuild dev server, unused) — security.md §2b.
 - Right after enabling two-factor, the code just used cannot sign in again (replay protection); wait for the next code.
@@ -112,4 +126,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Owner tests 1.4b (steps above) and approves → commit 1.4b → plan Milestone 1.5 (worker, files, notifications, monitoring). See the newest entry in `session-log.md`.
+Owner tests 1.5a (steps above) and approves → commit → Milestone 1.5b (files with ClamAV, monitoring, Dockerfiles). See the newest entry in `session-log.md`.

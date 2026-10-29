@@ -14,6 +14,7 @@ import { AuditLog } from '../../platform/audit/audit-log.js';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { AppError } from '../../platform/errors/app-error.js';
 import { messageFor } from '../../platform/errors/to-error-response.js';
+import { Notifier } from '../../platform/notifications/notifier.js';
 import { IdentityService } from '../identity/identity.service.js';
 import { type AccessContext } from './access-context.js';
 
@@ -36,6 +37,7 @@ export class AccessService {
     private readonly database: TenantDatabase,
     private readonly audit: AuditLog,
     private readonly identity: IdentityService,
+    private readonly notifier: Notifier,
   ) {}
 
   /** The user's active membership in this tenant with its roles, or null. */
@@ -133,6 +135,14 @@ export class AccessService {
         actor: { userId: access.userId, membershipId: access.membershipId },
         target: { type: 'membership', id: membershipId },
         details: { before: current, after: next },
+      });
+      await this.notifier.notify(tx, req, {
+        tenantId: access.tenantId,
+        type: 'access.roles_changed',
+        recipients: [target.userId],
+        params: { roles: next.join(',') },
+        link: '/',
+        actor: { userId: access.userId, membershipId: access.membershipId },
       });
       return { userId: target.userId, before: current };
     });
