@@ -8,3 +8,4 @@ export * from './access.js';
 export * from './notifications.js';
 export * from './files.js';
 export * from './dashboard.js';
+export * from './clients.js';

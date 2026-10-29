@@ -6,6 +6,9 @@ import { CheckEmailPage, VerifyEmailPage } from '../routes/auth/email-pages.js';
 import { ForgotPasswordPage, ResetPasswordPage } from '../routes/auth/password-pages.js';
 import { SignInPage } from '../routes/auth/sign-in.js';
 import { SignUpPage } from '../routes/auth/sign-up.js';
+import { ClientDetailPage } from '../routes/clients/detail.js';
+import { ClientsPage } from '../routes/clients/list.js';
+import { NewClientPage } from '../routes/clients/new.js';
 import { CompaniesPage } from '../routes/companies.js';
 import { DashboardPage } from '../routes/dashboard.js';
 import { GalleryPage } from '../routes/gallery.js';
@@ -110,6 +113,21 @@ const membersRoute = createRoute({
   component: MembersPage,
   validateSearch: searchOf('invite'),
 });
+const clientsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/clients',
+  component: ClientsPage,
+});
+const newClientRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/clients/new',
+  component: NewClientPage,
+});
+const clientRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/clients/$clientId',
+  component: ClientDetailPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -128,7 +146,14 @@ export const router = createRouter({
     handoffRoute,
     invitationRoute,
     galleryRoute,
-    appRoute.addChildren([dashboardRoute, membersRoute, accountRoute]),
+    appRoute.addChildren([
+      dashboardRoute,
+      membersRoute,
+      clientsRoute,
+      newClientRoute,
+      clientRoute,
+      accountRoute,
+    ]),
   ]),
 });
 

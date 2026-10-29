@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. **Next: Phase 3 (Clients / CRM).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM) built and committed 2026-10-30. **Next: Phase 4 (Contracts & engagement letters).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -100,6 +100,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 2b — Dashboard** (2026-10-29): getting-started progress, team numbers, recent activity and quick actions from real records, each by permission; reusable accessible charts (bar, line, meter) shown in the gallery with labelled example data. Tests: 275 unit/integration + 8 browser.
 
+- **Phase 3 — Clients / CRM** (2026-10-30; spec `modules/clients.md`): clients with bilingual names, numbers, duplicate protection, contacts and authorized representatives, communication history, virus-scanned documents, activity timeline, search/filter/sort/paging, CSV export, archive; dashboard card; palette search. Tests: 300 unit/integration + 8 browser.
+
+## How to verify Phase 3
+1. `pnpm check` → api `176`, db `39`, contracts `36` (others as 2b); `pnpm e2e:journey` → `2 passed`.
+2. In a company: Clients → New client → fill both names → Create. Try the same name again → "A similar client already exists". Open the client: add a contact, log a call, upload a PDF (status turns Ready after the scan), check Activity. Search the list in Arabic. Export CSV (Owner/CEO).
+
 ## How to verify Phase 2b
 1. `pnpm check` → api `162`, ui `16` (others as 2a) passed; `pnpm e2e:journey` → `2 passed`.
 2. Open a company dashboard: the getting-started list ticks off as you set up two-factor and invite someone; Recent activity lists what happened; an Employee sees only quick actions and the "company is ready" note.
@@ -150,4 +156,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 3 (Clients / CRM), built in nonstop mode: spec `docs/modules/clients.md` first. See the newest entry in `session-log.md`.
+Phase 4 (Contracts & engagement letters), built in nonstop mode: spec `docs/modules/contracts.md` first. See the newest entry in `session-log.md`.

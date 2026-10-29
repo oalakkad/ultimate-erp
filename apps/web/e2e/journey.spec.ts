@@ -207,6 +207,79 @@ for (const locale of ['en', 'ar'] as const) {
         page.getByRole('button', { name: t('ui.notifications.open', { count: 0 }) }),
       ).toBeVisible();
 
+      // --- Phase 3: clients — create, contacts, communication, documents, activity, search -----
+      const clientEn = `Al Noor Trading ${run}`;
+      const clientAr = `شركة النور للتجارة ${run}`;
+      await page.getByRole('link', { name: t('ui.shell.clients') }).click();
+      await expect(page.getByRole('heading', { name: t('ui.clients.title') })).toBeVisible();
+      await expect(page.getByText(t('ui.clients.empty'))).toBeVisible();
+      await expectAccessible(page, 'clients (empty)');
+
+      await page.getByRole('link', { name: t('ui.clients.new') }).click();
+      await page.getByLabel(t('ui.clients.fields.legalNameEn')).fill(clientEn);
+      await page.getByLabel(t('ui.clients.fields.legalNameAr')).fill(clientAr);
+      await page.getByLabel(t('ui.clients.fields.commercialRegistration')).fill(`CR${run}`);
+      await expectAccessible(page, 'new client');
+      await page.getByRole('button', { name: t('ui.clients.create') }).click();
+      const clientName = locale === 'ar' ? clientAr : clientEn;
+      await expect(page.getByRole('heading', { name: clientName })).toBeVisible();
+      await expectAccessible(page, 'client overview');
+
+      await page.getByRole('tab', { name: t('ui.clients.tabs.contacts') }).click();
+      await page.getByRole('button', { name: t('ui.clients.contacts.add') }).click();
+      const contactDialog = page.getByRole('dialog');
+      await contactDialog.getByLabel(t('ui.clients.contacts.name')).fill('Sara Al-Mutairi');
+      await contactDialog.getByRole('checkbox', { name: t('ui.clients.contacts.primary') }).click();
+      await expectAccessible(page, 'add contact');
+      await contactDialog.getByRole('button', { name: t('ui.clients.contacts.add') }).click();
+      await expect(page.getByText('Sara Al-Mutairi')).toBeVisible();
+
+      await page.getByRole('tab', { name: t('ui.clients.tabs.communication') }).click();
+      await page
+        .getByLabel(t('ui.clients.interactions.summary'))
+        .fill('Agreed the audit scope for FY2026.');
+      await page
+        .getByRole('button', { name: t('ui.clients.interactions.log'), exact: true })
+        .click();
+      await expect(page.getByText('Agreed the audit scope for FY2026.')).toBeVisible();
+      await expectAccessible(page, 'client communication');
+
+      await page.getByRole('tab', { name: t('ui.clients.tabs.documents') }).click();
+      await page.locator('input[type="file"]').setInputFiles({
+        name: 'engagement-letter.pdf',
+        mimeType: 'application/pdf',
+        buffer: Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n'),
+      });
+      await expect(page.getByText('engagement-letter.pdf')).toBeVisible();
+      // The worker scans it with ClamAV, then the list refreshes by itself.
+      await expect(
+        page.getByText(t('ui.clients.documents.status.clean'), { exact: true }),
+      ).toBeVisible({
+        timeout: 60_000,
+      });
+      await expectAccessible(page, 'client documents');
+
+      await page.getByRole('tab', { name: t('ui.clients.tabs.activity') }).click();
+      await expect(
+        page.getByText(t('ui.clients.activity.text.clients_client_created', { actor: owner.name })),
+      ).toBeVisible();
+      await expectAccessible(page, 'client activity');
+
+      await page.getByRole('link', { name: t('ui.shell.clients') }).click();
+      await page.getByLabel(t('ui.clients.search')).fill(clientAr);
+      await expect(page.getByRole('link', { name: clientName })).toBeVisible();
+      await expectAccessible(page, 'clients (list)');
+
+      // Same name again → the duplicate warning, with the option to go ahead anyway.
+      await page.getByRole('link', { name: t('ui.clients.new') }).click();
+      await page.getByLabel(t('ui.clients.fields.legalNameEn')).fill(clientEn.toUpperCase());
+      await page.getByLabel(t('ui.clients.fields.legalNameAr')).fill('اسم آخر');
+      await page.getByRole('button', { name: t('ui.clients.create') }).click();
+      await expect(
+        page.getByRole('alert').filter({ hasText: t('ui.clients.duplicateTitle') }),
+      ).toBeVisible();
+      await expectAccessible(page, 'duplicate warning');
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');

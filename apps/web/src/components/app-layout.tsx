@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Navigate, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
-import { memberListResponseSchema, okResponseSchema } from '@ultimate-erp/contracts';
+import {
+  clientListResponseSchema,
+  memberListResponseSchema,
+  okResponseSchema,
+} from '@ultimate-erp/contracts';
 import {
   AppFrame,
   Avatar,
@@ -19,6 +23,7 @@ import {
   Topbar,
 } from '@ultimate-erp/ui';
 import {
+  Briefcase,
   Building2,
   ChevronsUpDown,
   LayoutGrid,
@@ -74,6 +79,14 @@ export function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const canReadMembers = can(access.data, 'access.members.read');
+  const canReadClients = can(access.data, 'clients.client.read');
+  // Recent clients for the palette (its text filter then narrows them).
+  const recentClients = useQuery({
+    queryKey: ['clients', 'palette'],
+    enabled: paletteOpen && ready && canReadClients,
+    queryFn: () =>
+      api('/clients?sort=updated&dir=desc&limit=50', { schema: clientListResponseSchema }),
+  });
   const people = useQuery({
     queryKey: ['members'],
     enabled: paletteOpen && ready && canReadMembers,
@@ -145,6 +158,38 @@ export function AppLayout() {
         },
       });
     }
+    if (canReadClients) {
+      list.push({
+        id: 'page:clients',
+        group: 'pages',
+        label: t('ui.shell.clients'),
+        run: () => {
+          go('/clients');
+        },
+      });
+    }
+    if (can(access.data, 'clients.client.create')) {
+      list.push({
+        id: 'action:new-client',
+        group: 'actions',
+        label: t('ui.clients.new'),
+        run: () => {
+          go('/clients/new');
+        },
+      });
+    }
+    for (const c of recentClients.data?.items ?? []) {
+      list.push({
+        id: `client:${c.id}`,
+        group: 'members',
+        label: locale === 'ar' ? c.legalName.ar : c.legalName.en,
+        hint: c.number,
+        keywords: [c.legalName.en, c.legalName.ar, c.commercialRegistration ?? ''],
+        run: () => {
+          go(`/clients/${c.id}`);
+        },
+      });
+    }
     if (can(access.data, 'access.members.invite')) {
       list.push({
         id: 'action:invite',
@@ -209,7 +254,15 @@ export function AppLayout() {
     return list;
     // `go`, `changeLocale` and `signOut` are stable in behaviour; recompute on data/language.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [access.data, me.data, people.data, locale, canReadMembers]);
+  }, [
+    access.data,
+    me.data,
+    people.data,
+    recentClients.data,
+    locale,
+    canReadMembers,
+    canReadClients,
+  ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
   if (failed) {
@@ -288,6 +341,14 @@ export function AppLayout() {
         label={t('ui.shell.dashboard')}
         current={path === '/'}
       />
+      {canReadClients && (
+        <NavItem
+          {...link('/clients')}
+          icon={<Briefcase aria-hidden />}
+          label={t('ui.shell.clients')}
+          current={path.startsWith('/clients')}
+        />
+      )}
       {canReadMembers && (
         <NavItem
           {...link('/members')}

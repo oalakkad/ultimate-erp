@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { type ActivityItem, dashboardSummarySchema } from '@ultimate-erp/contracts';
 import { formatDate, formatNumber } from '@ultimate-erp/i18n';
 import { Card, ErrorState, LoadingState, Meter, Tile } from '@ultimate-erp/ui';
-import { CircleCheck, Circle, MailPlus, UserRound, Users } from 'lucide-react';
+import { Briefcase, CircleCheck, Circle, MailPlus, Sparkles, UserRound, Users } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useI18n } from '../app/i18n.js';
 import { AppPageHeader } from '../components/page-header.js';
@@ -48,7 +48,7 @@ export function DashboardPage() {
       />
     );
   } else {
-    const { setup, team, activity } = summary.data;
+    const { setup, team, clients, activity } = summary.data;
     const steps = setup
       ? [
           { label: t('ui.dashboard.stepCompany'), done: true },
@@ -85,6 +85,32 @@ export function DashboardPage() {
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {clients && (
+            <Card
+              title={t('ui.dashboard.clients')}
+              action={
+                <Link to="/clients" className="text-[13px] font-semibold text-plum hover:underline">
+                  {t('ui.clients.title')}
+                </Link>
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Tile
+                  tone="mint"
+                  label={t('ui.dashboard.activeClients')}
+                  value={formatNumber(locale, clients.active)}
+                  icon={<Briefcase />}
+                />
+                <Tile
+                  tone="lilac"
+                  label={t('ui.dashboard.newClients')}
+                  value={formatNumber(locale, clients.newThisMonth)}
+                  icon={<Sparkles />}
+                />
+              </div>
             </Card>
           )}
 

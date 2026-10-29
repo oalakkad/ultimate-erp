@@ -126,6 +126,14 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET | `/api/v1/files/:id` | Member (uploader) | Details + scan status (`pending \| clean \| infected \| scan_failed`); anyone else `404` | 1.5b |
 | POST | `/api/v1/files/:id/download` | Member (uploader) | `{ url, expiresInSeconds: 300 }` signed attachment link; not clean ⇒ `409 FILE_NOT_READY` | 1.5b |
 | GET | `/api/v1/dashboard/summary` | Member | Sections present only with permission: `setup { invitationSent, colleagueJoined }` (invite), `team { activeMembers, pendingInvitations\|null }` (members.read), `activity { items[{ id, action, occurredAt, actorName }] }` (audit.event.read) | 2b |
+| GET/POST | `/api/v1/clients` | `clients.client.read` / `.create` | List (`search, status, archived, sort=name\|nameAr\|created\|updated\|number, dir, limit, cursor`) / create (409 `duplicate` CR, `possible_duplicate` name unless `confirmDuplicate`) | 3 |
+| GET/PATCH | `/api/v1/clients/:id` | read / `.update` | One client / edit with `version` (stale ⇒ 409) | 3 |
+| POST | `/api/v1/clients/:id/archive`, `/restore` | `.archive` | Archive / restore | 3 |
+| GET | `/api/v1/clients/export.csv` | `.export` | CSV of the filtered list (max 5,000, audited, formulas neutralised) | 3 |
+| GET/POST/PATCH | `/api/v1/clients/:id/contacts[/:contactId]`, `POST …/archive` | read / `.update` | Contacts (one primary; authorized representatives) | 3 |
+| GET/POST | `/api/v1/clients/:id/interactions` | read / `.update` | Communication history (append-only) | 3 |
+| GET/POST/DELETE | `/api/v1/clients/:id/documents[/:fileId]`, `POST …/:fileId/download` | read / `.update` | Attach my uploaded file, list, detach, 5-minute download of clean files | 3 |
+| GET | `/api/v1/clients/:id/activity` | read | Timeline (action codes, actor names, changed field names) | 3 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
 | GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |
 | POST | `/api/v1/notifications/:id/read` | Member | Mark one of mine read (anyone else's ⇒ 404) | 1.5a |

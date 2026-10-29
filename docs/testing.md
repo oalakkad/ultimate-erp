@@ -41,7 +41,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | # | Workflow | Phase |
 |---|---|---|
 | 1 | Authorized company administrator logs in securely (incl. MFA) | ✅ 1.4b (`e2e/journey.spec.ts`) |
-| 2 | Administrator creates a client | 3 |
+| 2 | Administrator creates a client | ✅ 3 (`journey.spec.ts`) |
 | 3 | Administrator creates a contract or engagement letter | 4 |
 | 4 | Administrator creates a project for that client | 5 |
 | 5 | Administrator sets an approved project budget | 5 |
@@ -93,6 +93,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 3 | + clients API (14), db client constraints (2), contracts name key/schema (9); journey: full client flow incl. real ClamAV scan, axe on 8 screens | 300 unit/integration (api 176, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |
 | 2b | + dashboard summary API (3), chart components (7); journey: dashboard progress + activity + quick action, axe | 275 unit/integration (api 162, db 37, contracts 27, web 23, ui 16, i18n 10) + 8 browser |
 | 2a | + command filter unit (5); journey: palette, breadcrumb, phone menu, password change, axe on 3 more screens | 265 unit/integration (api 159, db 37, contracts 27, web 23, i18n 10, ui 9) + 8 browser |
 | 1.5b | + files suite against real RustFS + ClamAV (6, incl. EICAR, disguised types, scanner outage, forged cross-company job), monitoring (5); Docker images built and started | 260 unit/integration (api 159, db 37, contracts 27, web 18, i18n 10, ui 9) + 8 browser |

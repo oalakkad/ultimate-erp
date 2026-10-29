@@ -6,6 +6,20 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 5 (continued): Phase 3 (Clients / CRM) built + committed
+
+### Hand-over 3 (A–H)
+- **A Built:** the clients module end to end. See `docs/modules/clients.md` §10.
+- **B Files:** contracts `clients.ts` (+spec), `permissions.ts` (+4 permissions, matrix in permissions.md), `dashboard.ts`; db `schema/clients.ts`, migrations 0013/0014, isolation tests; api `modules/clients/` (service, controller), dashboard clients section, `test/clients.spec.ts`, `test/support/people.ts` (shared helpers, used by the client suite); web `routes/clients/` (list, new, detail, tabs, client-form, keys), router, app-layout (nav + palette), dashboard card, `lib/api.ts` (FormData), `lib/use-debounced.ts`; i18n `clients` section EN/AR.
+- **C Architecture:** client → contacts / interactions / documents (files service) / activity (audit trail). Later modules link through composite foreign keys `(tenant_id, client_id)`.
+- **D Security:** RLS on 5 new tables, composite FKs (a contact of client A can't be used for client B), append-only history, permission per route (Employee 403, other company 404), literal search, CSV injection neutralised (mutation-checked), only my own clean uploads can be attached, downloads by client permission.
+- **E Tests:** `pnpm check` passed with **300** (api 176, db 39, contracts 36, web 23, ui 16, i18n 10); journey EN + AR 2 passed (real ClamAV scan); gallery 6 passed; `pnpm security` clean.
+- **F Verify:** project-status "How to verify Phase 3".
+- **G Open / environment notes:** the access and files suites still have their own copies of the people helpers (move them to `support/people.ts` when next touched). **Dev processes:** my first `pnpm dev` (started 2026-10-29 19:17) left orphans after a TaskStop: vite on :5173 (pid 22084), a concurrently tree (pid 9528) with a parked API watcher (3488) and worker watcher (12732). Stopping them was blocked by the safety check, so a fresh `pnpm --filter @ultimate-erp/api dev` (API :3000 + worker) runs next to them. **The owner should close stray node processes** (Task Manager, or restart the PC) before the next `pnpm dev`.
+- **H Next:** Phase 4 Contracts & engagement letters (bilingual templates, PDF, numbering, versions, approval/sign-off, linking to clients).
+
+---
+
 ## 2026-10-29 — Session 5 (continued): Phase 2b (dashboard) built + committed — Phase 2 complete
 
 ### Hand-over 2b (A–H)

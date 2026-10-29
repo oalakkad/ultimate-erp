@@ -6,6 +6,9 @@ import {
   assertSafeAppRole,
   createDatabase,
   type Database,
+  clientContacts,
+  clientInteractions,
+  clients,
   memberships,
   notifications,
   resolveTenantByHost,
@@ -164,12 +167,17 @@ describe('every tenant-owned table is protected (catalog guard for future tables
     `);
     expect(rows.map((r) => r.table).sort()).toEqual([
       'audit_events',
+      'client_contacts',
+      'client_documents',
+      'client_interactions',
+      'clients',
       'files',
       'handoff_tickets',
       'invitations',
       'membership_roles',
       'memberships',
       'notifications',
+      'number_sequences',
       'tenant_domains',
     ]);
     for (const row of rows) {
@@ -392,6 +400,78 @@ describe('notifications', () => {
       ),
     ).toBe('42501');
     expect(await pgErrorCode(withTenant(app, ids.tenantA, (tx) => tx.delete(notifications)))).toBe(
+      '42501',
+    );
+  });
+});
+
+describe('clients', () => {
+  const newClient = (name: string) =>
+    withTenant(app, ids.tenantA, async (tx) => {
+      const [row] = await tx
+        .insert(clients)
+        .values({
+          tenantId: ids.tenantA,
+          number: `C-${name}`,
+          legalNameEn: name,
+          legalNameAr: name,
+          nameKey: name,
+          createdByUserId: ids.userA,
+        })
+        .returning({ id: clients.id });
+      if (!row) throw new Error('client insert failed');
+      return row.id;
+    });
+
+  it('an interaction cannot name a contact of another client (composite foreign key)', async () => {
+    const first = await newClient('first');
+    const second = await newClient('second');
+    const contactId = await withTenant(app, ids.tenantA, async (tx) => {
+      const [row] = await tx
+        .insert(clientContacts)
+        .values({ tenantId: ids.tenantA, clientId: first, name: 'Sara' })
+        .returning({ id: clientContacts.id });
+      return row?.id ?? '';
+    });
+    const code = await pgErrorCode(
+      withTenant(app, ids.tenantA, (tx) =>
+        tx.insert(clientInteractions).values({
+          tenantId: ids.tenantA,
+          clientId: second,
+          contactId,
+          kind: 'call',
+          occurredAt: new Date(),
+          summary: 'wrong client',
+          createdByUserId: ids.userA,
+        }),
+      ),
+    );
+    expect(code).toBe('23503');
+  });
+
+  it('communication history cannot be rewritten or deleted by the app', async () => {
+    const clientId = await newClient('history');
+    await withTenant(app, ids.tenantA, (tx) =>
+      tx.insert(clientInteractions).values({
+        tenantId: ids.tenantA,
+        clientId,
+        kind: 'note',
+        occurredAt: new Date(),
+        summary: 'original',
+        createdByUserId: ids.userA,
+      }),
+    );
+    expect(
+      await pgErrorCode(
+        withTenant(app, ids.tenantA, (tx) =>
+          tx.update(clientInteractions).set({ summary: 'edited' }),
+        ),
+      ),
+    ).toBe('42501');
+    expect(
+      await pgErrorCode(withTenant(app, ids.tenantA, (tx) => tx.delete(clientInteractions))),
+    ).toBe('42501');
+    expect(await pgErrorCode(withTenant(app, ids.tenantA, (tx) => tx.delete(clients)))).toBe(
       '42501',
     );
   });

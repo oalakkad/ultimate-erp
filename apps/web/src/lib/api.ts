@@ -34,8 +34,14 @@ export async function api<T extends z.ZodType>(
     res = await fetch(`/api/v1${path}`, {
       method,
       credentials: 'same-origin',
-      headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      // FormData (file uploads) is sent as multipart; the browser sets the boundary header.
+      headers:
+        body === undefined || body instanceof FormData
+          ? {}
+          : { 'Content-Type': 'application/json' },
+      ...(body === undefined
+        ? {}
+        : { body: body instanceof FormData ? body : JSON.stringify(body) }),
     });
   } catch {
     throw new ApiError(0, 'NETWORK', undefined);

@@ -13,6 +13,8 @@ export const ACTIVITY_ACTIONS = [
   'access.member.removed',
   'files.file.uploaded',
   'files.file.infected',
+  'clients.client.created',
+  'clients.client.archived',
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 
@@ -40,6 +42,11 @@ export const dashboardSummarySchema = z
         activeMembers: z.number().int().min(0),
         pendingInvitations: z.number().int().min(0).nullable(),
       })
+      .strict()
+      .optional(),
+    /** Clients (people who can read clients). */
+    clients: z
+      .object({ active: z.number().int().min(0), newThisMonth: z.number().int().min(0) })
       .strict()
       .optional(),
     /** Latest business events (people who can read the audit log). */

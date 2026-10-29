@@ -92,6 +92,20 @@
       "when": 1793293082827,
       "tag": "0012_files_security",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793297901201,
+      "tag": "0013_clients_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793297902115,
+      "tag": "0014_clients_security",
+      "breakpoints": true
     }
   ]
 }

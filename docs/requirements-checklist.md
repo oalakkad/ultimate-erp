@@ -96,7 +96,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Module | Phase | Status |
 |---|---|---|
 | A Executive dashboard (real data, filters, drill-down, honest empty states; per-module dashboards) | 2, then each module, 14 | 🟡 2b: layout, real-data cards by permission, activity feed, quick actions, charts; filters + module cards + drill-down arrive with each module |
-| B Clients / CRM (contacts, communication history, notes, attachments, related records, timeline, dedupe, export) | 3 | ⏳ domain-model §2, §6 |
+| B Clients / CRM (contacts, communication history, notes, attachments, related records, timeline, dedupe, export) | 3 | ✅ 3 (modules/clients.md); related contracts/projects/invoices tabs arrive with Phases 4/5/12 |
 | C Contracts & engagement letters (templates, numbering, states, versions, renewals, approvals, e-signature integration) | 4 | ⏳ |
 | D Projects & budgeting (billing methods, budget revisions, limits & warnings) | 5 | ⏳ |
 | E Tasks & time (lifecycle, dependencies, recurring, board/list/calendar, allocation workflow steps 1–12, concurrency-safe) | 6 | ⏳ domain-model §3 |

@@ -37,7 +37,11 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | access.roles.assign | company | company* | — | — | — | — |
 | people.employee.read | company | company | team | team (basic fields) | own | — |
 | people.employee.read_restricted (civil ID, bank, emergency) | company | company* | — | — | own | — |
+| clients.client.read | company | company | company | project | project | — |
 | clients.client.create | company | company | company | — | — | — |
+| clients.client.update | company | company | company | — | — | — |
+| clients.client.archive | company | company | — | — | — | — |
+| clients.client.export | company | company | — | — | — | — |
 | projects.project.create | company | company | company | — | — | — |
 | projects.budget.update | company | company | project | — | — | — |
 | projects.budget.override | company | company* | — | — | — | — |

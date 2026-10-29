@@ -7,8 +7,8 @@ import {
   hasPermission,
   type Permission,
 } from '@ultimate-erp/contracts';
-import { auditEvents, invitations, memberships } from '@ultimate-erp/db';
-import { and, count, desc, eq, gt, inArray } from 'drizzle-orm';
+import { auditEvents, clients, invitations, memberships } from '@ultimate-erp/db';
+import { and, count, desc, eq, gt, gte, inArray, isNull } from 'drizzle-orm';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { NoStoreInterceptor } from '../../platform/http/no-store.interceptor.js';
 import { ApiContract } from '../../platform/openapi/api-contract.js';
@@ -19,6 +19,12 @@ import { IdentityModule } from '../identity/identity.module.js';
 import { IdentityService } from '../identity/identity.service.js';
 
 const ACTIVITY_LIMIT = 8;
+
+/** Midnight on the 1st of this month in Kuwait (UTC+3, no daylight saving), as a UTC instant. */
+export function startOfMonthInKuwait(now: Date): Date {
+  const kuwait = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  return new Date(Date.UTC(kuwait.getUTCFullYear(), kuwait.getUTCMonth(), 1) - 3 * 60 * 60 * 1000);
+}
 
 /**
  * The executive dashboard's numbers (docs/modules/shell-dashboard.md §4). Each section is
@@ -64,6 +70,19 @@ export class DashboardService {
           activeMembers: await activeMembers(),
           pendingInvitations: may('access.members.invite') ? await pendingInvitations() : null,
         };
+      }
+      if (may('clients.client.read')) {
+        const [active] = await tx
+          .select({ n: count() })
+          .from(clients)
+          .where(and(eq(clients.status, 'active'), isNull(clients.archivedAt)));
+        const [fresh] = await tx
+          .select({ n: count() })
+          .from(clients)
+          .where(
+            and(gte(clients.createdAt, startOfMonthInKuwait(now)), isNull(clients.archivedAt)),
+          );
+        out.clients = { active: active?.n ?? 0, newThisMonth: fresh?.n ?? 0 };
       }
       let activity: (typeof auditEvents.$inferSelect)[] | undefined;
       if (may('audit.event.read')) {
