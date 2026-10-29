@@ -12,9 +12,20 @@ const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 async function expectAccessible(page: Page, screen: string) {
   await page.evaluate(() => document.fonts.ready);
+  // Let colour transitions finish (in-app navigation fades the highlight of the old page);
+  // a cancelled one (its element left the page) is simply ignored.
+  await page.evaluate(() =>
+    Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))),
+  );
   const results = await new AxeBuilder({ page }).withTags(WCAG).analyze();
   expect(
-    results.violations.map((v) => `${screen} — ${v.id}: ${v.nodes.length} × ${v.help}`),
+    results.violations.map(
+      (v) =>
+        `${screen} — ${v.id}: ${v.nodes.length} × ${v.help} — ${v.nodes
+          .slice(0, 3)
+          .map((node) => node.target.join(' '))
+          .join(' | ')}`,
+    ),
   ).toEqual([]);
 }
 
@@ -98,6 +109,25 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(page.getByText(t('ui.dashboard.emptyTitle'))).toBeVisible();
       await expectAccessible(page, 'dashboard');
 
+      // --- Phase 2a shell: command palette (Ctrl K) and the phone layout ---------------------
+      await page.keyboard.press('Control+k');
+      const palette = page.getByRole('dialog', { name: t('ui.palette.title') });
+      await expect(palette.getByRole('combobox')).toBeFocused();
+      await expectAccessible(page, 'command palette');
+      await palette.getByRole('combobox').fill(t('ui.shell.members'));
+      await page.keyboard.press('Enter');
+      await expect(page.getByRole('heading', { name: t('ui.members.title') })).toBeVisible();
+      await page.getByRole('link', { name: t('ui.shell.home') }).click();
+      await expect(page.getByText(t('ui.dashboard.emptyTitle'))).toBeVisible();
+
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.getByRole('button', { name: t('ui.shell.openMenu') }).click();
+      const drawer = page.getByRole('dialog');
+      await expect(drawer.getByRole('link', { name: t('ui.shell.members') })).toBeVisible();
+      await expectAccessible(page, 'phone menu');
+      await page.keyboard.press('Escape');
+      await page.setViewportSize({ width: 1280, height: 800 });
+
       await page.getByRole('link', { name: t('ui.dashboard.inviteCta') }).click();
       await expect(page.getByRole('heading', { name: t('ui.members.title') })).toBeVisible();
       await expect(page.getByRole('cell', { name: owner.email })).toBeVisible();
@@ -168,6 +198,16 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(
         page.getByRole('button', { name: t('ui.notifications.open', { count: 0 }) }),
       ).toBeVisible();
+
+      // --- Owner changes their password from My account --------------------------------------
+      await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
+      await expectAccessible(page, 'my account');
+      await page.getByLabel(t('ui.account.currentPassword')).fill(owner.password);
+      await page
+        .getByLabel(t('ui.account.newPassword'), { exact: true })
+        .fill(`${owner.password} v2`);
+      await page.getByRole('button', { name: t('ui.account.changePassword') }).click();
+      await expect(page.getByText(t('ui.account.passwordChanged'), { exact: true })).toBeVisible();
     } finally {
       await deleteEmailsTo(owner.email, invitee.email);
     }

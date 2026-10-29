@@ -1,25 +1,41 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Navigate, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
-import { okResponseSchema } from '@ultimate-erp/contracts';
+import { memberListResponseSchema, okResponseSchema } from '@ultimate-erp/contracts';
 import {
   AppFrame,
   Avatar,
   Button,
+  Drawer,
   ErrorState,
+  IconButton,
   LoadingState,
   Logo,
+  Menu,
   NavGroup,
   NavItem,
   ProfileCard,
+  SearchBox,
   Sidebar,
   Topbar,
 } from '@ultimate-erp/ui';
-import { LayoutGrid, LogOut, UserRound, Users } from 'lucide-react';
+import {
+  Building2,
+  ChevronsUpDown,
+  LayoutGrid,
+  LogOut,
+  MenuIcon,
+  UserRound,
+  Users,
+} from 'lucide-react';
+import { type MouseEvent, useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../app/i18n.js';
-import { LanguageSwitch, ThemeSwitch } from '../app/switches.js';
+import { LanguageSwitch, ThemeSwitch, useChangeLocale } from '../app/switches.js';
 import { api } from '../lib/api.js';
+import { type Command } from '../lib/commands.js';
 import { errorReference, errorText } from '../lib/errors.js';
-import { can, useAccess, useMe, useTenant } from '../lib/session.js';
+import { mainAppUrl, openCompany } from '../lib/handoff.js';
+import { can, useAccess, useMe, useMyCompanies, useTenant } from '../lib/session.js';
+import { CommandPalette } from './command-palette.js';
 import { NotificationBell } from './notification-bell.js';
 
 const initialsOf = (name: string) =>
@@ -31,19 +47,38 @@ const initialsOf = (name: string) =>
     .join('')
     .toUpperCase();
 
+/** Key names are the same in every language; Apple keyboards show ⌘ instead of Ctrl. */
+const SHORTCUT_LABEL = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘ K' : 'Ctrl K';
+
+/** A plain left click (not ctrl/⌘/shift/middle — those open a new tab, which the href handles). */
+const isPlainClick = (e: MouseEvent) =>
+  !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+
 /**
  * The signed-in company app. Requires: a company address, a session, membership. Sensitive
  * roles without two-factor are sent to the security page (the server also refuses everything
  * else with MFA_REQUIRED). The sidebar lists only modules that exist (owner decision).
+ * On phones the sidebar becomes a drawer behind a menu button.
  */
 export function AppLayout() {
   const { t, locale } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const changeLocale = useChangeLocale();
   const tenant = useTenant();
   const me = useMe();
   const access = useAccess(Boolean(tenant.data && me.data));
+  const ready = Boolean(access.data && !access.data.twoFactorRequired);
+  const companies = useMyCompanies(ready);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const canReadMembers = can(access.data, 'access.members.read');
+  const people = useQuery({
+    queryKey: ['members'],
+    enabled: paletteOpen && ready && canReadMembers,
+    queryFn: () => api('/members', { schema: memberListResponseSchema }),
+  });
   const signOut = useMutation({
     mutationFn: () => api('/auth/sign-out', { method: 'POST', schema: okResponseSchema }),
     onSettled: async () => {
@@ -51,6 +86,130 @@ export function AppLayout() {
       await navigate({ to: '/sign-in' });
     },
   });
+
+  // Ctrl K / ⌘ K opens the palette from anywhere in the app.
+  useEffect(() => {
+    if (!ready) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [ready]);
+
+  const go = (href: string) => {
+    setMenuOpen(false);
+    void navigate({ href });
+  };
+  const link = (href: string) => ({
+    href,
+    onClick: (e: MouseEvent<HTMLAnchorElement>) => {
+      if (!isPlainClick(e)) return;
+      e.preventDefault();
+      go(href);
+    },
+  });
+
+  const commands = useMemo<Command[]>(() => {
+    if (!access.data || !me.data) return [];
+    const list: Command[] = [
+      {
+        id: 'page:dashboard',
+        group: 'pages',
+        label: t('ui.shell.dashboard'),
+        run: () => {
+          go('/');
+        },
+      },
+      {
+        id: 'page:account',
+        group: 'pages',
+        label: t('ui.shell.myAccount'),
+        run: () => {
+          go('/account');
+        },
+      },
+    ];
+    if (canReadMembers) {
+      list.push({
+        id: 'page:members',
+        group: 'pages',
+        label: t('ui.shell.members'),
+        run: () => {
+          go('/members');
+        },
+      });
+    }
+    if (can(access.data, 'access.members.invite')) {
+      list.push({
+        id: 'action:invite',
+        group: 'actions',
+        label: t('ui.palette.inviteColleague'),
+        run: () => {
+          go('/members?invite=1');
+        },
+      });
+    }
+    if (!me.data.user.twoFactorEnabled) {
+      list.push({
+        id: 'action:2fa',
+        group: 'actions',
+        label: t('ui.palette.setUpTwoFactor'),
+        run: () => {
+          go('/account#security');
+        },
+      });
+    }
+    const other = locale === 'ar' ? 'en' : 'ar';
+    list.push(
+      {
+        id: 'action:password',
+        group: 'actions',
+        label: t('ui.palette.changePassword'),
+        run: () => {
+          go('/account#password');
+        },
+      },
+      {
+        id: 'action:language',
+        group: 'actions',
+        label: t('ui.palette.switchLanguage', {
+          language: other === 'ar' ? t('ui.common.arabic') : t('ui.common.english'),
+        }),
+        keywords: ['language', 'لغة', 'english', 'عربي'],
+        run: () => {
+          changeLocale(other);
+        },
+      },
+      {
+        id: 'action:sign-out',
+        group: 'actions',
+        label: t('ui.palette.signOut'),
+        run: () => {
+          signOut.mutate();
+        },
+      },
+    );
+    for (const member of people.data?.members ?? []) {
+      list.push({
+        id: `member:${member.membershipId}`,
+        group: 'members',
+        label: member.name,
+        hint: member.email,
+        run: () => {
+          go('/members');
+        },
+      });
+    }
+    return list;
+    // `go`, `changeLocale` and `signOut` are stable in behaviour; recompute on data/language.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [access.data, me.data, people.data, locale, canReadMembers]);
 
   const failed = tenant.error ?? me.error ?? access.error;
   if (failed) {
@@ -81,8 +240,79 @@ export function AppLayout() {
   }
 
   const user = me.data.user;
+  const tenantId = access.data.tenantId;
   const company = locale === 'ar' ? tenant.data.name.ar : tenant.data.name.en;
   const path = location.pathname;
+
+  const switcher = (
+    <Menu
+      label={t('ui.shell.switchCompany')}
+      trigger={
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 rounded-ctl text-start hover:bg-frame"
+        >
+          <Logo subtitle={company} />
+          {/* Spoken after the visible text, so the accessible name still contains it. */}
+          <span className="sr-only">{t('ui.shell.switchCompany')}</span>
+          <ChevronsUpDown aria-hidden className="ms-auto size-4 shrink-0 text-ink-3" />
+        </button>
+      }
+      items={(companies.data?.companies ?? []).map((c) => ({
+        key: c.tenantId,
+        label: locale === 'ar' ? c.name.ar : c.name.en,
+        hint: c.url.replace(/^https?:\/\//, ''),
+        icon: <Building2 aria-hidden />,
+        current: c.tenantId === tenantId,
+        onSelect: () => {
+          if (c.tenantId !== tenantId) void openCompany(c.tenantId);
+        },
+      }))}
+      footer={[
+        {
+          key: 'all',
+          label: t('ui.shell.allCompanies'),
+          onSelect: () => {
+            window.location.assign(`${mainAppUrl()}/companies`);
+          },
+        },
+      ]}
+    />
+  );
+
+  const navigation = (
+    <NavGroup title={t('ui.shell.groupMain')}>
+      <NavItem
+        {...link('/')}
+        icon={<LayoutGrid aria-hidden />}
+        label={t('ui.shell.dashboard')}
+        current={path === '/'}
+      />
+      {canReadMembers && (
+        <NavItem
+          {...link('/members')}
+          icon={<Users aria-hidden />}
+          label={t('ui.shell.members')}
+          current={path === '/members'}
+        />
+      )}
+    </NavGroup>
+  );
+  const accountLink = (
+    <NavItem
+      {...link('/account')}
+      icon={<UserRound aria-hidden />}
+      label={t('ui.shell.myAccount')}
+      current={path === '/account'}
+    />
+  );
+  const profile = (
+    <ProfileCard
+      avatar={<Avatar name={user.name} initials={initialsOf(user.name)} size={48} />}
+      name={user.name}
+      subtitle={access.data.roles.map((role) => t(`roles.${role}`)).join(' · ')}
+    />
+  );
 
   return (
     <div className="min-h-screen p-3 md:p-4">
@@ -90,47 +320,50 @@ export function AppLayout() {
         sidebar={
           <Sidebar
             label={t('ui.shell.mainNavigation')}
-            header={<Logo subtitle={company} />}
-            profile={
-              <ProfileCard
-                avatar={<Avatar name={user.name} initials={initialsOf(user.name)} size={48} />}
-                name={user.name}
-                subtitle={access.data.roles.map((role) => t(`roles.${role}`)).join(' · ')}
-              />
-            }
-            footer={
-              <NavItem
-                href="/account"
-                icon={<UserRound aria-hidden />}
-                label={t('ui.shell.myAccount')}
-                current={path === '/account'}
-              />
-            }
+            header={ready ? switcher : <Logo subtitle={company} />}
+            profile={profile}
+            footer={accountLink}
           >
-            <NavGroup title={t('ui.shell.groupMain')}>
-              <NavItem
-                href="/"
-                icon={<LayoutGrid aria-hidden />}
-                label={t('ui.shell.dashboard')}
-                current={path === '/'}
-              />
-              {can(access.data, 'access.members.read') && (
-                <NavItem
-                  href="/members"
-                  icon={<Users aria-hidden />}
-                  label={t('ui.shell.members')}
-                  current={path === '/members'}
-                />
-              )}
-            </NavGroup>
+            {navigation}
           </Sidebar>
         }
       >
         <Topbar
+          search={
+            <>
+              <Drawer
+                side="start"
+                open={menuOpen}
+                onOpenChange={setMenuOpen}
+                trigger={
+                  <IconButton label={t('ui.shell.openMenu')} className="md:hidden">
+                    <MenuIcon aria-hidden />
+                  </IconButton>
+                }
+                title={company}
+                closeLabel={t('ui.common.close')}
+              >
+                {profile}
+                <nav aria-label={t('ui.shell.mainNavigation')} className="grid gap-3.5">
+                  {navigation}
+                  {accountLink}
+                </nav>
+              </Drawer>
+              {ready && (
+                <SearchBox
+                  label={t('ui.shell.search')}
+                  shortcut={SHORTCUT_LABEL}
+                  onClick={() => {
+                    setPaletteOpen(true);
+                  }}
+                />
+              )}
+            </>
+          }
           actions={
             <>
               {/* Hidden until two-factor is set up: the server refuses it with MFA_REQUIRED. */}
-              {!access.data.twoFactorRequired && <NotificationBell />}
+              {ready && <NotificationBell />}
               <ThemeSwitch />
               <LanguageSwitch />
               <Button
@@ -148,6 +381,9 @@ export function AppLayout() {
         />
         <Outlet />
       </AppFrame>
+      {ready && (
+        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} commands={commands} />
+      )}
     </div>
   );
 }

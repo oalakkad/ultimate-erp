@@ -6,6 +6,20 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-29 — Session 5 (continued): Phase 2a (shell) built + committed
+
+### Hand-over 2a (A–H)
+- **A Built:** command palette (Ctrl K / ⌘ K) over pages, actions and people with Arabic-aware matching; company switcher; phone navigation drawer; breadcrumbs (`PageHeader`); in-app navigation without reloads; My account name editing and password change; palette "Invite a colleague" opens the Members invite dialog.
+- **B Files:** ui `menu.tsx`, `shell.tsx` (PageHeader, NavItem onClick, SearchBox button), `overlays.tsx` (Drawer side, Dialog initialFocus); web `components/command-palette.tsx`, `components/page-header.tsx`, `components/app-layout.tsx` (rewritten), `lib/commands.ts` (+spec), `lib/handoff.ts`, `app/switches.tsx` (`useChangeLocale`), `routes/account.tsx`, `routes/members.tsx`, `routes/dashboard.tsx`; i18n `palette` section + shell/account keys; spec `docs/modules/shell-dashboard.md`.
+- **C Architecture:** commands are built in `AppLayout` from the person's access and data; modules will add their own pages, actions and searchable records. The switcher uses the 1.4b hand-off.
+- **D Security:** the palette and switcher only offer what the person may do (UX only; the server still checks everything); password change re-checks the current password and signs out other sessions.
+- **E Tests:** `pnpm check` passed with **265** (api 159, db 37, contracts 27, web 23, i18n 10, ui 9); journey EN + AR passed twice; `pnpm e2e` 6 passed; `pnpm security` clean (except the accepted esbuild moderate). axe found 2 real issues, now fixed: the switcher's accessible name didn't match its visible text, and focus didn't start in the palette field. The journey's axe helper now names the failing elements and waits for colour transitions.
+- **F Verify:** project-status "How to verify Phase 2a".
+- **G Open:** the main-address derivation assumes `<slug>.<main>` hosts (custom domains later); member results in the palette open the Members list (no per-person page until Phase 8).
+- **H Next:** Phase 2b per `shell-dashboard.md` §4.
+
+---
+
 ## 2026-10-29 — Session 5 (continued): 1.5a committed, nonstop mode, Milestone 1.5b built + committed
 
 ### Owner direction

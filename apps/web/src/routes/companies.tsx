@@ -1,11 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate } from '@tanstack/react-router';
-import {
-  createCompanyRequestSchema,
-  createCompanyResponseSchema,
-  handoffResponseSchema,
-} from '@ultimate-erp/contracts';
+import { createCompanyRequestSchema, createCompanyResponseSchema } from '@ultimate-erp/contracts';
 import {
   Avatar,
   Button,
@@ -22,18 +18,9 @@ import { type z } from 'zod';
 import { useI18n } from '../app/i18n.js';
 import { AuthLayout, FormError } from '../components/auth-layout.js';
 import { api } from '../lib/api.js';
+import { openCompany } from '../lib/handoff.js';
 import { errorReference, errorText } from '../lib/errors.js';
 import { useMe, useMyCompanies } from '../lib/session.js';
-
-/** Sends the browser to a company address with a one-time ticket (sign in once). */
-async function openCompany(tenantId: string) {
-  const { url } = await api('/auth/handoff', {
-    method: 'POST',
-    body: { tenantId },
-    schema: handoffResponseSchema,
-  });
-  window.location.assign(url);
-}
 
 /** Main address after sign-in: pick a company or create one. */
 export function CompaniesPage() {

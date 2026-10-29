@@ -1,6 +1,6 @@
-import { Search } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 import { Direction, Tooltip as RadixTooltip } from 'radix-ui';
-import { type ReactNode } from 'react';
+import { type MouseEvent, type ReactNode } from 'react';
 import { cn } from '../lib/cn.js';
 import { ToastProvider } from './overlays.js';
 
@@ -94,16 +94,20 @@ export function NavItem({
   label,
   current,
   badge,
+  onClick,
 }: {
   href: string;
   icon: ReactNode;
   label: string;
   current?: boolean;
   badge?: ReactNode;
+  /** Lets the app switch pages without a reload (the href still works for new tabs). */
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   return (
     <a
       href={href}
+      onClick={onClick}
       aria-current={current ? 'page' : undefined}
       className={cn(
         'flex items-center gap-[11px] rounded-ctl px-3 py-[9px] text-[13.5px] font-medium text-ink-2 transition-colors [&>svg]:size-[18px] [&>svg]:stroke-[1.8]',
@@ -138,6 +142,57 @@ export function ProfileCard({
   );
 }
 
+export interface Crumb {
+  label: string;
+  href?: string;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
+}
+
+/** Page title with breadcrumbs and page actions (one per screen, inside <main>). */
+export function PageHeader({
+  title,
+  crumbs = [],
+  crumbsLabel,
+  actions,
+}: {
+  title: string;
+  crumbs?: Crumb[];
+  /** Accessible name of the breadcrumb navigation. */
+  crumbsLabel: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-end gap-3">
+      <div className="grid min-w-0 gap-1">
+        {crumbs.length > 0 && (
+          <nav aria-label={crumbsLabel}>
+            <ol className="flex flex-wrap items-center gap-1 text-[12.5px] text-ink-3">
+              {crumbs.map((crumb) => (
+                <li key={crumb.label} className="flex items-center gap-1">
+                  {crumb.href ? (
+                    <a
+                      href={crumb.href}
+                      onClick={crumb.onClick}
+                      className="hover:text-ink hover:underline"
+                    >
+                      {crumb.label}
+                    </a>
+                  ) : (
+                    <span>{crumb.label}</span>
+                  )}
+                  <ChevronRight aria-hidden className="mirror size-3.5" />
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+      </div>
+      {actions && <div className="ms-auto flex flex-wrap gap-2">{actions}</div>}
+    </div>
+  );
+}
+
 export function Topbar({ search, actions }: { search?: ReactNode; actions?: ReactNode }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -148,10 +203,23 @@ export function Topbar({ search, actions }: { search?: ReactNode; actions?: Reac
   );
 }
 
-/** Search entry in the top bar (the command palette opens from it in Phase 2). */
-export function SearchBox({ label, shortcut }: { label: string; shortcut?: string }) {
+/** Search entry in the top bar: a button that opens the command palette. */
+export function SearchBox({
+  label,
+  shortcut,
+  onClick,
+}: {
+  label: string;
+  shortcut?: string;
+  onClick?: () => void;
+}) {
   return (
-    <div className="flex h-[42px] max-w-[380px] min-w-0 flex-1 items-center gap-2.5 rounded-[14px] border border-line bg-card px-3.5 text-ink-3 shadow-card">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-keyshortcuts={shortcut ? 'Control+K Meta+K' : undefined}
+      className="flex h-[42px] max-w-[380px] min-w-0 flex-1 items-center gap-2.5 rounded-[14px] border border-line bg-card px-3.5 text-start text-ink-3 shadow-card hover:text-ink"
+    >
       <Search aria-hidden className="size-[18px]" />
       <span className="truncate">{label}</span>
       {shortcut && (
@@ -159,7 +227,7 @@ export function SearchBox({ label, shortcut }: { label: string; shortcut?: strin
           {shortcut}
         </kbd>
       )}
-    </div>
+    </button>
   );
 }
 

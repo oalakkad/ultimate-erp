@@ -6,10 +6,11 @@ import { api } from '../lib/api.js';
 import { useI18n } from './i18n.js';
 import { type Theme, useTheme } from './theme.js';
 
-export function LanguageSwitch() {
-  const { t, locale, setLocale } = useI18n();
+/** Switches the language; when signed in, also saves it on the account (emails use it). */
+export function useChangeLocale() {
+  const { setLocale } = useI18n();
   const queryClient = useQueryClient();
-  const change = (next: Locale) => {
+  return (next: Locale) => {
     setLocale(next);
     // Signed in: remember the choice on the account too (emails use it). Best effort — the
     // screen has already switched and the browser keeps the choice either way.
@@ -19,6 +20,11 @@ export function LanguageSwitch() {
       );
     }
   };
+}
+
+export function LanguageSwitch() {
+  const { t, locale } = useI18n();
+  const change = useChangeLocale();
   return (
     <SegmentedControl<Locale>
       label={t('ui.common.language')}

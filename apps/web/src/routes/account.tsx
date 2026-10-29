@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   backupCodesResponseSchema,
   okResponseSchema,
+  PASSWORD_MIN_LENGTH,
   type Session,
   sessionListResponseSchema,
   twoFactorSetupResponseSchema,
+  userSchema,
 } from '@ultimate-erp/contracts';
 import { formatDate } from '@ultimate-erp/i18n';
 import {
@@ -22,6 +24,7 @@ import { useEffect, useState } from 'react';
 import { useI18n } from '../app/i18n.js';
 import { LanguageSwitch } from '../app/switches.js';
 import { FormError } from '../components/auth-layout.js';
+import { AppPageHeader } from '../components/page-header.js';
 import { api } from '../lib/api.js';
 import { errorReference, errorText } from '../lib/errors.js';
 import { useAccess, useMe } from '../lib/session.js';
@@ -34,25 +37,137 @@ export function AccountPage() {
   if (!me.data) return <LoadingState label={t('ui.common.loading')} />;
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-bold tracking-tight">{t('ui.account.title')}</h1>
-      <Card title={t('ui.account.profile')}>
-        <div className="grid gap-1">
-          <b>{me.data.user.name}</b>
-          <small className="text-ink-3" dir="ltr">
-            {me.data.user.email}
-          </small>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-[13.5px] font-semibold">{t('ui.account.language')}</span>
-          <LanguageSwitch />
-        </div>
-      </Card>
+      <AppPageHeader title={t('ui.account.title')} />
+      <ProfileCard name={me.data.user.name} email={me.data.user.email} />
       <TwoFactorCard
         enabled={me.data.user.twoFactorEnabled}
         required={access.data?.twoFactorRequired ?? false}
       />
+      <PasswordCard />
       <SessionsCard />
     </div>
+  );
+}
+
+function ProfileCard({ name, email }: { name: string; email: string }) {
+  const { t } = useI18n();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [draft, setDraft] = useState(name);
+  const save = useMutation({
+    mutationFn: () =>
+      api('/auth/me', { method: 'PATCH', body: { name: draft.trim() }, schema: userSchema }),
+    onSuccess: async () => {
+      toast({ tone: 'good', title: t('ui.account.saved') });
+      await queryClient.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+  return (
+    <Card title={t('ui.account.profile')}>
+      <small className="text-ink-3" dir="ltr">
+        {email}
+      </small>
+      <form
+        noValidate
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate();
+        }}
+      >
+        <div className="min-w-[220px] flex-1">
+          <TextField
+            label={t('ui.account.name')}
+            autoComplete="name"
+            value={draft}
+            maxLength={100}
+            onChange={(e) => {
+              setDraft(e.target.value);
+            }}
+          />
+        </div>
+        <Button
+          type="submit"
+          variant="secondary"
+          loading={save.isPending}
+          disabled={draft.trim().length === 0 || draft.trim() === name}
+        >
+          {t('ui.account.saveName')}
+        </Button>
+      </form>
+      <FormError error={save.error} />
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-[13.5px] font-semibold">{t('ui.account.language')}</span>
+        <LanguageSwitch />
+      </div>
+    </Card>
+  );
+}
+
+/** Change password: the server checks the current one and signs out every other session. */
+function PasswordCard() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const tooShort = next.length > 0 && next.length < PASSWORD_MIN_LENGTH;
+  const change = useMutation({
+    mutationFn: () =>
+      api('/auth/password/change', {
+        method: 'POST',
+        body: { currentPassword: current, newPassword: next },
+        schema: okResponseSchema,
+      }),
+    onSuccess: async () => {
+      setCurrent('');
+      setNext('');
+      toast({ tone: 'good', title: t('ui.account.passwordChanged') });
+      await queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    },
+  });
+  return (
+    <Card id="password" title={t('ui.account.password')}>
+      <p className="text-[13.5px] text-ink-2">{t('ui.account.passwordBody')}</p>
+      <form
+        noValidate
+        className="grid max-w-md gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          change.mutate();
+        }}
+      >
+        <TextField
+          label={t('ui.account.currentPassword')}
+          type="password"
+          autoComplete="current-password"
+          value={current}
+          onChange={(e) => {
+            setCurrent(e.target.value);
+          }}
+        />
+        <TextField
+          label={t('ui.account.newPassword')}
+          type="password"
+          autoComplete="new-password"
+          hint={t('ui.auth.passwordHint')}
+          error={tooShort ? t('ui.validation.passwordLength') : undefined}
+          value={next}
+          onChange={(e) => {
+            setNext(e.target.value);
+          }}
+        />
+        <FormError error={change.error} />
+        <Button
+          type="submit"
+          className="w-fit"
+          loading={change.isPending}
+          disabled={!current || next.length < PASSWORD_MIN_LENGTH}
+        >
+          {t('ui.account.changePassword')}
+        </Button>
+      </form>
+    </Card>
   );
 }
 

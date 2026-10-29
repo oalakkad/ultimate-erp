@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { Card, EmptyState } from '@ultimate-erp/ui';
 import { UserPlus } from 'lucide-react';
 import { useI18n } from '../app/i18n.js';
+import { AppPageHeader } from '../components/page-header.js';
 import { can, useAccess } from '../lib/session.js';
 
 /** Honest empty dashboard: no figures until the modules that produce them exist. */
@@ -10,7 +11,7 @@ export function DashboardPage() {
   const access = useAccess(true);
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-bold tracking-tight">{t('ui.dashboard.title')}</h1>
+      <AppPageHeader title={t('ui.dashboard.title')} home={false} />
       <Card>
         <EmptyState
           title={t('ui.dashboard.emptyTitle')}

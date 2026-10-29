@@ -32,9 +32,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { type z } from 'zod';
 import { useI18n } from '../app/i18n.js';
 import { FormError } from '../components/auth-layout.js';
+import { AppPageHeader } from '../components/page-header.js';
 import { api } from '../lib/api.js';
 import { errorReference, errorText } from '../lib/errors.js';
 import { can, useAccess } from '../lib/session.js';
+import { useSearchParam } from '../lib/use-search-param.js';
 
 type Member = z.infer<typeof memberListResponseSchema>['members'][number];
 type InviteForm = z.input<typeof createInvitationRequestSchema>;
@@ -65,7 +67,11 @@ export function MembersPage() {
     queryFn: () => api('/invitations', { schema: invitationListResponseSchema }),
   });
 
-  const [inviteOpen, setInviteOpen] = useState(false);
+  // "Invite a colleague" from the command palette (?invite=1) opens the dialog directly,
+  // once; after that the dialog is controlled by its own buttons.
+  const inviteRequested = useSearchParam('invite') === '1' && canInvite;
+  const [inviteState, setInviteOpen] = useState<boolean | null>(null);
+  const inviteOpen = inviteState ?? inviteRequested;
   const [editing, setEditing] = useState<Member | null>(null);
   const [removing, setRemoving] = useState<Member | null>(null);
 
@@ -115,7 +121,7 @@ export function MembersPage() {
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold tracking-tight">{t('ui.members.title')}</h1>
+        <AppPageHeader title={t('ui.members.title')} />
         {canInvite && (
           <div className="ms-auto">
             <Dialog

@@ -10,6 +10,7 @@ export {
   ToastProvider,
   useToast,
 } from './components/overlays.js';
+export * from './components/menu.js';
 export * from './components/shell.js';
 export * from './components/states.js';
 export { cn } from './lib/cn.js';

@@ -5,7 +5,14 @@ import {
   Toast as RadixToast,
   Tooltip as RadixTooltip,
 } from 'radix-ui';
-import { createContext, type ReactNode, useCallback, useContext, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useContext,
+  useState,
+} from 'react';
 
 interface OverlayProps {
   open?: boolean;
@@ -17,6 +24,10 @@ interface OverlayProps {
   closeLabel: string;
   children?: ReactNode;
   footer?: ReactNode;
+  /** Drawer only: which edge it slides from (logical: start = left in English, right in Arabic). */
+  side?: 'start' | 'end';
+  /** Dialog only: element to focus when it opens (default: the first focusable element). */
+  initialFocus?: RefObject<HTMLElement | null>;
 }
 
 const OVERLAY =
@@ -47,6 +58,7 @@ export function Dialog({
   closeLabel,
   children,
   footer,
+  initialFocus,
 }: OverlayProps) {
   return (
     <RadixDialog.Root {...rootProps(open, onOpenChange)}>
@@ -54,6 +66,14 @@ export function Dialog({
       <RadixDialog.Portal>
         <RadixDialog.Overlay className={OVERLAY} />
         <RadixDialog.Content
+          {...(initialFocus
+            ? {
+                onOpenAutoFocus: (e: Event) => {
+                  e.preventDefault();
+                  initialFocus.current?.focus();
+                },
+              }
+            : {})}
           {...(description ? {} : { 'aria-describedby': undefined })}
           className="fixed start-1/2 top-1/2 z-50 grid w-[min(480px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-card border border-line bg-card p-6 shadow-pop rtl:translate-x-1/2"
         >
@@ -88,6 +108,7 @@ export function Drawer({
   closeLabel,
   children,
   footer,
+  side = 'end',
 }: OverlayProps) {
   return (
     <RadixDialog.Root {...rootProps(open, onOpenChange)}>
@@ -96,7 +117,7 @@ export function Drawer({
         <RadixDialog.Overlay className={OVERLAY} />
         <RadixDialog.Content
           {...(description ? {} : { 'aria-describedby': undefined })}
-          className="fixed inset-y-3 end-3 z-50 grid w-[min(420px,calc(100vw-24px))] content-start gap-4 rounded-card border border-line bg-card p-6 shadow-pop"
+          className={`fixed inset-y-3 z-50 grid w-[min(420px,calc(100vw-24px))] content-start gap-4 overflow-y-auto rounded-card border border-line bg-card p-6 shadow-pop ${side === 'start' ? 'start-3' : 'end-3'}`}
         >
           <div className="flex items-start gap-3">
             <RadixDialog.Title className="text-lg font-bold tracking-tight">
