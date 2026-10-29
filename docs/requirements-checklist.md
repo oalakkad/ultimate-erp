@@ -95,7 +95,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 ## §10 Core modules
 | Module | Phase | Status |
 |---|---|---|
-| A Executive dashboard (real data, filters, drill-down, honest empty states; per-module dashboards) | 2, then each module, 14 | ⏳ |
+| A Executive dashboard (real data, filters, drill-down, honest empty states; per-module dashboards) | 2, then each module, 14 | 🟡 2b: layout, real-data cards by permission, activity feed, quick actions, charts; filters + module cards + drill-down arrive with each module |
 | B Clients / CRM (contacts, communication history, notes, attachments, related records, timeline, dedupe, export) | 3 | ⏳ domain-model §2, §6 |
 | C Contracts & engagement letters (templates, numbering, states, versions, renewals, approvals, e-signature integration) | 4 | ⏳ |
 | D Projects & budgeting (billing methods, budget revisions, limits & warnings) | 5 | ⏳ |
@@ -216,13 +216,13 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Navigation hierarchy: overview, clients, contracts, projects & budgets, tasks & allocation, team, timesheets, leave, attendance, payroll, invoicing, notifications, reports, audit, settings, security | roadmap Phase 2 scope | ⏳ 2 |
 | Nav groups, collapsible sections, breadcrumbs, contextual actions, command palette | design-system.md §3, roadmap Phase 2 | ✅ nav groups 1.4a/1.4b; breadcrumbs, command palette (Ctrl K), contextual actions 2a; collapsible sections when the nav grows |
 | Every metric drills down to records (permission-aware) | roadmap Phase 2 | ⏳ 2 |
-| Answers: what's happening, projects at risk / over budget, over/under-utilized people, overdue tasks, hours remaining, outstanding invoices, expiring contracts, pending leave, issues needing attention | roadmap Phase 2 + module dashboards | ⏳ 2 → 14 |
+| Answers: what's happening, projects at risk / over budget, over/under-utilized people, overdue tasks, hours remaining, outstanding invoices, expiring contracts, pending leave, issues needing attention | roadmap Phase 2 + module dashboards | 🟡 "what's happening" (activity) ✅ 2b; the rest with their modules (3 → 14) |
 | Not overcrowded; payroll hidden without permission | design-system.md §4, permissions.md | ⏳ 2 |
 
 ## §24 Final acceptance criteria
 | Criterion | Status |
 |---|---|
-| Premium coherent UI, reusable components | 🟡 design system ✅ 1.4a; first screens ✅ 1.4b; each module adds its own |
+| Premium coherent UI, reusable components | 🟡 design system ✅ 1.4a; screens 1.4b–2b; charts 2b; each module adds its own |
 | Secure auth + MFA | ✅ 1.3a + 1.3b |
 | Reliable tenant isolation | 🟡 foundation ✅ 1.2, extended per module |
 | Server-enforced authorization; business vs technical admin separated | ✅ 1.3b (foundation; each module adds its checks) |

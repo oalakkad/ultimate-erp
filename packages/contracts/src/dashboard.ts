@@ -1,0 +1,52 @@
+import { z } from 'zod';
+
+// Executive dashboard (docs/modules/shell-dashboard.md §4). Every section is present only if
+// the caller may see it; numbers are computed from real records — never estimated.
+
+/** Audit actions the activity feed shows (internal noise such as notification sends is left out). */
+export const ACTIVITY_ACTIONS = [
+  'access.company.created',
+  'access.invitation.created',
+  'access.invitation.revoked',
+  'access.invitation.accepted',
+  'access.member.roles_changed',
+  'access.member.removed',
+  'files.file.uploaded',
+  'files.file.infected',
+] as const;
+export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
+
+export const activityItemSchema = z
+  .object({
+    id: z.uuid(),
+    action: z.enum(ACTIVITY_ACTIONS),
+    occurredAt: z.iso.datetime(),
+    /** Who did it (a member's name), or null for the system / a removed account. */
+    actorName: z.string().nullable(),
+  })
+  .strict();
+export type ActivityItem = z.infer<typeof activityItemSchema>;
+
+export const dashboardSummarySchema = z
+  .object({
+    /** Company set-up progress (people who can invite). */
+    setup: z
+      .object({ invitationSent: z.boolean(), colleagueJoined: z.boolean() })
+      .strict()
+      .optional(),
+    /** People in the company (people who can read the member list). */
+    team: z
+      .object({
+        activeMembers: z.number().int().min(0),
+        pendingInvitations: z.number().int().min(0).nullable(),
+      })
+      .strict()
+      .optional(),
+    /** Latest business events (people who can read the audit log). */
+    activity: z
+      .object({ items: z.array(activityItemSchema) })
+      .strict()
+      .optional(),
+  })
+  .strict();
+export type DashboardSummary = z.infer<typeof dashboardSummarySchema>;

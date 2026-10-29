@@ -108,6 +108,7 @@ const membersRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/members',
   component: MembersPage,
+  validateSearch: searchOf('invite'),
 });
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,

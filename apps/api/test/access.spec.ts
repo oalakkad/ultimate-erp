@@ -4,6 +4,7 @@ import {
   accessMeResponseSchema,
   auditListResponseSchema,
   createCompanyResponseSchema,
+  dashboardSummarySchema,
   errorResponseSchema,
   handoffResponseSchema,
   invitationListResponseSchema,
@@ -675,6 +676,55 @@ describe('notifications (Milestone 1.5a)', () => {
       if (delivery !== 'sent') await new Promise((resolve) => setTimeout(resolve, 100));
     }
     expect(delivery).toBe('sent');
+  });
+});
+
+describe('dashboard summary (Phase 2b)', () => {
+  const summary = async (p: Person, host: string) => {
+    const res = await p.get('/api/v1/dashboard/summary', host);
+    expect(res.status).toBe(200);
+    return dashboardSummarySchema.parse(res.body);
+  };
+
+  it('gives the Owner set-up progress, team numbers and recent activity from real records', async () => {
+    const { owner, host } = await founder();
+    const before = await summary(owner, host);
+    expect(before.setup).toEqual({ invitationSent: false, colleagueJoined: false });
+    expect(before.team).toEqual({ activeMembers: 1, pendingInvitations: 0 });
+    expect(before.activity?.items.map((i) => i.action)).toEqual(['access.company.created']);
+
+    const bob = await person('bob');
+    await join(bob, host, owner, 'employee');
+    await invite(owner, host, `${unique('later')}@example.com`, 'employee');
+    const after = await summary(owner, host);
+    expect(after.setup).toEqual({ invitationSent: true, colleagueJoined: true });
+    expect(after.team).toEqual({ activeMembers: 2, pendingInvitations: 1 });
+    expect(after.activity?.items.map((i) => i.action)).toEqual([
+      'access.invitation.created',
+      'access.invitation.accepted',
+      'access.invitation.created',
+      'access.company.created',
+    ]);
+    // Internal events (notification sends) are not business activity.
+    expect(JSON.stringify(after)).not.toContain('notification');
+    expect(after.activity?.items[1]?.actorName).toBe('bob');
+  });
+
+  it('shows an Employee only what their role allows (no sections today)', async () => {
+    const { owner, host } = await founder();
+    const bob = await person('bob');
+    await join(bob, host, owner, 'employee');
+    expect(await summary(bob, host)).toEqual({});
+  });
+
+  it('never counts another company’s records', async () => {
+    const a = await founder();
+    const bob = await person('bob');
+    await join(bob, a.host, a.owner, 'employee');
+    const b = await founder();
+    const other = await summary(b.owner, b.host);
+    expect(other.team).toEqual({ activeMembers: 1, pendingInvitations: 0 });
+    expect(other.activity?.items.map((i) => i.action)).toEqual(['access.company.created']);
   });
 });
 

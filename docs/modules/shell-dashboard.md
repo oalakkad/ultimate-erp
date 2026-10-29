@@ -1,6 +1,6 @@
 # Module spec: Executive shell & dashboard (Phase 2)
 
-Status: **2a (shell) built and committed 2026-10-29; 2b (dashboard) next.** Nonstop mode (owner decision 2026-10-29): defaults chosen by Claude are listed in §6.
+Status: **Phase 2 complete — 2a (shell) and 2b (dashboard) built and committed 2026-10-29.** Nonstop mode (owner decision 2026-10-29): defaults chosen by Claude are listed in §6.
 
 ## 1. Purpose and fit
 The first complete experience for a CEO / Owner (brief §18 Phase 2, Module A): one frame every module plugs into — navigation, search, notifications, profile, company switching — and a dashboard that shows **only real data** and gains cards as modules arrive.
@@ -8,14 +8,14 @@ The first complete experience for a CEO / Owner (brief §18 Phase 2, Module A): 
 ## 2. Brief coverage (Phase 2 list)
 | Required | Where | Status |
 |---|---|---|
-| CEO dashboard layout | 2b | ⏳ |
+| CEO dashboard layout | `routes/dashboard.tsx`: main column + side column, cards only for permitted sections | ✅ 2b |
 | Sidebar and navigation | `AppLayout`: only built modules; in-app navigation (no reloads; new-tab clicks still work) | ✅ 2a |
 | Header and global search | Search box + **Ctrl K / ⌘ K command palette**: pages, actions (invite, two-factor, password, language, sign out), people; Arabic-aware matching | ✅ 2a (each module adds its records) |
 | Notification center | Bell + panel | ✅ 1.5a |
 | User profile and settings | My account: name, language, two-factor, **password change**, sessions | ✅ 2a |
 | Company switcher | Sidebar header menu: my companies (secure hand-off) + "All my companies" | ✅ 2a |
-| Dashboard cards, chart components | 2b | ⏳ |
-| Activity feed, quick actions | 2b | ⏳ |
+| Dashboard cards, chart components | Getting started (meter), Team tiles; `BarChart`, `LineChart`, `Meter` in `packages/ui` (gallery shows them with labelled example data) | ✅ 2b (business cards arrive with each module) |
+| Activity feed, quick actions | Recent activity from the audit log (business events only, translated); quick actions by permission | ✅ 2b |
 | Responsive behaviour | Phone: sidebar becomes a drawer behind a menu button (logical side: right in Arabic) | ✅ 2a |
 | Loading, empty, error states | Every 2a screen | ✅ |
 | Breadcrumbs (design-system §3) | `PageHeader` with "Home ›" | ✅ 2a |
@@ -41,3 +41,9 @@ The first complete experience for a CEO / Owner (brief §18 Phase 2, Module A): 
 - Company switcher derives the main address by dropping the first label of the host (custom company domains will need a server-provided URL later).
 - Shortcut label is not translated (key names); Apple devices show ⌘ K.
 - Charts: own SVG components rather than a chart library (small, RTL-aware, accessible, no new dependency).
+
+## 7. 2b — results (2026-10-29)
+- **API:** `GET /api/v1/dashboard/summary` (`modules/dashboard`): `setup` (needs `access.members.invite`), `team` (`access.members.read`; pending invitations only with invite permission), `activity` (`audit.event.read`; last 8 business events, actor names only — no audit details, which can hold email addresses). Computed in the company's own transaction.
+- **Charts:** `packages/ui/src/components/charts.tsx`. Series colours `--series-1…8` in tokens (validated with the dataviz validator on our card surfaces: light all checks pass with a contrast WARN for slots 3–5 → every chart ships a table view and labels; dark all pass). Columns ≤ 24 px with 4 px rounded tops and 2 px gaps; 2 px lines with ringed end-dots; hairline grid; legend for 2+ series; values at column caps (single series) or line ends (≤ 4 non-colliding series); per-column tooltip and line crosshair on hover **and keyboard** (arrow keys); "Show as table" on every chart; RTL mirrors the x order and axis side; tooltip positioned with logical CSS only. Rendered and reviewed in EN light / AR dark — fixed two clipping issues (edge x-labels, RTL end-values) found by looking.
+- **Deferred:** date-range filter control — added with the first module whose card needs a period (Phase 3+), so it is built against real data rather than a placeholder.
+- **Tests:** API (3: Owner sees real progress/team/activity, Employee sees no sections, other company never counted); ui charts (7: scale, labelled keyboard-reachable bars, legend rule, table view, focus tooltip, RTL mirroring, line keyboard crosshair); journey checks progress "2 of 4", the activity line, quick action → Members, axe on the dashboard; gallery axe in EN/AR × light/dark with the charts.

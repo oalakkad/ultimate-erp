@@ -1,4 +1,5 @@
 export * from './components/button.js';
+export * from './components/charts.js';
 export * from './components/data-display.js';
 export * from './components/fields.js';
 export {

@@ -128,7 +128,15 @@ for (const locale of ['en', 'ar'] as const) {
       await page.keyboard.press('Escape');
       await page.setViewportSize({ width: 1280, height: 800 });
 
-      await page.getByRole('link', { name: t('ui.dashboard.inviteCta') }).click();
+      // Dashboard (Phase 2b): real set-up progress — company created and two-factor on.
+      await expect(page.getByText(t('ui.dashboard.progress', { done: 2, total: 4 }))).toBeVisible();
+      await expect(
+        page.getByText(
+          t('ui.dashboard.activityText.access_company_created', { actor: owner.name }),
+        ),
+      ).toBeVisible();
+      await page.screenshot({ path: `e2e/screenshots/dashboard-${locale}.png`, fullPage: true });
+      await page.getByRole('link', { name: t('ui.dashboard.actionMembers') }).click();
       await expect(page.getByRole('heading', { name: t('ui.members.title') })).toBeVisible();
       await expect(page.getByRole('cell', { name: owner.email })).toBeVisible();
       await expectAccessible(page, 'members');

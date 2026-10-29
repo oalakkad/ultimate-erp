@@ -1,6 +1,8 @@
-import { formatDate, formatMoney } from '@ultimate-erp/i18n';
+import { formatDate, formatMoney, formatNumber } from '@ultimate-erp/i18n';
 import {
   AppFrame,
+  BarChart,
+  LineChart,
   Avatar,
   Button,
   Card,
@@ -48,6 +50,26 @@ import { LanguageSwitch, ThemeSwitch } from '../app/switches.js';
 
 // Component gallery (docs/modules/web-ui.md). Everything on this page is clearly labelled
 // example data (brief §3: prototype content allowed when isolated and identified).
+
+/** Example data for the chart demos only (this page is a labelled fixture, brief §3). */
+const EXAMPLE_FEES = [
+  { billed: 42, collected: 35 },
+  { billed: 38, collected: 40 },
+  { billed: 51, collected: 44 },
+  { billed: 47, collected: 39 },
+  { billed: 56, collected: 52 },
+  { billed: 61, collected: 48 },
+];
+const EXAMPLE_HOURS = [
+  { billable: 312, internal: 96 },
+  { billable: 338, internal: 88 },
+  { billable: 295, internal: 120 },
+  { billable: 351, internal: 84 },
+  { billable: 366, internal: 79 },
+  { billable: 342, internal: 92 },
+  { billable: 374, internal: 70 },
+  { billable: 389, internal: 66 },
+];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -299,6 +321,46 @@ export function GalleryPage() {
           </Card>
           <Card title={t('ui.gallery.deniedExample')}>
             <PermissionDenied title={t('ui.states.deniedTitle')} body={t('ui.states.deniedBody')} />
+          </Card>
+        </div>
+      </Section>
+
+      <Section title={t('ui.gallery.sectionCharts')}>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <Card>
+            <BarChart
+              title={t('ui.gallery.chartFees')}
+              description={t('ui.gallery.chartFeesBody')}
+              series={[
+                { key: 'billed', label: t('ui.gallery.seriesBilled') },
+                { key: 'collected', label: t('ui.gallery.seriesCollected') },
+              ]}
+              data={EXAMPLE_FEES.map((row, i) => ({
+                label: formatDate(locale, new Date(2026, i, 1), { month: 'short' }),
+                values: row,
+              }))}
+              format={(v) => formatMoney(locale, (v * 1000).toFixed(3), 'KWD')}
+              formatTick={(v) => formatNumber(locale, v)}
+              showTableLabel={t('ui.common.showTable')}
+              showChartLabel={t('ui.common.showChart')}
+            />
+          </Card>
+          <Card>
+            <LineChart
+              title={t('ui.gallery.chartHours')}
+              description={t('ui.gallery.chartHoursBody')}
+              series={[
+                { key: 'billable', label: t('ui.gallery.seriesBillable') },
+                { key: 'internal', label: t('ui.gallery.seriesInternal') },
+              ]}
+              data={EXAMPLE_HOURS.map((row, i) => ({
+                label: t('ui.gallery.week', { n: i + 1 }),
+                values: row,
+              }))}
+              format={(v) => formatNumber(locale, v)}
+              showTableLabel={t('ui.common.showTable')}
+              showChartLabel={t('ui.common.showChart')}
+            />
           </Card>
         </div>
       </Section>

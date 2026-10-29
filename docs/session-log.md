@@ -6,6 +6,20 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-29 — Session 5 (continued): Phase 2b (dashboard) built + committed — Phase 2 complete
+
+### Hand-over 2b (A–H)
+- **A Built:** the dashboard from real records only: getting-started progress (company, two-factor, invitation, colleague joined), Team tiles (active members, pending invitations), Recent activity (translated business events from the audit log), quick actions, each shown only with the permission. Reusable accessible charts `BarChart`, `LineChart`, `Meter`, demonstrated in the gallery with labelled example data.
+- **B Files:** contracts `dashboard.ts`; api `modules/dashboard/dashboard.controller.ts` (service + controller + module); ui `charts.tsx` (+ `charts.spec.tsx`), `tokens.css` `--series-1…8`; web `routes/dashboard.tsx` (rewritten), `routes/gallery.tsx` (Charts section), router (`/members?invite`); i18n dashboard and gallery texts EN/AR; journey dashboard steps and screenshots.
+- **C Architecture:** one summary endpoint; each module will add its own section (permission-gated) and card. Charts take translated labels and a value formatter, so money stays a formatted string (KWD 3 decimals) at the edge.
+- **D Security:** sections are computed server-side per permission inside the tenant transaction; the activity feed sends actor names and action codes only (audit details can contain email addresses).
+- **E Tests:** `pnpm check` passed with **275** (api 162, db 37, contracts 27, web 23, ui 16, i18n 10); journey EN + AR passed; gallery 6 passed (axe incl. charts); `pnpm security` clean. The palette was validated with the dataviz validator on our surfaces. Rendered screenshots were reviewed and fixed for two clipping issues and one ARIA issue (labels on role-less SVG marks).
+- **F Verify:** project-status "How to verify Phase 2b".
+- **G Open:** the date-range filter is deferred to the first module card that needs a period (Phase 3+); there is no drill-down yet because there are no business records yet.
+- **H Next:** Phase 3 Clients / CRM. Write `docs/modules/clients.md` from brief Module B (+ §11 connections, §13 data), pick defaults, then build: data model + RLS, API, list (table with sort/filter/search/pagination — the first real data table), detail with activity timeline, documents via the 1.5b files, dashboard card, palette search, tests, journey.
+
+---
+
 ## 2026-10-29 — Session 5 (continued): Phase 2a (shell) built + committed
 
 ### Hand-over 2a (A–H)

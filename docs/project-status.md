@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2a (shell) built and committed 2026-10-29. **Next: Phase 2b (dashboard).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. **Next: Phase 3 (Clients / CRM).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -98,6 +98,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 2a — Shell** (2026-10-29; spec `modules/shell-dashboard.md`): command palette (Ctrl K / ⌘ K) with pages, actions and people, Arabic-aware search; company switcher; phone navigation drawer; breadcrumbs; in-app navigation; My account name and password change. Tests: 265 unit/integration + 8 browser.
 
+- **Phase 2b — Dashboard** (2026-10-29): getting-started progress, team numbers, recent activity and quick actions from real records, each by permission; reusable accessible charts (bar, line, meter) shown in the gallery with labelled example data. Tests: 275 unit/integration + 8 browser.
+
+## How to verify Phase 2b
+1. `pnpm check` → api `162`, ui `16` (others as 2a) passed; `pnpm e2e:journey` → `2 passed`.
+2. Open a company dashboard: the getting-started list ticks off as you set up two-factor and invite someone; Recent activity lists what happened; an Employee sees only quick actions and the "company is ready" note.
+3. http://localhost:5173/gallery → Charts: hover or Tab onto a column; press "Show as table".
+
 ## How to verify Phase 2a
 1. `pnpm check` → web `23` (others as 1.5b) passed; `pnpm e2e:journey` (with `pnpm dev`) → `2 passed`.
 2. By hand in a company: press Ctrl K, type `mem`, press Enter → Members opens; in Arabic type `اعضاء`. Narrow the browser below 768 px → a menu button replaces the sidebar. Click the company name at the top of the sidebar to switch company.
@@ -143,4 +150,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 2b (dashboard: widget registry, real-data cards, activity feed, charts), built in nonstop mode. See the newest entry in `session-log.md`.
+Phase 3 (Clients / CRM), built in nonstop mode: spec `docs/modules/clients.md` first. See the newest entry in `session-log.md`.
