@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete. Next: Phase 2 (executive shell & dashboard).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2a (shell) built and committed 2026-10-29. **Next: Phase 2b (dashboard).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -96,6 +96,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Milestone 1.5b — Files, monitoring, packaging** (2026-10-29; spec `modules/files-monitoring.md`): uploads checked by content + size, stored privately per company, virus-scanned by ClamAV in the worker, downloadable only when clean via 5-minute signed links; error reports (Sentry protocol, off unless `SENTRY_DSN`, personal data scrubbed); slow-request log; Docker images for API/worker and web; on-prem compose example. Tests: 260 unit/integration + 8 browser.
 
+- **Phase 2a — Shell** (2026-10-29; spec `modules/shell-dashboard.md`): command palette (Ctrl K / ⌘ K) with pages, actions and people, Arabic-aware search; company switcher; phone navigation drawer; breadcrumbs; in-app navigation; My account name and password change. Tests: 265 unit/integration + 8 browser.
+
+## How to verify Phase 2a
+1. `pnpm check` → web `23` (others as 1.5b) passed; `pnpm e2e:journey` (with `pnpm dev`) → `2 passed`.
+2. By hand in a company: press Ctrl K, type `mem`, press Enter → Members opens; in Arabic type `اعضاء`. Narrow the browser below 768 px → a menu button replaces the sidebar. Click the company name at the top of the sidebar to switch company.
+
 ## How to verify Milestone 1.5b
 1. `pnpm check` → api `159`, db `37`, contracts `27`, web `18`, i18n `10`, ui `9` passed (the files suite starts ClamAV in Docker; first run downloads ~200 MB and takes a few minutes).
 2. `docker build -f infra/docker/api.Dockerfile -t ultimate-erp-api .` and `docker build -f infra/docker/web.Dockerfile -t ultimate-erp-web .` both finish.
@@ -137,4 +143,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 2 (executive shell & dashboard), built in nonstop mode. See the newest entry in `session-log.md`.
+Phase 2b (dashboard: widget registry, real-data cards, activity feed, charts), built in nonstop mode. See the newest entry in `session-log.md`.

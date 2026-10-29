@@ -93,6 +93,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 2a | + command filter unit (5); journey: palette, breadcrumb, phone menu, password change, axe on 3 more screens | 265 unit/integration (api 159, db 37, contracts 27, web 23, i18n 10, ui 9) + 8 browser |
 | 1.5b | + files suite against real RustFS + ClamAV (6, incl. EICAR, disguised types, scanner outage, forged cross-company job), monitoring (5); Docker images built and started | 260 unit/integration (api 159, db 37, contracts 27, web 18, i18n 10, ui 9) + 8 browser |
 | 1.5a | + outbox/worker suite (5, real SMTP outage via a switchable relay), notifications (5), sealer/error-code unit (11), db queue privileges + notification isolation (5); journey checks the bell | 249 unit/integration (api 148, db 37, contracts 27, web 18, i18n 10, ui 9) + 8 browser |
 | 1.4b | + hand-off API suite (6), web unit (error translations, open-redirect guard), **full-stack journey** EN + AR (sign up → confirm email → sign in → create company → hand-off → two-factor → invite → colleague joins) with axe on 12 screens per language | 223 unit/integration (api 127, db 32, contracts 27, web 18, i18n 10, ui 9) + 8 browser (6 gallery + 2 journey) |

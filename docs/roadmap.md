@@ -5,8 +5,8 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Discovery & architecture (this set of docs) | Approved 2026-10-24 |
-| 1 | Foundation — split into milestones below | **In progress** — 1.1–1.5b done (nonstop mode since 2026-10-29); next Phase 2 |
-| 2 | Executive shell & dashboard (honest empty states until modules exist) | — |
+| 1 | Foundation — split into milestones below | **In progress** — done (1.1–1.5b) |
+| 2 | Executive shell & dashboard (honest empty states until modules exist) | **In progress** — 2a shell done; 2b dashboard next |
 | 3 | Clients / CRM | — |
 | 4 | Contracts & engagement letters (incl. bilingual templates, PDF) | — |
 | 5 | Projects / engagements & budgeting | — |

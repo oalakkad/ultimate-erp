@@ -150,7 +150,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Measurable targets, profiling before optimizing | architecture §7b | 🟡 provisional targets |
 | Pagination, indexes, code splitting, lazy loading, background jobs, request cancellation, slow-request monitoring | api.md §7, architecture §7b, roadmap 1.5 | 🟡 cursor pagination 1.3b, background jobs 1.5a, slow-request log 1.5b; code splitting Phase 2 |
-| Desktop / tablet / mobile web layouts | design-system (breakpoints 1.4a) | 🟡 desktop + tablet verified; phone navigation drawer ⏳ Phase 2 |
+| Desktop / tablet / mobile web layouts | design-system (breakpoints 1.4a) | ✅ desktop + tablet; phone navigation drawer 2a (journey checks it with axe) |
 
 ## §16 Testing
 | Requirement | Where | Status |
@@ -214,7 +214,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Premium from first usable version; coherent single view | design-system.md, roadmap Phase 2 | ⏳ 2 |
 | Navigation hierarchy: overview, clients, contracts, projects & budgets, tasks & allocation, team, timesheets, leave, attendance, payroll, invoicing, notifications, reports, audit, settings, security | roadmap Phase 2 scope | ⏳ 2 |
-| Nav groups, collapsible sections, breadcrumbs, contextual actions, command palette | design-system.md §3, roadmap Phase 2 | 🟡 nav groups ✅ 1.4a/1.4b; breadcrumbs, command palette ⏳ Phase 2 |
+| Nav groups, collapsible sections, breadcrumbs, contextual actions, command palette | design-system.md §3, roadmap Phase 2 | ✅ nav groups 1.4a/1.4b; breadcrumbs, command palette (Ctrl K), contextual actions 2a; collapsible sections when the nav grows |
 | Every metric drills down to records (permission-aware) | roadmap Phase 2 | ⏳ 2 |
 | Answers: what's happening, projects at risk / over budget, over/under-utilized people, overdue tasks, hours remaining, outstanding invoices, expiring contracts, pending leave, issues needing attention | roadmap Phase 2 + module dashboards | ⏳ 2 → 14 |
 | Not overcrowded; payroll hidden without permission | design-system.md §4, permissions.md | ⏳ 2 |
