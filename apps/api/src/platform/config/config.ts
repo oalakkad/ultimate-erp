@@ -58,6 +58,35 @@ export const configSchema = z
     PASSWORD_BREACH_API_URL: z
       .url({ protocol: /^https?$/ })
       .default('https://api.pwnedpasswords.com'),
+
+    // Files (Milestone 1.5b). Without S3_ENDPOINT the file endpoints answer 503.
+    S3_ENDPOINT: z.url({ protocol: /^https?$/ }).optional(),
+    /** Address browsers use for signed download links, if different (e.g. behind a proxy). */
+    S3_PUBLIC_ENDPOINT: z.url({ protocol: /^https?$/ }).optional(),
+    S3_REGION: z.string().min(1).default('us-east-1'),
+    S3_BUCKET: z
+      .string()
+      .regex(/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/, 'must be a valid bucket name')
+      .default('erp-files'),
+    S3_ACCESS_KEY: z.string().optional(),
+    S3_SECRET_KEY: z.string().optional(),
+    /** Largest upload accepted, in bytes (default 25 MB). */
+    FILE_MAX_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1024)
+      .max(512 * 1024 * 1024)
+      .default(25 * 1024 * 1024),
+    /** ClamAV daemon (clamd) used by the worker to scan uploads. */
+    CLAMAV_HOST: z.string().min(1).default('127.0.0.1'),
+    CLAMAV_PORT: z.coerce.number().int().min(1).max(65535).default(3310),
+
+    // Monitoring (Milestone 1.5b) — all off unless configured (owner decision 2026-10-28).
+    /** Sentry-protocol endpoint (Sentry cloud or self-hosted GlitchTip). Unset = nothing sent. */
+    SENTRY_DSN: z.url().optional(),
+    /** OpenTelemetry collector (OTLP/HTTP). Unset = no traces exported. */
+    OTEL_EXPORTER_OTLP_ENDPOINT: z.url({ protocol: /^https?$/ }).optional(),
+    SLOW_REQUEST_MS: z.coerce.number().int().min(50).default(1000),
   })
   .superRefine((config, ctx) => {
     if (config.NODE_ENV === 'production' && config.LOG_PRETTY) {

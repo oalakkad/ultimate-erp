@@ -36,6 +36,7 @@ const MESSAGE_BY_CODE: Record<ErrorCode, string> = {
   INVALID_CODE: 'The code is invalid or has expired.',
   MFA_REQUIRED: 'Two-factor authentication must be set up before using this company.',
   PASSWORD_COMPROMISED: 'This password appears in known data breaches; choose another.',
+  FILE_NOT_READY: 'The file is not available: it has not passed the virus scan.',
 };
 
 /** The standard developer-facing message for an error code. */

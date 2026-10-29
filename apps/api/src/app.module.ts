@@ -1,6 +1,7 @@
 import { type DynamicModule, Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { AccessModule, SignInPolicyModule } from './modules/access/access.module.js';
+import { FilesModule } from './modules/files/files.controller.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.controller.js';
 import { TenancyModule } from './modules/tenancy/tenancy.module.js';
@@ -37,6 +38,7 @@ export class AppModule {
         SignInPolicyModule,
         AccessModule,
         NotificationsModule,
+        FilesModule,
         OpenApiModule,
       ],
       providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],

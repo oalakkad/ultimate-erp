@@ -31,6 +31,15 @@ export const JOB_QUEUES = {
     expireInSeconds: 5 * 60,
     deleteAfterSeconds: 7 * 24 * 60 * 60,
   },
+  /** Virus scan of an upload (docs/modules/files-monitoring.md §2): same retry policy. */
+  'file.scan': {
+    retryLimit: 5,
+    retryDelay: 30,
+    retryBackoff: true,
+    retryDelayMax: 30 * 60,
+    expireInSeconds: 10 * 60,
+    deleteAfterSeconds: 7 * 24 * 60 * 60,
+  },
 } as const;
 
 export type JobName = keyof typeof JOB_QUEUES;

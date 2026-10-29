@@ -69,6 +69,8 @@ export const enUi = {
     PASSWORD_COMPROMISED:
       'This password appears in known data breaches. Please choose a different one.',
     MFA_REQUIRED: 'Set up two-factor authentication to use this company.',
+    FILE_NOT_READY:
+      'This file is not available yet: it is still being checked for viruses, or it failed the check.',
     network: 'We could not reach the server. Check your connection.',
   },
   validation: {

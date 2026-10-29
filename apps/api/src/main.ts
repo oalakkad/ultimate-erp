@@ -3,9 +3,11 @@ import { API_PREFIX } from '@ultimate-erp/contracts';
 import { Logger } from 'nestjs-pino';
 import { createApp } from './bootstrap.js';
 import { ConfigError, loadConfig } from './platform/config/config.js';
+import { initMonitoring } from './platform/monitoring/monitoring.js';
 
 async function main(): Promise<void> {
   const config = loadConfig(process.env);
+  initMonitoring(config, 'api');
   const app = await createApp(config);
   await app.listen(config.API_PORT, config.API_HOST);
   app

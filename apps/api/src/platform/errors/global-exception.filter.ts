@@ -1,6 +1,7 @@
 import { type ArgumentsHost, Catch, type ExceptionFilter } from '@nestjs/common';
 import { type Request, type Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { reportError } from '../monitoring/monitoring.js';
 import { RateLimitedError } from '../rate-limit/rate-limiter.js';
 import { toErrorResponse } from './to-error-response.js';
 
@@ -18,6 +19,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const { status, body, unexpected } = toErrorResponse(exception, requestId);
     if (unexpected) {
       this.logger.error({ err: exception, requestId }, 'Unhandled error');
+      reportError(exception, { requestId });
     }
 
     if (res.headersSent) return;

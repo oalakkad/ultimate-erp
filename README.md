@@ -28,6 +28,7 @@ pnpm install
 | `pnpm security` | Vulnerability audit, licence check, secret scan (CI `security` job; needs Docker) |
 | `pnpm build` | Compile all packages to `dist/` |
 | `pnpm services:up` / `services:down` / `services:logs` | Start / stop / follow the Docker services |
+| `docker build -f infra/docker/api.Dockerfile -t ultimate-erp-api .` | Production image for the API and worker (web: `infra/docker/web.Dockerfile`); on-prem example in `infra/compose/compose.prod.example.yaml` |
 | `pnpm db:setup` | Create database roles + apply migrations (run by `pnpm dev`) |
 | `pnpm db:seed` | Starts the services, prepares the database, adds the two demo companies (dev only): http://acme.localhost:3000/api/v1/tenant |
 | `pnpm http <METHOD> <url> [key=value ...] [--as <person>]` | Development helper: call the API, including company addresses like `http://acme.localhost:3000` (PowerShell cannot resolve `*.localhost`). Keeps cookies per person in `.dev-cookies/` |
@@ -43,6 +44,7 @@ Stop `pnpm dev` with `Ctrl+C`. The Docker services keep running until `pnpm serv
 | PostgreSQL 18 | `127.0.0.1:5432` | Credentials in `.env` |
 | Object storage (RustFS, S3 API) | http://127.0.0.1:9000 · console http://127.0.0.1:9001 | Keys in `.env` |
 | Mailpit (fake inbox) | http://127.0.0.1:8025 | Catches all dev email |
+| ClamAV (virus scanner) | `127.0.0.1:3310` | Scans uploads; ready ~1–2 min after start, needs ~1 GB memory |
 
 All ports bind to `127.0.0.1` only. Values in `.env.example` are local throwaway credentials.
 

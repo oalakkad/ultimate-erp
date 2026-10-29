@@ -41,6 +41,22 @@ services:
       timeout: 3s
       retries: 10
 
+  # Virus scanner for uploads (Milestone 1.5b). The image includes a virus database; it loads
+  # in about a minute after start. Needs ~1 GB of memory.
+  clamav:
+    image: clamav/clamav:1.5.4-debian13-slim
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${CLAMAV_PORT}:3310'
+    volumes:
+      - clamav-data:/var/lib/clamav
+    healthcheck:
+      test: ['CMD', 'clamdcheck.sh']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
   # Fake SMTP server + web inbox. Emails sent in dev never leave your machine.
   mailpit:
     image: axllent/mailpit:v1.32.0
@@ -53,3 +69,4 @@ services:
 volumes:
   postgres-data:
   object-storage-data:
+  clamav-data:

@@ -1,4 +1,3 @@
-import { connect, createServer, type Server, type Socket } from 'node:net';
 import { type INestApplication, type INestApplicationContext } from '@nestjs/common';
 import { type Database, emailDeliveries, JOB_SCHEMA } from '@ultimate-erp/db';
 import { startTestDatabase, type TestDatabase } from '@ultimate-erp/db/testing';
@@ -13,56 +12,15 @@ import { type EmailMessage } from '../src/platform/mail/mailer.js';
 import { createWorker } from '../src/worker-bootstrap.js';
 import { testConfig } from './support/config.js';
 import { TestMailpit } from './support/mailpit.js';
+import { TcpRelay } from './support/tcp-relay.js';
 
 // Milestone 1.5a acceptance 1–3 and 5 (docs/modules/platform-jobs.md §7): email goes through
 // the outbox and the worker, survives a mail-server outage, never outlives a rollback, and
 // never rests readable in the queue. Real Postgres, real Mailpit, real worker.
 
-/**
- * A switchable relay in front of Mailpit: `down()` makes the SMTP port refuse connections,
- * as a crashed mail server would; `up()` restores it on the same port.
- */
-class SmtpRelay {
-  private server: Server | undefined;
-  private readonly sockets = new Set<Socket>();
-  port = 0;
-
-  constructor(
-    private readonly targetHost: string,
-    private readonly targetPort: number,
-  ) {}
-
-  async up(): Promise<void> {
-    this.server = createServer((client) => {
-      const upstream = connect(this.targetPort, this.targetHost);
-      for (const s of [client, upstream]) {
-        this.sockets.add(s);
-        s.on('error', () => s.destroy());
-        s.on('close', () => this.sockets.delete(s));
-      }
-      client.pipe(upstream).pipe(client);
-    });
-    await new Promise<void>((resolve) => this.server?.listen(this.port, '127.0.0.1', resolve));
-    const address = this.server.address();
-    if (address && typeof address === 'object') this.port = address.port;
-  }
-
-  async down(): Promise<void> {
-    for (const s of this.sockets) s.destroy();
-    const server = this.server;
-    this.server = undefined;
-    if (!server) return;
-    await new Promise<void>((resolve) => {
-      server.close(() => {
-        resolve();
-      });
-    });
-  }
-}
-
 let database: TestDatabase;
 let mailpit: TestMailpit;
-let relay: SmtpRelay;
+let relay: TcpRelay;
 let app: INestApplication;
 let worker: INestApplicationContext;
 let outbox: EmailOutbox;
@@ -109,7 +67,7 @@ beforeAll(async () => {
   await boss.stop({ graceful: false, close: true });
 
   const smtp = mailpit.smtpConfig;
-  relay = new SmtpRelay(smtp.SMTP_HOST ?? '127.0.0.1', Number(smtp.SMTP_PORT));
+  relay = new TcpRelay(smtp.SMTP_HOST ?? '127.0.0.1', Number(smtp.SMTP_PORT));
   await relay.up();
   const config = testConfig({
     DATABASE_URL: database.appUrl,

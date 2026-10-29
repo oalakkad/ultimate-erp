@@ -122,6 +122,9 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | DELETE | `/api/v1/invitations/:id` | `access.members.invite` | Revoke | 1.3b |
 | GET | `/api/v1/invitations/preview?token=` | Public, company host | Company, role, masked email, expiry | 1.3b |
 | POST | `/api/v1/invitations/accept` | Session, company host | `{ token }`; verified matching email required | 1.3b |
+| POST | `/api/v1/files` | Member | Multipart `file` → `201` file `{ id, name, contentType, sizeBytes, status: pending, createdAt }`; type from content (allow-list) else `415`; over `FILE_MAX_BYTES` `413` | 1.5b |
+| GET | `/api/v1/files/:id` | Member (uploader) | Details + scan status (`pending \| clean \| infected \| scan_failed`); anyone else `404` | 1.5b |
+| POST | `/api/v1/files/:id/download` | Member (uploader) | `{ url, expiresInSeconds: 300 }` signed attachment link; not clean ⇒ `409 FILE_NOT_READY` | 1.5b |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
 | GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |
 | POST | `/api/v1/notifications/:id/read` | Member | Mark one of mine read (anyone else's ⇒ 404) | 1.5a |

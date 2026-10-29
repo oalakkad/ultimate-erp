@@ -82,7 +82,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Secure invitation acceptance | modules/access.md | ✅ 1.3b |
 | Defences: access control, SQLi, XSS, CSRF, SSRF, IDOR, session fixation, brute force, mass assignment, uploads, data exposure, reset, CORS, secrets, dependencies | security.md R1–R15, §2a | 🟡 CORS, secrets, deps, headers, error leakage ✅ 1.1; rest scheduled |
 | Security headers, no stack traces | bootstrap.ts | ✅ 1.1 |
-| Restricted financial/employee data, signed short-lived downloads, no sensitive logging | security.md §3, R8, R9 | 🟡 log redaction ✅; files ⏳ 1.5 |
+| Restricted financial/employee data, signed short-lived downloads, no sensitive logging | security.md §3, R8, R9 | ✅ log redaction 1.1; signed 5-minute attachment downloads, private bucket, uploader-only access 1.5b (record-level rules per module) |
 | Retention, backup, deletion, access policies | domain-model.md §5, compliance.md | 🟡 deletion policy ✅; retention ❓ legal input |
 
 ## §9 Standards & compliance
@@ -143,13 +143,13 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Consistent conventions, error codes, request tracing, structured logging, versioning | api.md, 1.1 code | ✅ 1.1 |
 | Validated schemas, pagination, filtering, sorting, rate limits, idempotency, API docs | api.md §5–9 | 🟡 validation, rate limits, OpenAPI, cursor pagination (audit) ✅; filtering/sorting/idempotency Phase 3+ |
 | Auth middleware, authorization policies, tenant-scoped access | ADR-0003/0004, permissions.md | ✅ 1.2 / 1.3a / 1.3b |
-| Safe file handling, background processing | roadmap 1.5 | 🟡 background processing ✅ 1.5a; files ⏳ 1.5b |
+| Safe file handling, background processing | roadmap 1.5 | ✅ background processing 1.5a; uploads: allow-list by content, size limit, ClamAV scan, tenant-prefixed keys 1.5b |
 
 ## §15 Performance
 | Requirement | Where | Status |
 |---|---|---|
 | Measurable targets, profiling before optimizing | architecture §7b | 🟡 provisional targets |
-| Pagination, indexes, code splitting, lazy loading, background jobs, request cancellation, slow-request monitoring | api.md §7, architecture §7b, roadmap 1.5 | ⏳ |
+| Pagination, indexes, code splitting, lazy loading, background jobs, request cancellation, slow-request monitoring | api.md §7, architecture §7b, roadmap 1.5 | 🟡 cursor pagination 1.3b, background jobs 1.5a, slow-request log 1.5b; code splitting Phase 2 |
 | Desktop / tablet / mobile web layouts | design-system (breakpoints 1.4a) | 🟡 desktop + tablet verified; phone navigation drawer ⏳ Phase 2 |
 
 ## §16 Testing
@@ -165,7 +165,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Consistent errors, safe logging, correlation IDs, health + DB health, graceful dependency failure | 1.1 code, api.md §3–4 | ✅ 1.1 |
 | User-friendly (translated) error messages | ADR-0006, error codes, apps/web/src/lib/errors.ts | ✅ 1.4b (every code EN/AR, unit-tested; request reference shown) |
-| Error monitoring, job-failure monitoring, retries, alerting | roadmap 1.5 | 🟡 retries + recorded failures ✅ 1.5a; monitoring/alerting ⏳ 1.5b |
+| Error monitoring, job-failure monitoring, retries, alerting | roadmap 1.5 | 🟡 retries + recorded failures 1.5a; error reports (Sentry protocol, off by default, scrubbed) incl. final job failures 1.5b; alert rules live in the monitoring tool; traces Phase 15 |
 | Never blindly retry non-idempotent financial operations | api.md §8 | ✅ rule |
 
 ## §18 Development workflow (phases 0–16)

@@ -1,6 +1,7 @@
 import { Inject, Injectable, type OnApplicationShutdown } from '@nestjs/common';
 import {
   type Database,
+  JOB_QUEUES,
   JOB_SCHEMA,
   type JobName,
   type TenantTransaction,
@@ -10,6 +11,7 @@ import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { type Job, PgBoss } from 'pg-boss';
 import { type AppConfig } from '../config/config.js';
 import { APP_CONFIG } from '../config/config.module.js';
+import { reportError } from '../monitoring/monitoring.js';
 
 /** The API only adds jobs; the worker also takes them and runs queue maintenance. */
 export type JobRole = 'producer' | 'worker';
@@ -60,8 +62,16 @@ export class JobQueue implements OnApplicationShutdown {
   async work<T extends object>(name: JobName, handler: (job: Job<T>) => Promise<void>) {
     if (this.role !== 'worker') throw new Error('Only the worker process takes jobs');
     await this.start();
+    const retryLimit = JOB_QUEUES[name].retryLimit;
     await this.boss.work<T>(name, { batchSize: 1 }, async ([job]) => {
-      if (job) await handler(job);
+      if (!job) return;
+      try {
+        await handler(job);
+      } catch (err) {
+        // Only the last attempt is worth an alert; earlier ones are retried automatically.
+        if (job.retryCount >= retryLimit) reportError(err, { jobId: job.id, jobName: name });
+        throw err;
+      }
     });
   }
 

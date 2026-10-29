@@ -6,6 +6,23 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-29 — Session 5 (continued): 1.5a committed, nonstop mode, Milestone 1.5b built + committed
+
+### Owner direction
+"next, do all at once, finish the whole project". Owner chose **Nonstop, you pick defaults** and **Kuwaiti rules as configurable settings, flagged "to be verified"**. CLAUDE.md, memory (`nonstop-build-mode.md`) and project-status Decisions are updated. From now on: build → `pnpm check` + `pnpm security` (+ browser tests) → hand-over A–H here → commit → next milestone, without waiting.
+
+### Hand-over 1.5b (A–H)
+- **A Built:** file uploads (content-type allow-list by magic bytes, 25 MB limit, private S3 storage under a per-company prefix, ClamAV scan in the worker, downloads only when clean via 5-minute signed attachment links, uploader-only access for now); error reports in the Sentry protocol (own sender, off unless `SENTRY_DSN`, scrubbed); slow-request log; Docker images (API/worker, web with nginx) + on-prem compose example; ClamAV in dev compose.
+- **B Files:** `packages/db/src/schema/files.ts`, migrations 0011/0012, `jobs.ts` (`file.scan` queue); `apps/api/src/platform/files/` (object-storage, virus-scanner, file-types), `platform/monitoring/monitoring.ts`, `platform/request-context/slow-request.middleware.ts`, `modules/files/` (service + controller), `AuditLog.recordSystem`, `worker.module.ts` (file.scan handler); contracts `files.ts` + error `FILE_NOT_READY` (EN/AR); `infra/docker/*`, `infra/compose/compose.prod.example.yaml`, `.dockerignore`; tests `files.spec.ts`, `monitoring.spec.ts`, support `storage.ts`, `tcp-relay.ts` (shared with jobs.spec).
+- **C Architecture:** upload → API checks type and size → S3 put + `files` row + `file.scan` job in one transaction → worker streams the object to clamd → `clean`, or `infected` (object deleted, audited), or `scan_failed` after retries → download link only for `clean`. The scan job carries `tenantId` and runs inside `withTenant`.
+- **D Security:** type comes from the bytes, not the name (a disguised .exe is refused); no SVG/HTML/archives/macro Office files; the storage key is random and DB-forced under the company prefix; links are attachment-only, short-lived and tamper-proof (signature); every other member or company gets 404; reports carry IDs only. **Licence gate caught** `@sentry/node` 11 pulling an FSL-1.1 (non-open-source) package, so the SDK was replaced by our own sender.
+- **E Tests:** `pnpm check` passed: api 159, db 37, contracts 27, web 18, i18n 10, ui 9 = **260**. Browser 8 passed. `pnpm security`: licences OK (320), no leaks, only the accepted esbuild moderate. Mutation checks: type check, scanner verdict, email scrubbing. Images built and started locally.
+- **F Verify:** project-status "How to verify Milestone 1.5b".
+- **G Open:** OpenTelemetry traces deferred to Phase 15 (ESM loader hook); no upload UI until Phase 3; ClamAV needs ~1 GB RAM and 1–2 min to start (`pnpm dev` now waits for it after `services:up` restarts it); the CI `images` and `journey` jobs have not run on GitHub yet (no remote).
+- **H Next:** Phase 2 (executive shell & dashboard). Plan it from roadmap + brief, pick defaults, build.
+
+---
+
 ## 2026-10-29 — Session 5: Milestone 1.5a built, awaiting owner approval
 
 ### Where we are

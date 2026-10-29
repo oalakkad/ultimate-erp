@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a (background jobs & notifications) built 2026-10-29, uncommitted, awaiting owner approval.** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete. Next: Phase 2 (executive shell & dashboard).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -45,6 +45,10 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Error monitoring: **Sentry-protocol reporting, configurable, off by default** (works with Sentry cloud or self-hosted GlitchTip; nothing leaves the server unless configured).
 - Uploads: **virus-scanned with ClamAV** (files pending until clean).
 - 1.5a includes the **notification bell** (unread count + list).
+
+## Decisions 2026-10-29 (working mode)
+- **Nonstop:** milestones are built back-to-back; each verified one is committed; Claude picks the recommended option for each decision and records it here.
+- **Kuwaiti legal values** (leave, end-of-service, PIFSS, tax): configurable company settings, pre-filled, marked "to be verified by a Kuwaiti lawyer/accountant"; no real payroll before verification.
 
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
@@ -90,6 +94,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Milestone 1.5a — Jobs & notifications** (2026-10-29, awaiting approval; spec `modules/platform-jobs.md`): pg-boss worker (own process, in `pnpm dev`), transactional outbox, every email queued with encrypted payload and retried (6 attempts) with recorded status, notifications (member joined, roles changed) with bell + panel, "email not delivered" on pending invitations. Tests: 249 unit/integration + 8 browser.
 
+- **Milestone 1.5b — Files, monitoring, packaging** (2026-10-29; spec `modules/files-monitoring.md`): uploads checked by content + size, stored privately per company, virus-scanned by ClamAV in the worker, downloadable only when clean via 5-minute signed links; error reports (Sentry protocol, off unless `SENTRY_DSN`, personal data scrubbed); slow-request log; Docker images for API/worker and web; on-prem compose example. Tests: 260 unit/integration + 8 browser.
+
+## How to verify Milestone 1.5b
+1. `pnpm check` → api `159`, db `37`, contracts `27`, web `18`, i18n `10`, ui `9` passed (the files suite starts ClamAV in Docker; first run downloads ~200 MB and takes a few minutes).
+2. `docker build -f infra/docker/api.Dockerfile -t ultimate-erp-api .` and `docker build -f infra/docker/web.Dockerfile -t ultimate-erp-web .` both finish.
+3. There is no upload screen yet (Phase 3); files are exercised by the tests.
+
 ## How to verify Milestone 1.5a
 1. `pnpm check` → api `148`, db `37`, contracts `27`, web `18`, i18n `10`, ui `9` passed.
 2. With `pnpm dev` running: `pnpm e2e:journey` → `2 passed`.
@@ -126,4 +137,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Owner tests 1.5a (steps above) and approves → commit → Milestone 1.5b (files with ClamAV, monitoring, Dockerfiles). See the newest entry in `session-log.md`.
+Phase 2 (executive shell & dashboard), built in nonstop mode. See the newest entry in `session-log.md`.

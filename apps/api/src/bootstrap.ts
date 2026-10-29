@@ -8,6 +8,7 @@ import { type AppConfig, webPublicUrl } from './platform/config/config.js';
 import { originCheckMiddleware } from './platform/request-context/origin-check.middleware.js';
 import { jsonBodyMiddleware } from './platform/request-context/json-body.middleware.js';
 import { requestIdMiddleware } from './platform/request-context/request-id.middleware.js';
+import { slowRequestMiddleware } from './platform/request-context/slow-request.middleware.js';
 
 /** Builds the HTTP application. Shared by `main.ts` and the integration tests. */
 export async function createApp(config: AppConfig): Promise<NestExpressApplication> {
@@ -16,10 +17,16 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
     // Registered below with an explicit size limit, after the request ID middleware.
     bodyParser: false,
   });
-  app.useLogger(app.get(Logger));
+  const logger = app.get(Logger);
+  app.useLogger(logger);
 
   // Order matters: request ID first so every later step (incl. errors) can reference it.
   app.use(requestIdMiddleware(config.TRUST_INCOMING_REQUEST_ID));
+  app.use(
+    slowRequestMiddleware(config.SLOW_REQUEST_MS, (entry) => {
+      logger.warn({ ...entry }, 'Slow request');
+    }),
+  );
   // API responses are JSON only: forbid all content sources and any framing.
   app.use(
     helmet({

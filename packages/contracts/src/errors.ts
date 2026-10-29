@@ -26,6 +26,8 @@ export const ERROR_CODES = [
   'PASSWORD_COMPROMISED',
   // Access (Milestone 1.3b)
   'MFA_REQUIRED',
+  // Files (Milestone 1.5b): not scanned clean yet, or found infected
+  'FILE_NOT_READY',
 ] as const;
 
 export const errorCodeSchema = z.enum(ERROR_CODES);

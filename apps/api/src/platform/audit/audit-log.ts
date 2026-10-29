@@ -37,4 +37,19 @@ export class AuditLog {
       details: entry.details ?? {},
     });
   }
+
+  /** For changes made by a background job (no request, no person): records the job ID. */
+  async recordSystem(tx: TenantTransaction, jobId: string, entry: AuditEntry): Promise<void> {
+    await tx.insert(auditEvents).values({
+      tenantId: entry.tenantId,
+      action: entry.action,
+      actorUserId: null,
+      actorMembershipId: null,
+      targetType: entry.target?.type ?? null,
+      targetId: entry.target?.id ?? null,
+      requestId: null,
+      ipAddress: null,
+      details: { ...entry.details, jobId },
+    });
+  }
 }

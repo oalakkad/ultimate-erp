@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+**/.turbo
+.git
+.env
+.env.*
+!.env.example
+.dev-cookies
+apps/web/e2e/results
+apps/web/e2e/screenshots
+**/*.log

@@ -164,6 +164,7 @@ describe('every tenant-owned table is protected (catalog guard for future tables
     `);
     expect(rows.map((r) => r.table).sort()).toEqual([
       'audit_events',
+      'files',
       'handoff_tickets',
       'invitations',
       'membership_roles',

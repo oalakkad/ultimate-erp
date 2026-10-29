@@ -79,6 +79,15 @@ jobs:
       - if: failure()
         run: cat api.log worker.log
 
+  # Container images for SaaS / on-prem (infra/docker). Built to prove they still build.
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -f infra/docker/api.Dockerfile -t ultimate-erp-api:ci .
+      - run: docker build -f infra/docker/web.Dockerfile -t ultimate-erp-web:ci .
+
   # Release-blocking supply-chain gates (security.md R10/R11, compliance.md §3).
   security:
     runs-on: ubuntu-latest

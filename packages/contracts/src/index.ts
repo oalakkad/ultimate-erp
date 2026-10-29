@@ -6,3 +6,4 @@ export * from './auth.js';
 export * from './permissions.js';
 export * from './access.js';
 export * from './notifications.js';
+export * from './files.js';

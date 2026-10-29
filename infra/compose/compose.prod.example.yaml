@@ -1,0 +1,99 @@
+# On-premises example (docs/modules/files-monitoring.md §4). NOT used for development.
+#
+# 1. Copy to compose.yaml and create `prod.env` next to it with your own values (never commit it):
+#      POSTGRES_PASSWORD, MIGRATOR_PASSWORD, APP_PASSWORD   long random passwords
+#      AUTH_SECRET                                          64+ random characters
+#      APP_PUBLIC_URL / WEB_PUBLIC_URL                      https://erp.yourfirm.com
+#      PLATFORM_BASE_DOMAIN                                 erp.yourfirm.com (companies: <slug>.erp.yourfirm.com)
+#      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, SMTP_SECURE
+#      S3_ACCESS_KEY, S3_SECRET_KEY                         object storage credentials
+#      SENTRY_DSN                                           optional (self-hosted GlitchTip)
+# 2. docker compose --env-file prod.env up -d
+# 3. Put HTTPS in front of the `web` service (port 8080) with your reverse proxy / load balancer.
+#
+# Database roles (erp_migrator, erp_app) must exist first — see docs/database.md "Production".
+
+name: ultimate-erp
+
+x-app-env: &app-env
+  NODE_ENV: production
+  APP_PROFILE: onprem
+  DATABASE_URL: postgres://erp_app:${APP_PASSWORD}@postgres:5432/erp
+  AUTH_SECRET: ${AUTH_SECRET}
+  APP_PUBLIC_URL: ${APP_PUBLIC_URL}
+  WEB_PUBLIC_URL: ${WEB_PUBLIC_URL}
+  PLATFORM_BASE_DOMAIN: ${PLATFORM_BASE_DOMAIN}
+  SMTP_HOST: ${SMTP_HOST}
+  SMTP_PORT: ${SMTP_PORT}
+  SMTP_SECURE: ${SMTP_SECURE}
+  SMTP_USER: ${SMTP_USER}
+  SMTP_PASSWORD: ${SMTP_PASSWORD}
+  SMTP_FROM: ${SMTP_FROM}
+  S3_ENDPOINT: http://object-storage:9000
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  CLAMAV_HOST: clamav
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  PASSWORD_BREACH_CHECK: 'false' # set 'true' if the server may reach the internet
+
+services:
+  postgres:
+    image: postgres:18.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: erp_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: erp
+    volumes: [postgres-data:/var/lib/postgresql]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U erp_admin -d erp']
+      interval: 5s
+      retries: 20
+
+  object-storage:
+    image: rustfs/rustfs:1.0.3
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY}
+    volumes: [object-storage-data:/data]
+
+  clamav:
+    image: clamav/clamav:1.5.4-debian13-slim
+    restart: unless-stopped
+    volumes: [clamav-data:/var/lib/clamav]
+
+  migrate:
+    image: ultimate-erp-api:latest
+    command: ['node', 'node_modules/@ultimate-erp/db/dist/cli/migrate.js']
+    environment:
+      DATABASE_MIGRATOR_URL: postgres://erp_migrator:${MIGRATOR_PASSWORD}@postgres:5432/erp
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    image: ultimate-erp-api:latest
+    restart: unless-stopped
+    environment: *app-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  worker:
+    image: ultimate-erp-api:latest
+    command: ['node', '--enable-source-maps', 'dist/worker.js']
+    restart: unless-stopped
+    environment: *app-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  web:
+    image: ultimate-erp-web:latest
+    restart: unless-stopped
+    ports: ['8080:8080']
+    depends_on: [api]
+
+volumes:
+  postgres-data:
+  object-storage-data:
+  clamav-data:
