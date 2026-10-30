@@ -30,6 +30,7 @@ import {
   ListChecks,
   Clock,
   ClipboardCheck,
+  Contact,
   ChevronsUpDown,
   LayoutGrid,
   LogOut,
@@ -107,6 +108,7 @@ export function AppLayout() {
   const canReadTasks = canAny(access.data, 'tasks.task.read');
   const canLogTime = canAny(access.data, 'time.entry.create');
   const canApproveTime = canAny(access.data, 'time.timesheet.approve');
+  const canReadPeople = canAny(access.data, 'people.employee.read');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -212,6 +214,24 @@ export function AppLayout() {
         label: t('ui.shell.tasks'),
         run: () => {
           go('/tasks');
+        },
+      });
+    }
+    if (canReadPeople) {
+      list.push({
+        id: 'page:people',
+        group: 'pages',
+        label: t('ui.shell.people'),
+        run: () => {
+          go('/people');
+        },
+      });
+      list.push({
+        id: 'page:organisation',
+        group: 'pages',
+        label: t('ui.people.organisation'),
+        run: () => {
+          go('/organisation');
         },
       });
     }
@@ -374,6 +394,7 @@ export function AppLayout() {
     canReadTasks,
     canLogTime,
     canApproveTime,
+    canReadPeople,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -500,6 +521,14 @@ export function AppLayout() {
           icon={<ClipboardCheck aria-hidden />}
           label={t('ui.shell.timeApprovals')}
           current={path === '/time/approvals'}
+        />
+      )}
+      {canReadPeople && (
+        <NavItem
+          {...link('/people')}
+          icon={<Contact aria-hidden />}
+          label={t('ui.shell.people')}
+          current={path.startsWith('/people') || path === '/organisation'}
         />
       )}
       {canReadMembers && (

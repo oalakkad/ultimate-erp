@@ -3,6 +3,7 @@
 # 1. Copy to compose.yaml and create `prod.env` next to it with your own values (never commit it):
 #      POSTGRES_PASSWORD, MIGRATOR_PASSWORD, APP_PASSWORD   long random passwords
 #      AUTH_SECRET                                          64+ random characters
+#      DATA_ENCRYPTION_KEY                                  64+ random characters, different from AUTH_SECRET; back it up
 #      APP_PUBLIC_URL / WEB_PUBLIC_URL                      https://erp.yourfirm.com
 #      PLATFORM_BASE_DOMAIN                                 erp.yourfirm.com (companies: <slug>.erp.yourfirm.com)
 #      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, SMTP_SECURE
@@ -20,6 +21,7 @@ x-app-env: &app-env
   APP_PROFILE: onprem
   DATABASE_URL: postgres://erp_app:${APP_PASSWORD}@postgres:5432/erp
   AUTH_SECRET: ${AUTH_SECRET}
+  DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
   APP_PUBLIC_URL: ${APP_PUBLIC_URL}
   WEB_PUBLIC_URL: ${WEB_PUBLIC_URL}
   PLATFORM_BASE_DOMAIN: ${PLATFORM_BASE_DOMAIN}

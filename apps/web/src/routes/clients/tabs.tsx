@@ -3,6 +3,7 @@ import {
   type Client,
   clientActivitySchema,
   clientDocumentListResponseSchema,
+  type employeeDocumentListResponseSchema,
   clientSchema,
   contactListResponseSchema,
   contactSchema,
@@ -529,7 +530,16 @@ const DOC_STATUS = {
 } as const;
 
 /** Attached documents of a client or project; `basePath` is e.g. `/clients/<id>`. */
-export function DocumentsTab({ basePath, canUpdate }: { basePath: string; canUpdate: boolean }) {
+export function DocumentsTab({
+  basePath,
+  canUpdate,
+  schema = clientDocumentListResponseSchema,
+}: {
+  basePath: string;
+  canUpdate: boolean;
+  /** Employee documents carry a category and a confidential flag as well. */
+  schema?: typeof clientDocumentListResponseSchema | typeof employeeDocumentListResponseSchema;
+}) {
   const { t, locale } = useI18n();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -537,7 +547,7 @@ export function DocumentsTab({ basePath, canUpdate }: { basePath: string; canUpd
   const key = [basePath, 'documents'];
   const documents = useQuery({
     queryKey: key,
-    queryFn: () => api(`${basePath}/documents`, { schema: clientDocumentListResponseSchema }),
+    queryFn: () => api(`${basePath}/documents`, { schema }),
     // While a file is being scanned, check again every few seconds.
     refetchInterval: (q) =>
       q.state.data?.items.some((d) => d.file.status === 'pending') ? 3000 : false,
@@ -550,7 +560,7 @@ export function DocumentsTab({ basePath, canUpdate }: { basePath: string; canUpd
       return api(`${basePath}/documents`, {
         method: 'POST',
         body: { fileId: uploaded.id },
-        schema: clientDocumentListResponseSchema,
+        schema,
       });
     },
     onSuccess: async () => {

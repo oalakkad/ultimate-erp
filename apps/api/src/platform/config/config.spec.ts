@@ -5,6 +5,7 @@ const SECRET = 'super-secret-password-123';
 const valid = {
   DATABASE_URL: `postgres://erp:${SECRET}@127.0.0.1:5432/erp`,
   AUTH_SECRET: 'x'.repeat(32),
+  DATA_ENCRYPTION_KEY: 'y'.repeat(32),
   APP_PUBLIC_URL: 'http://localhost:3000',
 };
 

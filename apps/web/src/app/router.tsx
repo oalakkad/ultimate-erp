@@ -19,6 +19,9 @@ import { DashboardPage } from '../routes/dashboard.js';
 import { ProjectDetailPage } from '../routes/projects/detail.js';
 import { ProjectsPage } from '../routes/projects/list.js';
 import { NewProjectPage } from '../routes/projects/new.js';
+import { PersonPage } from '../routes/people/detail.js';
+import { PeoplePage } from '../routes/people/list.js';
+import { OrganisationPage } from '../routes/people/organisation.js';
 import { TaskDetailPage } from '../routes/tasks/detail.js';
 import { TasksPage } from '../routes/tasks/list.js';
 import { NewTaskPage } from '../routes/tasks/new.js';
@@ -213,6 +216,21 @@ const timeApprovalsRoute = createRoute({
   path: '/time/approvals',
   component: TimeApprovalsPage,
 });
+const peopleRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/people',
+  component: PeoplePage,
+});
+const personRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/people/$membershipId',
+  component: PersonPage,
+});
+const organisationRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/organisation',
+  component: OrganisationPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -250,6 +268,9 @@ export const router = createRouter({
       taskRoute,
       timeRoute,
       timeApprovalsRoute,
+      peopleRoute,
+      personRoute,
+      organisationRoute,
       accountRoute,
     ]),
   ]),

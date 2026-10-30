@@ -17,6 +17,7 @@ import {
   timeEntries,
   timesheets,
   timeTimers,
+  employees,
   type TenantTransaction,
 } from '@ultimate-erp/db';
 import { and, asc, eq, gte, inArray, lte, ne, type SQL, sql } from 'drizzle-orm';
@@ -505,8 +506,9 @@ export class TimeService {
       !hasPermission(access.permissions, 'time.entry.read', 'company')
     )
       throw forbidden();
-    const rows = await this.database.withTenant(access.tenantId, (tx) =>
-      tx
+    const { rows, employee } = await this.database.withTenant(access.tenantId, async (tx) => ({
+      employee: (await tx.select().from(employees).where(eq(employees.membershipId, target)))[0],
+      rows: await tx
         .select({ entry: timeEntries, project: projects })
         .from(timeEntries)
         .innerJoin(projects, eq(projects.id, timeEntries.projectId))
@@ -518,7 +520,7 @@ export class TimeService {
             ne(timeEntries.status, 'rejected'),
           ),
         ),
-    );
+    }));
     const names = await this.memberNames(access, [target]);
     if (!names.has(target)) throw notFound();
     const approved = rows.filter((r) => r.entry.status === 'approved');
@@ -543,6 +545,7 @@ export class TimeService {
       billable: formatHours(billableTotal),
       nonBillable: formatHours(approvedTotal - billableTotal),
       billablePercent: approvedTotal === 0n ? null : Number((billableTotal * 100n) / approvedTotal),
+      ...this.capacityOf(employee, from, to, approvedTotal),
       days,
       projects: [...byProject.values()].map((list) => {
         const p = list[0]?.project;
@@ -556,6 +559,30 @@ export class TimeService {
           billable: formatHours(sum(ok.filter((r) => r.entry.billable).map((r) => r.entry))),
         };
       }),
+    };
+  }
+
+  /**
+   * Contracted hours in the period (weekly hours spread over the person's working days) and
+   * approved hours as a share of it (docs/modules/people.md §1).
+   */
+  private capacityOf(
+    employee: typeof employees.$inferSelect | undefined,
+    from: string,
+    to: string,
+    approved: bigint,
+  ) {
+    if (!employee || employee.workDays.length === 0) {
+      return { capacity: null, utilisationPercent: null };
+    }
+    let days = 0n;
+    for (let d = from; d <= to; d = addDays(d, 1)) {
+      if (employee.workDays.includes(new Date(`${d}T00:00:00Z`).getUTCDay())) days += 1n;
+    }
+    const capacity = (hundredths(employee.weeklyHours) * days) / BigInt(employee.workDays.length);
+    return {
+      capacity: formatHours(capacity),
+      utilisationPercent: capacity === 0n ? null : Number((approved * 100n) / capacity),
     };
   }
 

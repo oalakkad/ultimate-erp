@@ -16,6 +16,7 @@ function captureLogger() {
     DATABASE_URL: 'postgres://u:p@localhost/db',
     LOG_LEVEL: 'info',
     AUTH_SECRET: 'x'.repeat(32),
+    DATA_ENCRYPTION_KEY: 'y'.repeat(32),
     APP_PUBLIC_URL: 'http://localhost:3000',
   });
   const logger = pino(buildLoggerOptions(config), stream);

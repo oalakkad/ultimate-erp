@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 6 (continued): Phase 8 (Employees & teams) built + committed
+
+### Hand-over 8 (A–H)
+- **A Built:** employee records (E-0001) for members with job title, department, manager, employment type, dates, weekly hours and working days; lifecycle onboarding → active ⇄ on leave → offboarding → left with checklists; departments, teams (lead + members), reporting lines; documents (confidential flag); private details and emergency contacts encrypted at rest; append-only history; capacity/utilisation in time summaries. Web: People, person page, Organisation. See `docs/modules/people.md` §11.
+- **B Files:** contracts `people.ts`, permissions (+`people.employee.manage` (two-factor), +`people.org.manage`), `time.ts` (capacity); db `schema/people.ts`, migrations 0023/0024, isolation list; api `platform/crypto/field-cipher.ts` (+spec), config `DATA_ENCRYPTION_KEY`, `modules/people/` (service with `teamScopeOf`, controller), time service (capacity), `test/people.spec.ts`, config/logger spec updates; web `routes/people/` (list, detail, organisation), shared `DocumentsTab` takes a schema, router, app-layout; i18n `people` EN/AR; journey Phase 8 steps.
+- **C Architecture:** membership (sign-in, roles) → employee record (HR) → teams / reporting line → "team" scope for later modules (leave approvals use `teamScopeOf`).
+- **D Security:** forced RLS on 9 new tables; private data sealed with AES-256-GCM bound to the company, separate key, keyed hash for civil-ID uniqueness, never logged (audit records field names only), every restricted read audited; employment details limited to company readers, HR, the person and their manager; leaving suspends company access; only an Owner ends an Owner's/CEO's employment and never the last Owner.
+- **E Tests:** `pnpm check` **346** passed (api 222, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e:journey` 2 passed (two locator fixes in the new steps, no product defects); `pnpm e2e` 6 passed; `pnpm security` clean (accepted esbuild moderate only).
+- **F Verify:** project-status "How to verify Phase 8".
+- **G Open:** time approval by team leads (time stays with project managers); Kuwaiti legal field validation (Phase 11); self-service edits beyond private details.
+- **Repo state:** committed ("Phase 8"); `pnpm dev` running; dev DB migrated to 0024. **Local `.env` changed:** a random dev-only `DATA_ENCRYPTION_KEY` was added (not committed). Not pushed.
+- **H Next:** Phase 9 Leave management (leave types and balances as company settings flagged "to be verified", requests, approval by team lead/manager, calendar, integration with timesheets/capacity).
+
+---
+
 ## 2026-10-30 — Session 6 (continued): Phase 7 (Timesheets & time tracking) built + committed
 
 ### Hand-over 7 (A–H)

@@ -125,6 +125,10 @@ export const timeSummarySchema = z
     nonBillable: hoursSchema,
     /** Billable share of approved hours, 0–100 (null when nothing is approved). */
     billablePercent: z.number().int().min(0).max(100).nullable(),
+    /** Contracted hours in the period (from the employee record), or null without one. */
+    capacity: hoursSchema.nullable(),
+    /** Approved hours as a share of capacity (may exceed 100). */
+    utilisationPercent: z.number().int().min(0).nullable(),
     days: z.array(z.object({ date: isoDate, hours: hoursSchema }).strict()),
     projects: z.array(
       z

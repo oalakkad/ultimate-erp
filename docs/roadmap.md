@@ -12,7 +12,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | 5 | Projects / engagements & budgeting | Done 2026-10-30 |
 | 6 | Tasks & hour allocation (concurrency-safe) | Done 2026-10-30 |
 | 7 | Timesheets & time tracking | Done 2026-10-30 |
-| 8 | Employees, teams, invitations | — |
+| 8 | Employees, teams, invitations | Done 2026-10-30 |
 | 9 | Leave management (after Kuwaiti labour rules confirmed) | — |
 | 10 | Attendance (rotating signed QR) | — |
 | 11 | Payroll (after jurisdiction rules verified) | — |

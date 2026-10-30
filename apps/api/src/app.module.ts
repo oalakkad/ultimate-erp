@@ -6,6 +6,7 @@ import { ContractsModule } from './modules/contracts/contracts.controller.js';
 import { ProjectsModule } from './modules/projects/projects.controller.js';
 import { TasksModule } from './modules/tasks/tasks.controller.js';
 import { TimeModule } from './modules/time/time.controller.js';
+import { PeopleModule } from './modules/people/people.controller.js';
 import { DashboardModule } from './modules/dashboard/dashboard.controller.js';
 import { FilesModule } from './modules/files/files.controller.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
@@ -51,6 +52,7 @@ export class AppModule {
         ProjectsModule,
         TasksModule,
         TimeModule,
+        PeopleModule,
         OpenApiModule,
       ],
       providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],

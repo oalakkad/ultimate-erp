@@ -7,6 +7,7 @@ export function testConfig(overrides: Record<string, string> = {}): AppConfig {
     LOG_LEVEL: 'silent',
     DATABASE_URL: 'postgres://erp:test@127.0.0.1:1/erp',
     AUTH_SECRET: 'test-only-secret-not-for-production-0123456789',
+    DATA_ENCRYPTION_KEY: 'test-only-data-key-not-for-production-0123456789',
     APP_PUBLIC_URL: 'http://localhost:3000',
     PASSWORD_BREACH_CHECK: 'false',
     ...overrides,

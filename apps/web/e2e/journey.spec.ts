@@ -474,6 +474,40 @@ for (const locale of ['en', 'ar'] as const) {
       await page.reload();
       await expect(page.getByText(t('ui.time.status.approved')).first()).toBeVisible();
 
+      // --- Phase 8: the Owner records the colleague as an employee and builds a team -------------
+      await page.getByRole('link', { name: t('ui.shell.people') }).click();
+      await expect(page.getByText(t('ui.people.empty'))).toBeVisible();
+      await expectAccessible(page, 'people (empty)');
+      await page.getByRole('button', { name: t('ui.people.new') }).click();
+      const newPerson = page.getByRole('dialog');
+      await newPerson.getByLabel(t('ui.people.member')).click();
+      await page.getByRole('option', { name: new RegExp(invitee.name) }).click();
+      await newPerson.getByLabel(t('ui.people.jobTitleEn')).fill('Audit manager');
+      await newPerson.getByLabel(t('ui.people.jobTitleAr')).fill('مدير تدقيق');
+      await expectAccessible(page, 'new employee');
+      await newPerson.getByRole('button', { name: t('ui.people.create') }).click();
+      await expect(page.getByRole('heading', { name: invitee.name })).toBeVisible();
+      await expect(page.getByText('E-0001', { exact: true })).toBeVisible();
+      await page.getByRole('tab', { name: t('ui.people.tabs.private') }).click();
+      await expect(page.getByText(t('ui.people.privateHint'))).toBeVisible();
+      await expectAccessible(page, 'employee (private)');
+
+      await page.goto(`http://${slug}.localhost:5173/organisation`);
+      await page.getByLabel(t('ui.people.nameEn'), { exact: true }).fill('Audit');
+      await page.getByLabel(t('ui.people.nameAr'), { exact: true }).fill('التدقيق');
+      await page.getByRole('button', { name: t('ui.people.addDepartment') }).click();
+      await page.getByLabel(t('ui.people.teamNameEn')).fill('Audit team A');
+      await page.getByLabel(t('ui.people.teamNameAr')).fill('فريق التدقيق أ');
+      await page.getByRole('button', { name: t('ui.people.addTeam') }).click();
+      await page.getByRole('button', { name: t('ui.common.edit') }).click();
+      const teamDialog = page.getByRole('dialog');
+      await teamDialog.getByLabel(t('ui.people.teamLead')).click();
+      await page.getByRole('option', { name: invitee.name }).click();
+      await teamDialog.getByRole('checkbox', { name: invitee.name }).click();
+      await teamDialog.getByRole('button', { name: t('ui.common.save') }).click();
+      await expect(page.getByRole('link', { name: invitee.name })).toBeVisible();
+      await expectAccessible(page, 'organisation');
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');

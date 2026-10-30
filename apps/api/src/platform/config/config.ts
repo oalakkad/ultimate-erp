@@ -38,6 +38,11 @@ export const configSchema = z
     // Identity (Milestone 1.3a)
     /** Signs cookies and encrypts two-factor secrets. Never defaulted; rotate with care. */
     AUTH_SECRET: z.string().min(32, 'must be at least 32 characters'),
+    /**
+     * Encrypts sensitive personal data at rest (employee private details). Separate from
+     * AUTH_SECRET so either can be rotated on its own; losing it loses that data.
+     */
+    DATA_ENCRYPTION_KEY: z.string().min(32, 'must be at least 32 characters'),
     /** Public base URL of this API, used in email links and cookie security. */
     APP_PUBLIC_URL: z.url({ protocol: /^https?$/ }),
     /** Public URL of the web app (email links open its pages). Defaults to APP_PUBLIC_URL. */

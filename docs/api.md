@@ -166,6 +166,16 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET/POST | `/api/v1/timer`, `/api/v1/timer/stop` | own | My running timer / start on a task / stop → draft entry | 7 |
 | GET | `/api/v1/time/summary?from&to&membershipId` | `time.entry.read` (own; others need company) | Per day, per project, billable share | 7 |
 | GET | `/api/v1/tasks/:id/time` | task read | Allocated vs logged vs approved per person | 7 |
+| GET/POST | `/api/v1/people` | `people.employee.read` (own) / `people.employee.manage` | Directory (scope-filtered) / create a member's employee record (E- numbers) | 8 |
+| GET | `/api/v1/people/candidates` | manage | Active members without a record | 8 |
+| GET/PATCH | `/api/v1/people/:membershipId` | read / manage | One person (`details` null unless allowed) / edit employment (history written) | 8 |
+| POST | `/api/v1/people/:id/status` | manage | Lifecycle; "left" needs a date and suspends access | 8 |
+| GET/PUT | `/api/v1/people/:id/private` | `people.employee.read_restricted` (own) | Encrypted private details; reads audited | 8 |
+| GET/POST/DELETE | `/api/v1/people/:id/emergency-contacts[/:id]` | restricted | Encrypted emergency contacts | 8 |
+| GET | `/api/v1/people/:id/history`, `/checklist` (+ POST, PATCH `/:itemId`) | details level / manage | Employment history; on/offboarding checklists | 8 |
+| GET/POST/DELETE | `/api/v1/people/:id/documents[/:fileId]` (+ `/download`) | details level / manage | Confidential documents only for restricted readers | 8 |
+| GET/POST/PATCH | `/api/v1/departments`, `/api/v1/teams` (+ PUT `/teams/:id/members`) | read / `people.org.manage` | Organisation | 8 |
+| GET | `/api/v1/org-chart` | read | Reporting lines of people I may see | 8 |
 | GET | `/api/v1/workload?projectId=` | allocation.manage on the project, or company read | Open tasks / hours / overdue per person | 6 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
 | GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |
