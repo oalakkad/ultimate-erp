@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM) and Phase 4 (Contracts & engagement letters) built and committed 2026-10-30. **Next: Phase 5 (Projects / engagements & budgeting).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) and Phase 5 (Projects & budgeting) built and committed 2026-10-30. **Next: Phase 6 (Tasks & hour allocation).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -49,6 +49,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 ## Decisions 2026-10-29 (working mode)
 - **Nonstop:** milestones are built back-to-back; each verified one is committed; Claude picks the recommended option for each decision and records it here.
 - **Kuwaiti legal values** (leave, end-of-service, PIFSS, tax): configurable company settings, pre-filled, marked "to be verified by a Kuwaiti lawyer/accountant"; no real payroll before verification.
+
+## Decisions 2026-10-30 (Phase 5, Claude in nonstop mode — reviewable)
+- "Engagement" is only a display word; the data is "project". Billing methods: fixed price, time & materials, retainer, non-billable.
+- Budgets are never edited in place: each change is a numbered revision with a reason (append-only in the database).
+- A linked contract must belong to the project's client (enforced by a database key).
+- Project scope: a Manager manages only projects they lead or are on; Team leads and Employees see only their projects; others get "not found".
+- Warnings: "approaching" at 80 % of budgeted hours allocated/approved, "exceeded" above 100 % (live once Phases 6–7 supply hours).
 
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
@@ -102,7 +109,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 3 — Clients / CRM** (2026-10-30; spec `modules/clients.md`): clients with bilingual names, numbers, duplicate protection, contacts and authorized representatives, communication history, virus-scanned documents, activity timeline, search/filter/sort/paging, CSV export, archive; dashboard card; palette search. Tests: 300 unit/integration + 8 browser.
 
+- **Phase 5 — Projects & budgeting** (2026-10-30; spec `modules/projects.md`): projects per client with an optional contract of the same client, P- numbering, manager + team, status machine, budget hours/amount with revision history, hours summary with 80 %/100 % warnings, documents, activity, project-scoped access, client tab, dashboard card. Tests: 320 unit/integration + 8 browser.
+
 - **Phase 4 — Contracts & engagement letters** (2026-10-30; spec `modules/contracts.md`): bilingual templates, CT-/EL- numbering, versions, draft → review → approved → sent → signed copy → active → expired/terminated with separation of duties, renewal reminders and expiry (daily 08:00 Kuwait), print view for PDF, client tab, dashboard card. Tests: 308 unit/integration + 8 browser.
+
+## How to verify Phase 5
+1. `pnpm check` → api `196` (others as Phase 4); `pnpm e2e:journey` → `2 passed`.
+2. Make a colleague Manager. As them: Projects → New project → pick the client, its contract, yourself as manager, 120 hours → Create. Budget tab → Revise budget (needs a reason) → history shows both revisions. Press "Start / resume". As an Employee who is not on the team, the project is not listed.
 
 ## How to verify Phase 4
 1. `pnpm check` → api `184` (others as Phase 3); `pnpm e2e:journey` → `2 passed`.
@@ -149,7 +162,7 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Right after enabling two-factor, the code just used cannot sign in again (replay protection); wait for the next code.
 - Windows PowerShell cannot resolve `*.localhost` company addresses → use `pnpm http` (dev helper) or a browser.
 - Cancelling trusted devices (on gaining a sensitive role) also voids an unused password-reset link at that moment.
-- Role checks are company-wide for now; team/project-scoped resource checks arrive with those modules.
+- Project-scoped checks exist for projects (Phase 5); team-scoped checks and project-scoped reading of clients/contracts arrive with Phases 6–8.
 - Light-mode colours `ink-3`, `butter-ink`, `warn` darkened vs. the approved preview for WCAG contrast (design-system.md).
 - Font licence texts (OFL) must ship in THIRD_PARTY_NOTICES before release.
 - Web bundle is one file over 500 kB (Vite warning); add route-level code splitting (Phase 2).
@@ -162,4 +175,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 5 (Projects / engagements & budgeting), built in nonstop mode: spec `docs/modules/projects.md` first. See the newest entry in `session-log.md`.
+Phase 6 (Tasks & hour allocation, concurrency-safe), built in nonstop mode: spec `docs/modules/tasks.md` first. See the newest entry in `session-log.md`.

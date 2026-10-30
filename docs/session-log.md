@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 6: Phase 5 (Projects & budgeting) built + committed
+
+### Hand-over 5 (A–H)
+- **A Built:** projects per client (optional contract of the same client), P-0001 numbering, manager + team, status machine (planned → active ⇄ on hold → completed; open → cancelled; closed = frozen), budget hours/amount with append-only revisions (reason, who, when), hours summary (budgeted / allocated / remaining / logged / approved / billable + 80 %/100 % warnings), documents, activity, project-scoped access. Web: list, new, detail, client Projects tab, sidebar, palette, dashboard card, EN + AR. See `docs/modules/projects.md` §11.
+- **B Files:** contracts `projects.ts`, `permissions.ts` (project read/manage scopes), `dashboard.ts`; db `schema/projects.ts`, `contracts.ts` (tenant+client+id key), migrations 0017/0018, isolation list; api `modules/projects/` (service, controller), access guard minimum scope (`RequirePermission(p, scope)`), dashboard section, `test/projects.spec.ts`; web `routes/projects/` (list, new, detail, client-tab, shared), `lib/session.ts` `canAny`, router, app-layout, client detail tab, dashboard, client `DocumentsTab` made generic (`basePath`); i18n `projects` EN/AR; journey Phase 5 steps.
+- **C Architecture:** client → project (→ contract of the same client via composite FK). The guard lets project-scope roles through; the service then checks "manager or team member" on the specific project and answers 404 otherwise. Tasks (Phase 6) and timesheets (Phase 7) will feed the hour measures through `ProjectsService.hours`.
+- **D Security:** forced RLS on 4 new tables; budget history insert-only for the app role (tested: permission denied on update); team members must be active members of this company; server re-checks permission + state on every change; no client-supplied company IDs.
+- **E Tests:** `pnpm check` **320** passed (api 196, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e:journey` 2 passed (first attempt failed because the API was restarting after the check's rebuild; second run found one ambiguous locator in my new step, fixed; third run 2 passed); `pnpm e2e` 6 passed; `pnpm security` clean (accepted esbuild moderate only).
+- **F Verify:** project-status "How to verify Phase 5".
+- **G Open:** allocated/logged/approved/billable are 0 until Phases 6–7; dashboard "over budget" count with Phase 6; palette does not search projects by name yet; "engagement" label setting not built; Team leads/Employees cannot yet open the client/contract of their projects (Phase 6).
+- **Repo state:** committed (see git log, "Phase 5"); `pnpm dev` running in the background; dev DB migrated to 0018. Not pushed.
+- **H Next:** Phase 6 Tasks & hour allocation (concurrency-safe allocations against the project budget).
+
+---
+
 ## 2026-10-30 — Session 5 (continued): Phase 4 (Contracts & engagement letters) built + committed
 
 ### Hand-over 4 (A–H)

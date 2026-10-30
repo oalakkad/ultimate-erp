@@ -363,6 +363,48 @@ for (const locale of ['en', 'ar'] as const) {
       await expectAccessible(printPage, 'print view');
       await printPage.close();
 
+      // --- Phase 5: the Manager opens a project on that letter, budgets it and starts it -------
+      await guest.getByRole('link', { name: t('ui.shell.projects') }).click();
+      await expect(guest.getByText(t('ui.projects.empty'))).toBeVisible();
+      await expectAccessible(guest, 'projects (empty)');
+      await guest.getByRole('link', { name: t('ui.projects.new') }).click();
+      await guest.getByLabel(t('ui.projects.fields.client')).click();
+      await guest.getByRole('option', { name: new RegExp(clientName) }).click();
+      await guest.getByLabel(t('ui.projects.fields.contract')).click();
+      await guest.getByRole('option', { name: /EL-0001/ }).click();
+      await guest.getByLabel(t('ui.projects.fields.manager')).click();
+      await guest.getByRole('option', { name: invitee.name }).click();
+      await guest.getByLabel(t('ui.projects.fields.nameEn')).fill('Statutory audit 2026');
+      await guest.getByLabel(t('ui.projects.fields.nameAr')).fill('التدقيق القانوني 2026');
+      await guest.getByLabel(t('ui.projects.fields.budgetHours')).fill('120');
+      await guest.getByRole('checkbox', { name: owner.name }).click();
+      await expectAccessible(guest, 'new project');
+      await guest.getByRole('button', { name: t('ui.projects.create') }).click();
+      const projectName = locale === 'ar' ? 'التدقيق القانوني 2026' : 'Statutory audit 2026';
+      await expect(guest.getByRole('heading', { name: projectName })).toBeVisible();
+      await expectAccessible(guest, 'project (planned)');
+
+      await guest.getByRole('tab', { name: t('ui.projects.tabs.budget') }).click();
+      await guest.getByRole('button', { name: t('ui.projects.revise') }).click();
+      const budgetDialog = guest.getByRole('dialog');
+      await budgetDialog.getByLabel(t('ui.projects.fields.budgetHours')).fill('150.5');
+      await budgetDialog.getByLabel(t('ui.projects.reason')).fill('Inventory count added');
+      await expectAccessible(guest, 'revise budget');
+      await budgetDialog.getByRole('button', { name: t('ui.projects.saveRevision') }).click();
+      await expect(guest.getByText('Inventory count added')).toBeVisible();
+      await guest.getByRole('button', { name: t('ui.projects.moveTo.active') }).click();
+      await expect(
+        guest.getByRole('button', { name: t('ui.projects.moveTo.on_hold') }),
+      ).toBeVisible();
+      await expectAccessible(guest, 'project (active)');
+
+      // The Owner, on the team, sees it on the dashboard and in the client's Projects tab.
+      await page.goto(`http://${slug}.localhost:5173/`);
+      await expect(page.getByRole('heading', { name: t('ui.dashboard.projects') })).toBeVisible();
+      await page.goto(`http://${slug}.localhost:5173/projects`);
+      await expect(page.getByRole('link', { name: projectName })).toBeVisible();
+      await expectAccessible(page, 'projects list');
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');

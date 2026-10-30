@@ -528,16 +528,16 @@ const DOC_STATUS = {
   scan_failed: 'warn',
 } as const;
 
-export function DocumentsTab({ clientId, canUpdate }: { clientId: string; canUpdate: boolean }) {
+/** Attached documents of a client or project; `basePath` is e.g. `/clients/<id>`. */
+export function DocumentsTab({ basePath, canUpdate }: { basePath: string; canUpdate: boolean }) {
   const { t, locale } = useI18n();
   const toast = useToast();
   const queryClient = useQueryClient();
   const input = useRef<HTMLInputElement>(null);
-  const key = ['clients', clientId, 'documents'];
+  const key = [basePath, 'documents'];
   const documents = useQuery({
     queryKey: key,
-    queryFn: () =>
-      api(`/clients/${clientId}/documents`, { schema: clientDocumentListResponseSchema }),
+    queryFn: () => api(`${basePath}/documents`, { schema: clientDocumentListResponseSchema }),
     // While a file is being scanned, check again every few seconds.
     refetchInterval: (q) =>
       q.state.data?.items.some((d) => d.file.status === 'pending') ? 3000 : false,
@@ -547,7 +547,7 @@ export function DocumentsTab({ clientId, canUpdate }: { clientId: string; canUpd
       const form = new FormData();
       form.append('file', file);
       const uploaded = await api('/files', { method: 'POST', body: form, schema: fileSchema });
-      return api(`/clients/${clientId}/documents`, {
+      return api(`${basePath}/documents`, {
         method: 'POST',
         body: { fileId: uploaded.id },
         schema: clientDocumentListResponseSchema,
@@ -563,7 +563,7 @@ export function DocumentsTab({ clientId, canUpdate }: { clientId: string; canUpd
   });
   const download = useMutation({
     mutationFn: (fileId: string) =>
-      api(`/clients/${clientId}/documents/${fileId}/download`, {
+      api(`${basePath}/documents/${fileId}/download`, {
         method: 'POST',
         schema: fileDownloadResponseSchema,
       }),
@@ -575,8 +575,7 @@ export function DocumentsTab({ clientId, canUpdate }: { clientId: string; canUpd
     },
   });
   const detach = useMutation({
-    mutationFn: (fileId: string) =>
-      api(`/clients/${clientId}/documents/${fileId}`, { method: 'DELETE' }),
+    mutationFn: (fileId: string) => api(`${basePath}/documents/${fileId}`, { method: 'DELETE' }),
     onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 
@@ -589,7 +588,7 @@ export function DocumentsTab({ clientId, canUpdate }: { clientId: string; canUpd
               ref={input}
               type="file"
               className="sr-only"
-              id={`upload-${clientId}`}
+              id={`upload-${basePath.replace(/W/g, '-')}`}
               aria-label={t('ui.clients.documents.upload')}
               tabIndex={-1}
               accept=".pdf,.png,.jpg,.jpeg,.webp,.docx,.xlsx,.pptx,.csv,.txt"

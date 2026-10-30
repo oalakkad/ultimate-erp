@@ -16,6 +16,9 @@ import { NewContractPage } from '../routes/contracts/new.js';
 import { ContractPrintPage } from '../routes/contracts/print.js';
 import { ContractTemplatesPage } from '../routes/contracts/templates.js';
 import { DashboardPage } from '../routes/dashboard.js';
+import { ProjectDetailPage } from '../routes/projects/detail.js';
+import { ProjectsPage } from '../routes/projects/list.js';
+import { NewProjectPage } from '../routes/projects/new.js';
 import { GalleryPage } from '../routes/gallery.js';
 import { HandoffPage } from '../routes/handoff.js';
 import { InvitationPage } from '../routes/invitation.js';
@@ -161,6 +164,22 @@ const contractPrintRoute = createRoute({
   path: '/contracts/$contractId/print',
   component: ContractPrintPage,
 });
+const projectsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/projects',
+  component: ProjectsPage,
+});
+const newProjectRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/projects/new',
+  component: NewProjectPage,
+  validateSearch: searchOf('clientId'),
+});
+const projectRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/projects/$projectId',
+  component: ProjectDetailPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -190,6 +209,9 @@ export const router = createRouter({
       newContractRoute,
       contractTemplatesRoute,
       contractRoute,
+      projectsRoute,
+      newProjectRoute,
+      projectRoute,
       accountRoute,
     ]),
   ]),

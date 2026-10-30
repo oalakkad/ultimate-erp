@@ -1,5 +1,15 @@
-import { createParamDecorator, type ExecutionContext, SetMetadata } from '@nestjs/common';
-import { type EffectivePermissions, type Permission, type Role } from '@ultimate-erp/contracts';
+import {
+  createParamDecorator,
+  type ExecutionContext,
+  applyDecorators,
+  SetMetadata,
+} from '@nestjs/common';
+import {
+  type EffectivePermissions,
+  type Permission,
+  type Scope,
+  type Role,
+} from '@ultimate-erp/contracts';
 import { type Request } from 'express';
 
 /** Who is acting in which company, with what — attached to the request by AccessGuard. */
@@ -18,8 +28,14 @@ export const REQUIRED_PERMISSION = 'access:required-permission';
 export const ALLOW_WITHOUT_MFA = 'access:allow-without-mfa';
 
 /** The route needs this permission (company scope unless the service checks a narrower one). */
-export const RequirePermission = (permission: Permission) =>
-  SetMetadata(REQUIRED_PERMISSION, permission);
+export const REQUIRED_SCOPE = 'access:required-scope';
+
+/**
+ * The permission a route needs. `scope` is the least scope that may enter (default: company);
+ * routes that accept project scope must then check the specific record in their service.
+ */
+export const RequirePermission = (permission: Permission, scope: Scope = 'company') =>
+  applyDecorators(SetMetadata(REQUIRED_PERMISSION, permission), SetMetadata(REQUIRED_SCOPE, scope));
 
 /** Reachable by a sensitive-role member who has not set up two-factor yet (e.g. "who am I"). */
 export const AllowWithoutMfa = () => SetMetadata(ALLOW_WITHOUT_MFA, true);

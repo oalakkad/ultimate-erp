@@ -26,6 +26,7 @@ import {
   Briefcase,
   Building2,
   FileSignature,
+  FolderKanban,
   ChevronsUpDown,
   LayoutGrid,
   LogOut,
@@ -40,7 +41,7 @@ import { api } from '../lib/api.js';
 import { type Command } from '../lib/commands.js';
 import { errorReference, errorText } from '../lib/errors.js';
 import { mainAppUrl, openCompany } from '../lib/handoff.js';
-import { can, useAccess, useMe, useMyCompanies, useTenant } from '../lib/session.js';
+import { can, canAny, useAccess, useMe, useMyCompanies, useTenant } from '../lib/session.js';
 import { CommandPalette } from './command-palette.js';
 import { NotificationBell } from './notification-bell.js';
 
@@ -98,6 +99,8 @@ export function AppLayout() {
   const canReadMembers = can(access.data, 'access.members.read');
   const canReadClients = can(access.data, 'clients.client.read');
   const canReadContracts = can(access.data, 'contracts.contract.read');
+  // Team leaders and employees see the projects they work on.
+  const canReadProjects = canAny(access.data, 'projects.project.read');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -183,6 +186,26 @@ export function AppLayout() {
         label: t('ui.shell.contracts'),
         run: () => {
           go('/contracts');
+        },
+      });
+    }
+    if (canReadProjects) {
+      list.push({
+        id: 'page:projects',
+        group: 'pages',
+        label: t('ui.shell.projects'),
+        run: () => {
+          go('/projects');
+        },
+      });
+    }
+    if (can(access.data, 'projects.project.create')) {
+      list.push({
+        id: 'action:new-project',
+        group: 'actions',
+        label: t('ui.projects.new'),
+        run: () => {
+          go('/projects/new');
         },
       });
     }
@@ -301,6 +324,7 @@ export function AppLayout() {
     canReadMembers,
     canReadClients,
     canReadContracts,
+    canReadProjects,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -395,6 +419,14 @@ export function AppLayout() {
           icon={<FileSignature aria-hidden />}
           label={t('ui.shell.contracts')}
           current={path.startsWith('/contracts')}
+        />
+      )}
+      {canReadProjects && (
+        <NavItem
+          {...link('/projects')}
+          icon={<FolderKanban aria-hidden />}
+          label={t('ui.shell.projects')}
+          current={path.startsWith('/projects')}
         />
       )}
       {canReadMembers && (

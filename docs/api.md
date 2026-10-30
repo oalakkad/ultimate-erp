@@ -140,6 +140,14 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET/POST | `/api/v1/contracts/:id/versions` | read / `.manage` | Text history / new version (draft only) | 4 |
 | POST | `/api/v1/contracts/:id/{submit,approve,reject,send,sign,activate,terminate}` | per action (approve/reject: `.approve`, not the submitter) | State machine (docs/modules/contracts.md §4); invalid ⇒ 409 `invalid_transition` | 4 |
 | POST | `/api/v1/contracts/:id/signed-copy/download` | read | 5-minute link to the clean signed copy | 4 |
+| GET/POST | `/api/v1/projects` | `projects.project.read` (project scope) / `.create` | List (search, status, clientId, mine, cursor; team members see only theirs) / create (P- numbers, budget revision 1, manager on team, contract must be the same client's) | 5 |
+| GET/PATCH | `/api/v1/projects/:id` | read / `.manage` (project scope) | One project with `actions` and `nextStatuses` / edit details (`version`; closed projects refused) | 5 |
+| POST | `/api/v1/projects/:id/status` | `.manage` | planned → active ⇄ on_hold → completed, open → cancelled; invalid ⇒ 409 `invalid_transition` | 5 |
+| PUT | `/api/v1/projects/:id/members` | `.manage` | Replace the team (manager always kept; active members of this company) | 5 |
+| GET/POST | `/api/v1/projects/:id/budget` | read / `projects.budget.update` | Revision history / new revision with reason (append-only) | 5 |
+| GET | `/api/v1/projects/:id/hours` | read | Budgeted, allocated, remaining, logged, approved, billable + warning | 5 |
+| GET/POST/DELETE | `/api/v1/projects/:id/documents[/:fileId]` (+ `/download`) | read / `.manage` | Project documents (clean files only, 5-minute links) | 5 |
+| GET | `/api/v1/projects/:id/activity` | read | Timeline from the audit trail | 5 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
 | GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |
 | POST | `/api/v1/notifications/:id/read` | Member | Mark one of mine read (anyone else's ⇒ 404) | 1.5a |

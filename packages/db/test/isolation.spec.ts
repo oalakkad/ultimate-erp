@@ -181,6 +181,10 @@ describe('every tenant-owned table is protected (catalog guard for future tables
       'memberships',
       'notifications',
       'number_sequences',
+      'project_budget_revisions',
+      'project_documents',
+      'project_members',
+      'projects',
       'tenant_domains',
     ]);
     for (const row of rows) {

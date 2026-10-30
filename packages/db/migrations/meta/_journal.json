@@ -120,6 +120,20 @@
       "when": 1793317441356,
       "tag": "0016_contracts_security",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793356101296,
+      "tag": "0017_projects_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793356102111,
+      "tag": "0018_projects_security",
+      "breakpoints": true
     }
   ]
 }

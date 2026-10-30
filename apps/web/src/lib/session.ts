@@ -72,3 +72,11 @@ export function can(
 ): boolean {
   return (access?.permissions[permission] ?? []).includes('company');
 }
+
+/** True if this person holds `permission` at any scope, e.g. only on their own projects (UX only). */
+export function canAny(
+  access: { permissions: Record<string, string[]> } | null | undefined,
+  permission: string,
+): boolean {
+  return (access?.permissions[permission] ?? []).length > 0;
+}

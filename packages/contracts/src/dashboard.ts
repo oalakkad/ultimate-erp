@@ -18,6 +18,9 @@ export const ACTIVITY_ACTIONS = [
   'contracts.contract.created',
   'contracts.contract.approved',
   'contracts.contract.signed',
+  'projects.project.created',
+  'projects.project.status_changed',
+  'projects.budget.revised',
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 
@@ -55,6 +58,11 @@ export const dashboardSummarySchema = z
     /** Contracts (people who can read contracts): active, and ending within 60 days. */
     contracts: z
       .object({ active: z.number().int().min(0), expiringSoon: z.number().int().min(0) })
+      .strict()
+      .optional(),
+    /** Projects (people who can read projects company-wide): active, and ending within 30 days. */
+    projects: z
+      .object({ active: z.number().int().min(0), endingSoon: z.number().int().min(0) })
       .strict()
       .optional(),
     /** Latest business events (people who can read the audit log). */

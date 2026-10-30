@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import {
   effectivePermissions,
   hasPermission,
+  type Scope,
   isSensitive,
   type Permission,
 } from '@ultimate-erp/contracts';
@@ -14,6 +15,7 @@ import { MissingTenantContextError, type RequestWithTenant } from '../tenancy/te
 import {
   ALLOW_WITHOUT_MFA,
   REQUIRED_PERMISSION,
+  REQUIRED_SCOPE,
   type RequestWithAccess,
 } from './access-context.js';
 import { AccessService } from './access.service.js';
@@ -61,7 +63,9 @@ export class AccessGuard implements CanActivate {
       REQUIRED_PERMISSION,
       targets,
     );
-    if (required && !hasPermission(permissions, required)) {
+    const scope =
+      this.reflector.getAllAndOverride<Scope | undefined>(REQUIRED_SCOPE, targets) ?? 'company';
+    if (required && !hasPermission(permissions, required, scope)) {
       throw fail('FORBIDDEN', HttpStatus.FORBIDDEN);
     }
 

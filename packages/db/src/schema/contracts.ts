@@ -96,6 +96,8 @@ export const contracts = pgTable(
   (t) => [
     unique('contracts_tenant_id_id_key').on(t.tenantId, t.id),
     unique('contracts_tenant_number_key').on(t.tenantId, t.number),
+    // Lets projects require a contract of the same client (composite foreign key).
+    unique('contracts_tenant_client_id_key').on(t.tenantId, t.clientId, t.id),
     index('contracts_tenant_client_idx').on(t.tenantId, t.clientId),
     index('contracts_tenant_status_end_idx').on(t.tenantId, t.status, t.endDate),
     foreignKey({

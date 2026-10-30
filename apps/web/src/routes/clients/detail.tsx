@@ -7,13 +7,14 @@ import { useI18n } from '../../app/i18n.js';
 import { AppPageHeader } from '../../components/page-header.js';
 import { api } from '../../lib/api.js';
 import { errorReference, errorText } from '../../lib/errors.js';
-import { can, useAccess } from '../../lib/session.js';
+import { can, canAny, useAccess } from '../../lib/session.js';
 import { clientKey } from './keys.js';
 import { STATUS_CHIP } from './list.js';
 import { ClientContractsTab } from '../contracts/client-tab.js';
+import { ClientProjectsTab } from '../projects/client-tab.js';
 import { ActivityTab, CommunicationTab, ContactsTab, DocumentsTab, OverviewTab } from './tabs.js';
 
-/** Client detail with tabs (brief Module B). Tabs for contracts, projects and invoices arrive with those modules. */
+/** Client detail with tabs (brief Module B). The invoices tab arrives with billing. */
 export function ClientDetailPage() {
   const { t, locale } = useI18n();
   const toast = useToast();
@@ -119,7 +120,7 @@ export function ClientDetailPage() {
           {
             value: 'documents',
             label: t('ui.clients.tabs.documents'),
-            content: <DocumentsTab clientId={c.id} canUpdate={canUpdate} />,
+            content: <DocumentsTab basePath={`/clients/${c.id}`} canUpdate={canUpdate} />,
           },
           ...(can(access.data, 'contracts.contract.read')
             ? [
@@ -130,6 +131,20 @@ export function ClientDetailPage() {
                     <ClientContractsTab
                       clientId={c.id}
                       canCreate={can(access.data, 'contracts.contract.manage') && !c.archived}
+                    />
+                  ),
+                },
+              ]
+            : []),
+          ...(canAny(access.data, 'projects.project.read')
+            ? [
+                {
+                  value: 'projects',
+                  label: t('ui.projects.clientTab'),
+                  content: (
+                    <ClientProjectsTab
+                      clientId={c.id}
+                      canCreate={can(access.data, 'projects.project.create') && !c.archived}
                     />
                   ),
                 },

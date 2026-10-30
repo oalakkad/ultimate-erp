@@ -7,3 +7,4 @@ export * from './notifications.js';
 export * from './files.js';
 export * from './clients.js';
 export * from './contracts.js';
+export * from './projects.js';

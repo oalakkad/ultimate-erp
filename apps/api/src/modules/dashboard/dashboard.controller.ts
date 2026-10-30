@@ -7,7 +7,14 @@ import {
   hasPermission,
   type Permission,
 } from '@ultimate-erp/contracts';
-import { auditEvents, clients, contracts, invitations, memberships } from '@ultimate-erp/db';
+import {
+  auditEvents,
+  clients,
+  contracts,
+  invitations,
+  memberships,
+  projects,
+} from '@ultimate-erp/db';
 import { and, count, desc, eq, gt, gte, inArray, isNull } from 'drizzle-orm';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { kuwaitToday } from '../contracts/contracts.service.js';
@@ -98,6 +105,22 @@ export class DashboardService {
           active: active.length,
           expiringSoon: active.filter(
             (c) => c.endDate !== null && c.endDate >= today && c.endDate <= limit,
+          ).length,
+        };
+      }
+      if (may('projects.project.read')) {
+        const active = await tx
+          .select({ endDate: projects.endDate })
+          .from(projects)
+          .where(and(eq(projects.status, 'active'), isNull(projects.archivedAt)));
+        const today = kuwaitToday(now);
+        const limit = new Date(Date.parse(`${today}T00:00:00Z`) + 30 * 86_400_000)
+          .toISOString()
+          .slice(0, 10);
+        out.projects = {
+          active: active.length,
+          endingSoon: active.filter(
+            (p) => p.endDate !== null && p.endDate >= today && p.endDate <= limit,
           ).length,
         };
       }

@@ -46,7 +46,9 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | contracts.contract.manage | company | company | company | — | — | — |
 | contracts.contract.approve | company | company | — | — | — | — |
 | contracts.template.manage | company | company | — | — | — | — |
+| projects.project.read | company | company | company | project | project | — |
 | projects.project.create | company | company | company | — | — | — |
+| projects.project.manage | company | company | project | — | — | — |
 | projects.budget.update | company | company | project | — | — | — |
 | projects.budget.override | company | company* | — | — | — | — |
 | tasks.allocation.manage | company | company | project | team | — | — |
