@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 6 (continued): Phase 11 (Payroll — test-only until verified) built + committed
+
+### Hand-over 11 (A–H)
+- **A Built:** salary records with history, versioned payroll rules (law-dependent values off/0, all flagged "to be verified"), explicit monthly inputs, an exact fils-based calculation engine with a line-by-line trace (basic, allowances, overtime, bonus, unpaid leave from approved leave, late minutes from attendance, advances, adjustments, social insurance), run workflow draft → calculated → submitted → approved → paid with separation of duties, test runs never payable, payslips for employees after approval, CSV export, notifications. See `docs/modules/payroll.md` §11.
+- **B Files:** contracts `payroll.ts`, notifications (+2), permissions (own payslips for every employee role); db `schema/payroll.ts`, migrations 0029/0030 (partial unique month index, column-only grant for verification, triggers `app.payroll_prepared_only` and `app.payroll_runs_guard`), isolation list; api `modules/payroll/` (engine + spec, service, controller), attendance `daysOf` now public, `test/payroll.spec.ts`, `test/support/people.ts` `enableTwoFactor`; web `routes/payroll/` (payroll, run, payslips), router, app-layout, notification bell; i18n `payroll` EN/AR; journey Phase 11 steps.
+- **C Architecture:** salary record (as of month end) + rule version (as of month end) + approved unpaid leave + attendance late minutes + explicit inputs → pure engine → payslip rows with the trace and the rule version kept forever.
+- **D Security:** forced RLS on 5 tables; salary history and rule versions insert-only (verification is a column-only update); payslips/inputs frozen after submission (trigger); approver/payer ≠ preparer (API + check constraints); paid only with a verified rule set and only once (trigger); salary reads, run views, payslip views and exports audited without amounts; employees see only their own approved payslips.
+- **E Tests:** `pnpm check` **366** passed (api 242 incl. engine 6, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e:journey` 2 passed (first run found the payslip-permission gap above, fixed); `pnpm e2e` 6 passed; `pnpm security` clean (accepted esbuild moderate only).
+- **F Verify:** project-status "How to verify Phase 11".
+- **G Open / owner action:** **payroll is not for real use** until a Kuwaiti lawyer/accountant verifies the rules (then a CEO confirms in Payroll → Rules). Not built: end-of-service indemnity, WPS bank file, employer contributions / PIFSS reports.
+- **Repo state:** committed ("Phase 11"); `pnpm dev` running; dev DB migrated to 0030. Not pushed.
+- **H Next:** Phase 12 Invoicing & payments.
+
+---
+
 ## 2026-10-30 — Session 6 (continued): Phase 10 (Attendance) built + committed
 
 ### Hand-over 10 (A–H)

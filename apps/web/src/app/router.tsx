@@ -23,6 +23,9 @@ import { AttendancePage } from '../routes/attendance/attendance.js';
 import { KioskPage } from '../routes/attendance/kiosk.js';
 import { ScanPage } from '../routes/attendance/scan.js';
 import { LeavePage } from '../routes/leave/leave.js';
+import { PayrollPage } from '../routes/payroll/payroll.js';
+import { MyPayslipsPage } from '../routes/payroll/payslips.js';
+import { PayrollRunPage } from '../routes/payroll/run.js';
 import { PersonPage } from '../routes/people/detail.js';
 import { PeoplePage } from '../routes/people/list.js';
 import { OrganisationPage } from '../routes/people/organisation.js';
@@ -258,6 +261,21 @@ const kioskRoute = createRoute({
   path: '/attendance/kiosk/$siteId',
   component: KioskPage,
 });
+const payrollRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/payroll',
+  component: PayrollPage,
+});
+const payrollRunRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/payroll/runs/$runId',
+  component: PayrollRunPage,
+});
+const payslipsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/payroll/payslips',
+  component: MyPayslipsPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -302,6 +320,9 @@ export const router = createRouter({
       leaveRoute,
       attendanceRoute,
       attendanceScanRoute,
+      payrollRoute,
+      payrollRunRoute,
+      payslipsRoute,
       accountRoute,
     ]),
   ]),

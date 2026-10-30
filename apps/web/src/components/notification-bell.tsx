@@ -45,6 +45,11 @@ function useNotificationText() {
           endDate: item.params.endDate ?? '',
         });
       }
+      case 'payroll.submitted':
+      case 'payroll.payslip_ready': {
+        const key = item.type.replace('.', '_') as 'payroll_submitted';
+        return t(`ui.notifications.types.${key}`, { period: item.params.period ?? '' });
+      }
       case 'attendance.correction_requested':
         return t('ui.notifications.types.attendance_correction_requested', {
           name: item.params.name ?? '',

@@ -70,7 +70,7 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | attendance.manage (settings, sites, shifts, kiosk) | company | company | — | — | — | — |
 | payroll.run.prepare | — | company* | — | — | — | — |
 | payroll.run.approve | — | company* | — | — | — | — |
-| payroll.payslip.read | — | company* | — | — | own | — |
+| payroll.payslip.read | own | company* | own | own | own | — |
 | billing.invoice.issue | company | company | — | — | — | — |
 | billing.payment.record | company | company | — | — | — | — |
 | audit.event.read | company | company | — | — | — | — |

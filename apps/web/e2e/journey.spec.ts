@@ -583,6 +583,41 @@ for (const locale of ['en', 'ar'] as const) {
       ).toBeVisible();
       await expectAccessible(page, 'attendance today');
 
+      // --- Phase 11: the Owner (also CEO) records a salary and prepares a test payroll run -------
+      await page.getByRole('link', { name: t('ui.shell.payroll') }).click();
+      await expect(page.getByText(t('ui.payroll.notVerified'))).toBeVisible();
+      await expectAccessible(page, 'payroll');
+      await page.getByRole('tab', { name: t('ui.payroll.tabs.salaries') }).click();
+      await page.getByLabel(t('ui.payroll.person')).click();
+      await page.getByRole('option', { name: invitee.name }).click();
+      await page.getByLabel(t('ui.payroll.effectiveFrom')).fill('2026-01-01');
+      await page.getByLabel(t('ui.payroll.basic')).fill('1000');
+      await page.getByLabel(t('ui.payroll.housing')).fill('150');
+      await page.getByRole('button', { name: t('ui.payroll.saveSalary') }).click();
+      await expect(page.getByText(invitee.name).last()).toBeVisible();
+      await page.getByRole('tab', { name: t('ui.payroll.tabs.rules') }).click();
+      await expect(page.getByText(t('ui.payroll.toVerify')).first()).toBeVisible();
+      await expectAccessible(page, 'payroll rules');
+      await page.getByRole('tab', { name: t('ui.payroll.tabs.runs') }).click();
+      await page.getByRole('button', { name: t('ui.payroll.newRun') }).click();
+      await page.getByRole('button', { name: t('ui.payroll.actions.calculate') }).click();
+      await expect(page.getByText(t('ui.payroll.testRun'))).toBeVisible();
+      await page
+        .getByRole('button', { name: t('ui.payroll.showLines') })
+        .first()
+        .click();
+      await expectAccessible(page, 'payroll run');
+      await page.getByRole('button', { name: t('ui.payroll.actions.submit') }).click();
+      await expect(page.getByText(t('ui.payroll.status.submitted'))).toBeVisible();
+      // The preparer is never offered approval of their own run.
+      await expect(page.getByRole('button', { name: t('ui.payroll.actions.approve') })).toHaveCount(
+        0,
+      );
+
+      await guest.goto(`http://${slug}.localhost:5173/payroll/payslips`);
+      await expect(guest.getByText(t('ui.payroll.noPayslips'))).toBeVisible();
+      await expectAccessible(guest, 'my payslips');
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');

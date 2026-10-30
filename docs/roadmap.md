@@ -15,7 +15,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | 8 | Employees, teams, invitations | Done 2026-10-30 |
 | 9 | Leave management (after Kuwaiti labour rules confirmed) | Done 2026-10-30 (rules as flagged company settings) |
 | 10 | Attendance (rotating signed QR) | Done 2026-10-30 |
-| 11 | Payroll (after jurisdiction rules verified) | — |
+| 11 | Payroll (after jurisdiction rules verified) | Done 2026-10-30 as test-only until rules are verified |
 | 12 | Invoicing & payments | — |
 | 12b | Expenses (claims, approvals, re-billing, project cost) — default decision 2026-10-24, scope confirmed at phase start | — |
 | 13 | Notifications & announcements (complete) | — |

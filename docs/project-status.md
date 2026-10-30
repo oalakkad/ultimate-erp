@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave) and 10 (Attendance) built and committed 2026-10-30. **Next: Phase 11 (Payroll).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance) and 11 (Payroll, test-only until rules are verified) built and committed 2026-10-30. **Next: Phase 12 (Invoicing & payments).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -91,6 +91,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - No offline check-ins; outages and mistakes go through corrections approved by team lead/manager/HR; nobody approves their own.
 - Late = minutes after shift start once beyond the grace; the shift's break is deducted from worked time.
 
+## Decisions 2026-10-30 (Phase 11, Claude in nonstop mode — reviewable)
+- Jurisdiction Kuwait; **no formula invented**: overtime, late deduction and social insurance start **off** (social insurance at 0 %); planning defaults (26 working days, 208 hours, overtime × 1.25, unpaid-leave deduction on) are flagged with the whole rule set "to be verified".
+- **A run is a test run until a CEO confirms that a Kuwaiti lawyer/accountant verified its rule version; test runs can never be marked paid** (API + database).
+- Prepare (HR & payroll or CEO) → approve → mark paid; never the same person who prepared; one live run per month.
+- Overtime hours are an explicit input; end-of-service, WPS files and PIFSS reports wait for verified rules.
+- Every role that can be an employee sees its own approved payslips.
+
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
 2. **Design pilot** — no firm available yet. Seek feedback from 1–2 audit/GRC practitioners before Phase 5–7.
@@ -143,6 +150,8 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 3 — Clients / CRM** (2026-10-30; spec `modules/clients.md`): clients with bilingual names, numbers, duplicate protection, contacts and authorized representatives, communication history, virus-scanned documents, activity timeline, search/filter/sort/paging, CSV export, archive; dashboard card; palette search. Tests: 300 unit/integration + 8 browser.
 
+- **Phase 11 — Payroll** (2026-10-30; spec `modules/payroll.md`): salary history, versioned rules (legal values off/flagged), explicit inputs, exact traceable engine using leave and attendance, prepare/approve/pay separation, test runs never payable, payslips, CSV export, audit. **Test-only until a Kuwaiti lawyer/accountant verifies the rules.** Tests: 366 unit/integration + 8 browser.
+
 - **Phase 10 — Attendance** (2026-10-30; spec `modules/attendance.md`): rotating signed kiosk QR with replay protection, web check-in setting, shifts, late/early/absence/break rules, corrections with approval, auditable events, summaries vs timesheets, who-is-in board, dashboard card. Tests: 356 unit/integration + 8 browser.
 
 - **Phase 9 — Leave management** (2026-10-30; spec `modules/leave.md`): configurable leave types (Kuwait defaults flagged "to be verified"), accrual, ledger balances with database-enforced single deduction, working days minus holidays, half days, documents, approve/reject/withdraw/cancel, overlap check, team calendar, notifications, dashboard card. Tests: 351 unit/integration + 8 browser.
@@ -156,6 +165,10 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - **Phase 5 — Projects & budgeting** (2026-10-30; spec `modules/projects.md`): projects per client with an optional contract of the same client, P- numbering, manager + team, status machine, budget hours/amount with revision history, hours summary with 80 %/100 % warnings, documents, activity, project-scoped access, client tab, dashboard card. Tests: 320 unit/integration + 8 browser.
 
 - **Phase 4 — Contracts & engagement letters** (2026-10-30; spec `modules/contracts.md`): bilingual templates, CT-/EL- numbering, versions, draft → review → approved → sent → signed copy → active → expired/terminated with separation of duties, renewal reminders and expiry (daily 08:00 Kuwait), print view for PDF, client tab, dashboard card. Tests: 308 unit/integration + 8 browser.
+
+## How to verify Phase 11
+1. `pnpm check` → api `242` (others as Phase 10); `pnpm e2e:journey` → `2 passed`.
+2. Payroll → Salaries: record a salary. Runs → Start payroll run → Calculate → open a payslip's details (each line shows how it was calculated). It says "Test run". Submit. As a different CEO (or HR prepares and the CEO approves): Approve → the employee sees the payslip under My payslips. "Mark as paid" is not offered until a CEO confirms the rules were verified.
 
 ## How to verify Phase 10
 1. `pnpm check` → api `232` (others as Phase 9); `pnpm e2e:journey` → `2 passed`.
@@ -239,4 +252,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 11 (Payroll), built in nonstop mode: spec `docs/modules/payroll.md` first; every Kuwaiti rule (PIFSS, end of service, allowances) as a company setting flagged "to be verified"; **no real payroll before professional verification**. See the newest entry in `session-log.md`.
+Phase 12 (Invoicing & payments), built in nonstop mode: spec `docs/modules/billing.md` first (invoices from approved billable time and fixed fees, KWD 3 decimals, payments, credit notes, PDF/print). See the newest entry in `session-log.md`.

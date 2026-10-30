@@ -189,6 +189,13 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | POST | `/api/v1/attendance/check` | check (own) | `{ code }` from the kiosk, or web if allowed; kind alternates; server time; replay-protected | 10 |
 | GET | `/api/v1/attendance/me`, `/summary?from&to&membershipId`, `/today` | check / `attendance.read` | My day; period days with late/early/absent/leave and logged hours; who is in | 10 |
 | GET/POST | `/api/v1/attendance/corrections` (+ `/:id/{approve,reject}`) | check / `attendance.correction.approve` | Correction requests and decisions (never one's own) | 10 |
+| GET/POST | `/api/v1/payroll/rules` (+ POST `/:id/verify`) | `payroll.payslip.read` / `payroll.run.prepare` / `payroll.run.approve` | Versioned rules; verification confirmation | 11 |
+| GET/POST | `/api/v1/payroll/salaries` | read / prepare | Salary history (reads audited) | 11 |
+| GET/POST | `/api/v1/payroll/runs`, GET `/runs/:id` | read / prepare | One run per month; run with payslips, totals, warnings | 11 |
+| PUT | `/api/v1/payroll/runs/:id/inputs` | prepare | Explicit monthly inputs | 11 |
+| POST | `/api/v1/payroll/runs/:id/{calculate,submit,approve,pay,cancel}` | prepare / approve | Workflow with separation of duties; test runs never payable | 11 |
+| GET | `/api/v1/payroll/runs/:id/export.csv` | `exports.confidential` | Approved run as CSV (audited) | 11 |
+| GET | `/api/v1/payroll/payslips/mine`, `/payslips/:id` | read (own) | My approved payslips / one payslip | 11 |
 | GET | `/api/v1/org-chart` | read | Reporting lines of people I may see | 8 |
 | GET | `/api/v1/workload?projectId=` | allocation.manage on the project, or company read | Open tasks / hours / overdue per person | 6 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |

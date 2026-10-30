@@ -81,5 +81,16 @@ export function people(server: () => Server, mailpit: () => TestMailpit) {
     return found.membershipId;
   };
 
-  return { unique, person, founder, join };
+  /** Turns two-factor on (sensitive roles such as CEO or HR & payroll need it). */
+  const enableTwoFactor = async (p: Person): Promise<void> => {
+    const setup = twoFactorSetupResponseSchema.parse(
+      (await p.post('/api/v1/auth/two-factor/enable', { password: PASSWORD })).body,
+    );
+    const confirmed = await p.post('/api/v1/auth/two-factor/confirm', {
+      code: await codeAt(setup.totpUri, 0),
+    });
+    expect(confirmed.status).toBe(200);
+  };
+
+  return { unique, person, founder, join, enableTwoFactor };
 }

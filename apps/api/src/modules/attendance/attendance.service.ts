@@ -503,7 +503,7 @@ export class AttendanceService {
   }
 
   /** One row per date: status, first in / last out, worked, late and early minutes, logged hours. */
-  private async daysOf(tx: TenantTransaction, employee: EmployeeRow, from: string, to: string) {
+  async daysOf(tx: TenantTransaction, employee: EmployeeRow, from: string, to: string) {
     const today = kuwaitToday();
     const shift = await this.shiftOf(tx, employee.membershipId);
     const events = await this.eventsBetween(tx, [employee.membershipId], from, to);

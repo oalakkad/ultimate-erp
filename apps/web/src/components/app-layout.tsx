@@ -33,6 +33,8 @@ import {
   Contact,
   Plane,
   Fingerprint,
+  Wallet,
+  ReceiptText,
   ChevronsUpDown,
   LayoutGrid,
   LogOut,
@@ -113,6 +115,11 @@ export function AppLayout() {
   const canReadPeople = canAny(access.data, 'people.employee.read');
   const canLeave = canAny(access.data, 'leave.request.create');
   const canAttend = canAny(access.data, 'attendance.check');
+  const payrollStaff =
+    can(access.data, 'payroll.run.prepare') ||
+    can(access.data, 'payroll.run.approve') ||
+    can(access.data, 'payroll.payslip.read');
+  const canPayslips = canAny(access.data, 'payroll.payslip.read');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -236,6 +243,26 @@ export function AppLayout() {
         label: t('ui.people.organisation'),
         run: () => {
           go('/organisation');
+        },
+      });
+    }
+    if (payrollStaff) {
+      list.push({
+        id: 'page:payroll',
+        group: 'pages',
+        label: t('ui.shell.payroll'),
+        run: () => {
+          go('/payroll');
+        },
+      });
+    }
+    if (canPayslips) {
+      list.push({
+        id: 'page:payslips',
+        group: 'pages',
+        label: t('ui.shell.payslips'),
+        run: () => {
+          go('/payroll/payslips');
         },
       });
     }
@@ -421,6 +448,8 @@ export function AppLayout() {
     canReadPeople,
     canLeave,
     canAttend,
+    payrollStaff,
+    canPayslips,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -571,6 +600,22 @@ export function AppLayout() {
           icon={<Fingerprint aria-hidden />}
           label={t('ui.shell.attendance')}
           current={path.startsWith('/attendance')}
+        />
+      )}
+      {payrollStaff && (
+        <NavItem
+          {...link('/payroll')}
+          icon={<Wallet aria-hidden />}
+          label={t('ui.shell.payroll')}
+          current={path === '/payroll' || path.startsWith('/payroll/runs')}
+        />
+      )}
+      {canPayslips && (
+        <NavItem
+          {...link('/payroll/payslips')}
+          icon={<ReceiptText aria-hidden />}
+          label={t('ui.shell.payslips')}
+          current={path === '/payroll/payslips'}
         />
       )}
       {canReadMembers && (
