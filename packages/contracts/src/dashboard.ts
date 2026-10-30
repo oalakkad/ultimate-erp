@@ -97,6 +97,11 @@ export const dashboardSummarySchema = z
       })
       .strict()
       .optional(),
+    /** Attendance of people I may see today. */
+    attendance: z
+      .object({ inNow: z.number().int().min(0), lateToday: z.number().int().min(0) })
+      .strict()
+      .optional(),
     /** Latest business events (people who can read the audit log). */
     activity: z
       .object({ items: z.array(activityItemSchema) })

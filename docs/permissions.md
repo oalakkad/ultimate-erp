@@ -64,6 +64,10 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | leave.request.read | company | company | team | team | own | — |
 | leave.request.approve | company | company | team | team | — | — |
 | leave.policy.manage (types, holidays, adjustments) | company | company | — | — | — | — |
+| attendance.check | own | own | own | own | own | — |
+| attendance.read | company | company | team | team | own | — |
+| attendance.correction.approve | company | company | team | team | — | — |
+| attendance.manage (settings, sites, shifts, kiosk) | company | company | — | — | — | — |
 | payroll.run.prepare | — | company* | — | — | — | — |
 | payroll.run.approve | — | company* | — | — | — | — |
 | payroll.payslip.read | — | company* | — | — | own | — |

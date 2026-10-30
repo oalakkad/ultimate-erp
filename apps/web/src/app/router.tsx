@@ -19,6 +19,9 @@ import { DashboardPage } from '../routes/dashboard.js';
 import { ProjectDetailPage } from '../routes/projects/detail.js';
 import { ProjectsPage } from '../routes/projects/list.js';
 import { NewProjectPage } from '../routes/projects/new.js';
+import { AttendancePage } from '../routes/attendance/attendance.js';
+import { KioskPage } from '../routes/attendance/kiosk.js';
+import { ScanPage } from '../routes/attendance/scan.js';
 import { LeavePage } from '../routes/leave/leave.js';
 import { PersonPage } from '../routes/people/detail.js';
 import { PeoplePage } from '../routes/people/list.js';
@@ -238,6 +241,23 @@ const leaveRoute = createRoute({
   component: LeavePage,
   validateSearch: searchOf('view'),
 });
+const attendanceRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/attendance',
+  component: AttendancePage,
+});
+const attendanceScanRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/attendance/scan',
+  component: ScanPage,
+  validateSearch: searchOf('code'),
+});
+/** Kiosk display: outside the app frame, full screen at the office. */
+const kioskRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/attendance/kiosk/$siteId',
+  component: KioskPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -257,6 +277,7 @@ export const router = createRouter({
     invitationRoute,
     galleryRoute,
     contractPrintRoute,
+    kioskRoute,
     appRoute.addChildren([
       dashboardRoute,
       membersRoute,
@@ -279,6 +300,8 @@ export const router = createRouter({
       personRoute,
       organisationRoute,
       leaveRoute,
+      attendanceRoute,
+      attendanceScanRoute,
       accountRoute,
     ]),
   ]),

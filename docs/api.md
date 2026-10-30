@@ -182,6 +182,13 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET/POST | `/api/v1/leave/requests` (+ `/preview`) | create | Mine / approvals / one person; apply (overlap, balance, document checks) | 9 |
 | POST | `/api/v1/leave/requests/:id/{approve,reject,withdraw,cancel}` | approve (team) / own | Workflow; deduction and restoration once each (ledger unique key) | 9 |
 | GET | `/api/v1/leave/calendar?from&to` | `leave.request.read` | Approved and pending leave + holidays (≤ 92 days) | 9 |
+| GET/PATCH | `/api/v1/attendance/settings` | `attendance.check` / `attendance.manage` | Web check-in allowed, rotation, minimum gap | 10 |
+| GET/POST/PATCH | `/api/v1/attendance/sites[/:id]` | check / manage | Sites (kiosks) | 10 |
+| GET | `/api/v1/attendance/sites/:id/code` | manage | Current rotating kiosk code + seconds left | 10 |
+| GET/POST/PATCH | `/api/v1/attendance/shifts[/:id]`, PUT `/assignments/:membershipId` | check / manage | Shifts and assignment | 10 |
+| POST | `/api/v1/attendance/check` | check (own) | `{ code }` from the kiosk, or web if allowed; kind alternates; server time; replay-protected | 10 |
+| GET | `/api/v1/attendance/me`, `/summary?from&to&membershipId`, `/today` | check / `attendance.read` | My day; period days with late/early/absent/leave and logged hours; who is in | 10 |
+| GET/POST | `/api/v1/attendance/corrections` (+ `/:id/{approve,reject}`) | check / `attendance.correction.approve` | Correction requests and decisions (never one's own) | 10 |
 | GET | `/api/v1/org-chart` | read | Reporting lines of people I may see | 8 |
 | GET | `/api/v1/workload?projectId=` | allocation.manage on the project, or company read | Open tasks / hours / overdue per person | 6 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |

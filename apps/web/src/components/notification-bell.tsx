@@ -45,6 +45,18 @@ function useNotificationText() {
           endDate: item.params.endDate ?? '',
         });
       }
+      case 'attendance.correction_requested':
+        return t('ui.notifications.types.attendance_correction_requested', {
+          name: item.params.name ?? '',
+          date: item.params.date ?? '',
+        });
+      case 'attendance.correction_decided':
+        return t(
+          item.params.status === 'approved'
+            ? 'ui.notifications.types.attendance_correction_approved'
+            : 'ui.notifications.types.attendance_correction_rejected',
+          { date: item.params.date ?? '' },
+        );
       case 'leave.requested':
       case 'leave.approved':
       case 'leave.rejected':

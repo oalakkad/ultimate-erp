@@ -87,14 +87,14 @@ export async function waitForSteadyApi(timeoutMs = 60_000): Promise<void> {
   const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const deadline = Date.now() + timeoutMs;
   let healthyInRow = 0;
-  await pause(2000);
+  await pause(5000);
   while (Date.now() < deadline) {
     const ok = await fetch(health).then(
       (r) => r.ok,
       () => false,
     );
     healthyInRow = ok ? healthyInRow + 1 : 0;
-    if (healthyInRow >= 3) return;
+    if (healthyInRow >= 8) return;
     await pause(1000);
   }
   throw new Error(`The dev API at ${health} did not become steady within ${timeoutMs} ms`);

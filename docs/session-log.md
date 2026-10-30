@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 6 (continued): Phase 10 (Attendance) built + committed
+
+### Hand-over 10 (A–H)
+- **A Built:** kiosk sites showing a rotating, HMAC-signed QR (new every 30 s), one-tap scan page, web check-in (company setting), automatic in/out alternation with a minimum gap, shifts with grace and break, per-day late / early / worked / absent / leave / holiday, comparison with logged time, who-is-in board, correction requests with approval, dashboard card, notifications. See `docs/modules/attendance.md` §9.
+- **B Files:** contracts `attendance.ts`, permissions (+4 attendance), notifications (+2), dashboard (`attendance`); db `schema/attendance.ts` (incl. general `company_settings`), migrations 0027/0028 (incl. `app.attendance_corrections_guard`), isolation list; api `modules/attendance/` (service with `KioskCodes`, controller), dashboard, `test/attendance.spec.ts`; web `routes/attendance/` (attendance, kiosk, scan), router (kiosk outside the frame), app-layout, dashboard, notification bell, dependency `qrcode` 1.5.4 (MIT, already in the lockfile), i18n `attendance` EN/AR; journey Phase 10 steps; `waitForSteadyApi` now waits for 8 healthy seconds.
+- **C Architecture:** kiosk (admin session) → signed code → phone (member session) → check → append-only events → per-day computation from events + shift + employee schedule + approved leave + holidays + time entries.
+- **D Security:** codes bound to company, site and window, constant-time comparison, replay table with unique key, server time only; events insert-only for the app; corrections can't be self-approved (API + trigger); team scope per person; no IP or location stored.
+- **E Tests:** `pnpm check` **356** passed (api 232, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e:journey` 2 passed (one earlier run failed only because the API restarted several times after the pre-build — the wait is now stricter); `pnpm e2e` 6 passed; `pnpm security` clean (accepted esbuild moderate only). Found during testing: an identical Arabic/English label and a weak cross-company test (both fixed).
+- **F Verify:** project-status "How to verify Phase 10".
+- **G Open:** location verification (decided not needed), payroll use of the summary (Phase 11), mobile app (Phase 16).
+- **Repo state:** committed ("Phase 10"); `pnpm dev` running; dev DB migrated to 0028. Not pushed.
+- **H Next:** Phase 11 Payroll — rules as company settings flagged "to be verified by a Kuwaiti lawyer/accountant"; preparation and approval by different people; payslips; no real payroll before verification.
+
+---
+
 ## 2026-10-30 — Session 6 (continued): Phase 9 (Leave management) built + committed
 
 ### Hand-over 9 (A–H)

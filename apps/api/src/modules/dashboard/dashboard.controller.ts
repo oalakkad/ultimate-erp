@@ -21,6 +21,8 @@ import {
 import { and, count, desc, eq, gt, gte, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { kuwaitToday } from '../contracts/contracts.service.js';
+import { AttendanceModule } from '../attendance/attendance.controller.js';
+import { AttendanceService } from '../attendance/attendance.service.js';
 import { LeaveModule } from '../leave/leave.controller.js';
 import { LeaveService } from '../leave/leave.service.js';
 import { formatHours, hundredths } from '../projects/projects.service.js';
@@ -52,6 +54,7 @@ export class DashboardService {
     private readonly database: TenantDatabase,
     private readonly identity: IdentityService,
     private readonly leave: LeaveService,
+    private readonly attendance: AttendanceService,
   ) {}
 
   async summary(access: AccessContext): Promise<DashboardSummary> {
@@ -197,6 +200,9 @@ export class DashboardService {
       if (hasPermission(access.permissions, 'leave.request.create', 'own')) {
         out.leave = await this.leave.dashboard(tx, access);
       }
+      if (hasPermission(access.permissions, 'attendance.read', 'team')) {
+        out.attendance = await this.attendance.dashboard(tx, access);
+      }
       let activity: (typeof auditEvents.$inferSelect)[] | undefined;
       if (may('audit.event.read')) {
         activity = await tx
@@ -248,7 +254,7 @@ export class DashboardController {
 }
 
 @Module({
-  imports: [AccessModule, IdentityModule, LeaveModule],
+  imports: [AccessModule, IdentityModule, LeaveModule, AttendanceModule],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

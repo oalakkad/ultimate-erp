@@ -12,6 +12,7 @@ import {
   ListChecks,
   Clock,
   Plane,
+  Fingerprint,
   ClipboardCheck,
   AlarmClock,
   Circle,
@@ -65,7 +66,7 @@ export function DashboardPage() {
       />
     );
   } else {
-    const { setup, team, clients, contracts, projects, tasks, time, leave, activity } =
+    const { setup, team, clients, contracts, projects, tasks, time, leave, attendance, activity } =
       summary.data;
     const steps = setup
       ? [
@@ -103,6 +104,35 @@ export function DashboardPage() {
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {attendance && (
+            <Card
+              title={t('ui.dashboard.attendance')}
+              action={
+                <Link
+                  to="/attendance"
+                  className="text-[13px] font-semibold text-plum hover:underline"
+                >
+                  {t('ui.shell.attendance')}
+                </Link>
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Tile
+                  tone="mint"
+                  label={t('ui.dashboard.inNow')}
+                  value={formatNumber(locale, attendance.inNow)}
+                  icon={<Fingerprint />}
+                />
+                <Tile
+                  tone="blush"
+                  label={t('ui.dashboard.lateToday')}
+                  value={formatNumber(locale, attendance.lateToday)}
+                  icon={<Fingerprint />}
+                />
+              </div>
             </Card>
           )}
 

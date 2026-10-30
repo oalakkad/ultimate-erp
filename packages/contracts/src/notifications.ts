@@ -19,6 +19,8 @@ export const NOTIFICATION_TYPES = [
   'leave.approved',
   'leave.rejected',
   'leave.cancelled',
+  'attendance.correction_requested',
+  'attendance.correction_decided',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

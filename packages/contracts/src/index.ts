@@ -15,3 +15,4 @@ export * from './tasks.js';
 export * from './time.js';
 export * from './people.js';
 export * from './leave.js';
+export * from './attendance.js';

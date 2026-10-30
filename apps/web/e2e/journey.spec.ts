@@ -541,6 +541,48 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(page.getByText(t('ui.leave.verifyNote'))).toBeVisible();
       await expectAccessible(page, 'leave policies');
 
+      // --- Phase 10: the Owner sets up a kiosk; the colleague scans its code and is checked in ---
+      await page.getByRole('link', { name: t('ui.shell.attendance') }).click();
+      await page.getByRole('tab', { name: t('ui.attendance.tabs.setup') }).click();
+      await page.getByLabel(t('ui.attendance.siteNameEn')).fill('Head office');
+      await page.getByLabel(t('ui.attendance.siteNameAr')).fill('المكتب الرئيسي');
+      await page.getByRole('button', { name: t('ui.attendance.addSite') }).click();
+      const kioskLink = page.getByRole('link', { name: t('ui.attendance.openKiosk') });
+      await expect(kioskLink).toBeVisible();
+      await expectAccessible(page, 'attendance setup');
+      const kioskPath = (await kioskLink.getAttribute('href')) ?? '';
+      const kiosk = await page.context().newPage();
+      await kiosk.goto(`http://${slug}.localhost:5173${kioskPath}`);
+      await expect(kiosk.getByRole('img', { name: t('ui.attendance.qrLabel') })).toBeVisible();
+      await expectAccessible(kiosk, 'attendance kiosk');
+      // What the phone camera would read from the QR: the scan link with the current code.
+      const siteId = kioskPath.split('/').pop() ?? '';
+      const code = await kiosk.evaluate(async (id) => {
+        const res = await fetch(`/api/v1/attendance/sites/${id}/code`, { credentials: 'include' });
+        return ((await res.json()) as { code: string }).code;
+      }, siteId);
+      await kiosk.close();
+
+      await guest.goto(
+        `http://${slug}.localhost:5173/attendance/scan?code=${encodeURIComponent(code)}`,
+      );
+      await expectAccessible(guest, 'attendance scan');
+      await guest.getByRole('button', { name: t('ui.attendance.confirmScan') }).click();
+      await expect(guest.getByRole('status').filter({ hasText: /\d/ })).toBeVisible();
+      await guest.getByRole('link', { name: t('ui.attendance.myAttendance') }).click();
+      await expect(guest.getByText(t('ui.attendance.method.qr'), { exact: false })).toBeVisible();
+      await expectAccessible(guest, 'my attendance');
+
+      await page.reload();
+      await page.getByRole('tab', { name: t('ui.attendance.tabs.today') }).click();
+      await expect(
+        page
+          .getByRole('listitem')
+          .filter({ hasText: invitee.name })
+          .getByText(t('ui.attendance.state.in'), { exact: true }),
+      ).toBeVisible();
+      await expectAccessible(page, 'attendance today');
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');
