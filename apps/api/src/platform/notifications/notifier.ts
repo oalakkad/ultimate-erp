@@ -17,6 +17,8 @@ export interface NotificationRequest {
   actor: { userId: string; membershipId?: string | undefined };
 }
 
+export type SystemNotificationRequest = Omit<NotificationRequest, 'actor'>;
+
 /**
  * The one way any module notifies people (brief Module L; docs/modules/platform-jobs.md §3).
  * Runs in the caller's transaction, so a notification exists only if the change committed.
@@ -27,8 +29,30 @@ export class Notifier {
   constructor(private readonly audit: AuditLog) {}
 
   async notify(tx: TenantTransaction, req: Request, request: NotificationRequest): Promise<void> {
+    const sent = await this.insert(tx, request);
+    if (sent === 0) return;
+    await this.audit.record(tx, req, {
+      tenantId: request.tenantId,
+      action: 'notifications.notification.sent',
+      actor: request.actor,
+      details: { type: request.type, recipients: sent },
+    });
+  }
+
+  /** Same, for a background job: audited as the system with the job ID. */
+  async notifySystem(tx: TenantTransaction, jobId: string, request: SystemNotificationRequest) {
+    const sent = await this.insert(tx, request);
+    if (sent === 0) return;
+    await this.audit.recordSystem(tx, jobId, {
+      tenantId: request.tenantId,
+      action: 'notifications.notification.sent',
+      details: { type: request.type, recipients: sent },
+    });
+  }
+
+  private async insert(tx: TenantTransaction, request: SystemNotificationRequest): Promise<number> {
     const recipients = [...new Set(request.recipients)];
-    if (recipients.length === 0) return;
+    if (recipients.length === 0) return 0;
     if (recipients.length > NOTIFICATION_RECIPIENT_LIMIT) {
       // A bug, not a user error: refuse rather than flood a company.
       throw new Error(
@@ -44,12 +68,7 @@ export class Notifier {
         link: request.link ?? null,
       })),
     );
-    await this.audit.record(tx, req, {
-      tenantId: request.tenantId,
-      action: 'notifications.notification.sent',
-      actor: request.actor,
-      details: { type: request.type, recipients: recipients.length },
-    });
+    return recipients.length;
   }
 }
 

@@ -42,6 +42,10 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | clients.client.update | company | company | company | — | — | — |
 | clients.client.archive | company | company | — | — | — | — |
 | clients.client.export | company | company | — | — | — | — |
+| contracts.contract.read | company | company | company | project | project | — |
+| contracts.contract.manage | company | company | company | — | — | — |
+| contracts.contract.approve | company | company | — | — | — | — |
+| contracts.template.manage | company | company | — | — | — | — |
 | projects.project.create | company | company | company | — | — | — |
 | projects.budget.update | company | company | project | — | — | — |
 | projects.budget.override | company | company* | — | — | — | — |

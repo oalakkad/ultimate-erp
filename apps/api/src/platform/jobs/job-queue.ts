@@ -40,7 +40,7 @@ export class JobQueue implements OnApplicationShutdown {
       migrate: false,
       createSchema: false,
       supervise: role === 'worker',
-      schedule: false,
+      schedule: role === 'worker',
     });
     this.boss.on('error', (err) => {
       this.logger.error({ err }, 'Job queue error');
@@ -73,6 +73,13 @@ export class JobQueue implements OnApplicationShutdown {
         throw err;
       }
     });
+  }
+
+  /** Worker only: runs `name` on a cron schedule in the given time zone (idempotent). */
+  async schedule(name: JobName, cron: string, tz: string): Promise<void> {
+    if (this.role !== 'worker') throw new Error('Only the worker process schedules jobs');
+    await this.start();
+    await this.boss.schedule(name, cron, {}, { tz });
   }
 
   private start(): Promise<void> {

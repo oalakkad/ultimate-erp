@@ -9,3 +9,4 @@ export * from './notifications.js';
 export * from './files.js';
 export * from './dashboard.js';
 export * from './clients.js';
+export * from './agreements.js';

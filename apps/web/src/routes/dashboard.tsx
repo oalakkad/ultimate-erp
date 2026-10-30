@@ -3,7 +3,17 @@ import { Link } from '@tanstack/react-router';
 import { type ActivityItem, dashboardSummarySchema } from '@ultimate-erp/contracts';
 import { formatDate, formatNumber } from '@ultimate-erp/i18n';
 import { Card, ErrorState, LoadingState, Meter, Tile } from '@ultimate-erp/ui';
-import { Briefcase, CircleCheck, Circle, MailPlus, Sparkles, UserRound, Users } from 'lucide-react';
+import {
+  Briefcase,
+  CalendarClock,
+  CircleCheck,
+  FileSignature,
+  Circle,
+  MailPlus,
+  Sparkles,
+  UserRound,
+  Users,
+} from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useI18n } from '../app/i18n.js';
 import { AppPageHeader } from '../components/page-header.js';
@@ -48,7 +58,7 @@ export function DashboardPage() {
       />
     );
   } else {
-    const { setup, team, clients, activity } = summary.data;
+    const { setup, team, clients, contracts, activity } = summary.data;
     const steps = setup
       ? [
           { label: t('ui.dashboard.stepCompany'), done: true },
@@ -85,6 +95,41 @@ export function DashboardPage() {
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {contracts && (
+            <Card
+              title={t('ui.dashboard.contracts')}
+              action={
+                <Link
+                  to="/contracts"
+                  className="text-[13px] font-semibold text-plum hover:underline"
+                >
+                  {t('ui.contracts.title')}
+                </Link>
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Tile
+                  tone="sky"
+                  label={t('ui.dashboard.activeContracts')}
+                  value={formatNumber(locale, contracts.active)}
+                  icon={<FileSignature />}
+                />
+                <Link
+                  to="/contracts"
+                  search={{ expiring: '1' }}
+                  className="rounded-tile focus-visible:outline-2"
+                >
+                  <Tile
+                    tone="butter"
+                    label={t('ui.dashboard.expiringContracts')}
+                    value={formatNumber(locale, contracts.expiringSoon)}
+                    icon={<CalendarClock />}
+                  />
+                </Link>
+              </div>
             </Card>
           )}
 

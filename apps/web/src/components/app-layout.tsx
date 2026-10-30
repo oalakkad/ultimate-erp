@@ -25,6 +25,7 @@ import {
 import {
   Briefcase,
   Building2,
+  FileSignature,
   ChevronsUpDown,
   LayoutGrid,
   LogOut,
@@ -80,6 +81,7 @@ export function AppLayout() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const canReadMembers = can(access.data, 'access.members.read');
   const canReadClients = can(access.data, 'clients.client.read');
+  const canReadContracts = can(access.data, 'contracts.contract.read');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -155,6 +157,26 @@ export function AppLayout() {
         label: t('ui.shell.members'),
         run: () => {
           go('/members');
+        },
+      });
+    }
+    if (canReadContracts) {
+      list.push({
+        id: 'page:contracts',
+        group: 'pages',
+        label: t('ui.shell.contracts'),
+        run: () => {
+          go('/contracts');
+        },
+      });
+    }
+    if (can(access.data, 'contracts.contract.manage')) {
+      list.push({
+        id: 'action:new-contract',
+        group: 'actions',
+        label: t('ui.contracts.new'),
+        run: () => {
+          go('/contracts/new');
         },
       });
     }
@@ -262,6 +284,7 @@ export function AppLayout() {
     locale,
     canReadMembers,
     canReadClients,
+    canReadContracts,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -347,6 +370,14 @@ export function AppLayout() {
           icon={<Briefcase aria-hidden />}
           label={t('ui.shell.clients')}
           current={path.startsWith('/clients')}
+        />
+      )}
+      {canReadContracts && (
+        <NavItem
+          {...link('/contracts')}
+          icon={<FileSignature aria-hidden />}
+          label={t('ui.shell.contracts')}
+          current={path.startsWith('/contracts')}
         />
       )}
       {canReadMembers && (

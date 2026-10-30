@@ -280,6 +280,86 @@ for (const locale of ['en', 'ar'] as const) {
       ).toBeVisible();
       await expectAccessible(page, 'duplicate warning');
 
+      // --- Phase 4: contracts — template, Manager drafts, Owner approves, signed, active, print ----
+      await page.getByRole('link', { name: t('ui.shell.contracts') }).click();
+      await expect(page.getByText(t('ui.contracts.empty'))).toBeVisible();
+      await expectAccessible(page, 'contracts (empty)');
+      await page.getByRole('link', { name: t('ui.contracts.templates') }).click();
+      await page.getByRole('button', { name: t('ui.contracts.newTemplate') }).click();
+      const tplDialog = page.getByRole('dialog');
+      await tplDialog.getByLabel(t('ui.contracts.templateName')).fill('Annual audit');
+      await tplDialog
+        .getByLabel(t('ui.contracts.textEn'))
+        .fill('Engagement letter for {{client.name}}, ref {{document.number}}.');
+      await tplDialog
+        .getByLabel(t('ui.contracts.textAr'))
+        .fill('خطاب تكليف إلى {{client.name}}، المرجع {{document.number}}.');
+      await expectAccessible(page, 'template dialog');
+      await tplDialog.getByRole('button', { name: t('ui.contracts.save') }).click();
+      await expect(page.getByText('Annual audit')).toBeVisible();
+
+      // The colleague becomes a Manager (they prepare documents; the Owner approves).
+      await page.getByRole('link', { name: t('ui.shell.members') }).click();
+      await page
+        .getByRole('row', { name: new RegExp(invitee.email) })
+        .getByRole('button', { name: t('ui.members.changeRoles') })
+        .click();
+      const rolesDialog = page.getByRole('dialog');
+      await rolesDialog.getByRole('checkbox', { name: t('roles.employee') }).click();
+      await rolesDialog.getByRole('checkbox', { name: t('roles.manager') }).click();
+      await rolesDialog.getByRole('button', { name: t('ui.members.saveRoles') }).click();
+      await expect(page.getByText(t('ui.members.rolesSaved'))).toBeVisible();
+
+      await guest.reload();
+      await guest.getByRole('link', { name: t('ui.shell.contracts') }).click();
+      await guest.getByRole('link', { name: t('ui.contracts.new') }).click();
+      await guest.getByLabel(t('ui.contracts.fields.client')).click();
+      await guest.getByRole('option', { name: new RegExp(clientName) }).click();
+      await guest.getByLabel(t('ui.contracts.fields.template')).click();
+      await guest.getByRole('option', { name: 'Annual audit' }).click();
+      await guest.getByLabel(t('ui.contracts.fields.titleEn')).fill('Audit FY2026');
+      await guest.getByLabel(t('ui.contracts.fields.titleAr')).fill('تدقيق السنة المالية 2026');
+      await guest.getByLabel(t('ui.contracts.fields.valueAmount')).fill('12500.500');
+      await expectAccessible(guest, 'new contract');
+      await guest.getByRole('button', { name: t('ui.contracts.create') }).click();
+      const letterTitle = locale === 'ar' ? 'تدقيق السنة المالية 2026' : 'Audit FY2026';
+      await expect(guest.getByRole('heading', { name: letterTitle })).toBeVisible();
+      await expect(
+        guest.getByText(`Engagement letter for ${clientEn}, ref EL-0001.`),
+      ).toBeAttached();
+      await expectAccessible(guest, 'contract (draft)');
+      await guest.getByRole('button', { name: t('ui.contracts.actions.submit') }).click();
+      await expect(guest.getByText(t('ui.contracts.done.submit'), { exact: true })).toBeVisible();
+
+      // The Owner is notified, approves, records sending, the signed copy, and activates.
+      await page.goto(`http://${slug}.localhost:5173/contracts`);
+      await page.getByRole('link', { name: letterTitle }).click();
+      await page.getByRole('button', { name: t('ui.contracts.actions.approve') }).click();
+      await expect(page.getByText(t('ui.contracts.done.approve'), { exact: true })).toBeVisible();
+      await page.getByRole('button', { name: t('ui.contracts.actions.send') }).click();
+      await expect(page.getByText(t('ui.contracts.done.send'), { exact: true })).toBeVisible();
+      await page.getByRole('button', { name: t('ui.contracts.actions.sign') }).click();
+      const signDialog = page.getByRole('dialog');
+      await signDialog.locator('input[type="file"]').setInputFiles({
+        name: 'signed-letter.pdf',
+        mimeType: 'application/pdf',
+        buffer: Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n'),
+      });
+      await expectAccessible(page, 'record signed copy');
+      await signDialog.getByRole('button', { name: t('ui.contracts.actions.sign') }).click();
+      await expect(page.getByText(t('ui.contracts.done.sign'), { exact: true })).toBeVisible();
+      await page.getByRole('button', { name: t('ui.contracts.actions.activate') }).click();
+      await expect(page.getByText(t('ui.contracts.status.active'), { exact: true })).toBeVisible();
+      await expectAccessible(page, 'contract (active)');
+
+      const printPage = await page.context().newPage();
+      await printPage.goto(page.url().replace(/\/?$/, '/print'));
+      await expect(
+        printPage.getByText(`خطاب تكليف إلى ${clientAr}، المرجع EL-0001.`),
+      ).toBeVisible();
+      await expectAccessible(printPage, 'print view');
+      await printPage.close();
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');

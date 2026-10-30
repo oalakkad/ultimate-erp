@@ -10,6 +10,7 @@ import { errorReference, errorText } from '../../lib/errors.js';
 import { can, useAccess } from '../../lib/session.js';
 import { clientKey } from './keys.js';
 import { STATUS_CHIP } from './list.js';
+import { ClientContractsTab } from '../contracts/client-tab.js';
 import { ActivityTab, CommunicationTab, ContactsTab, DocumentsTab, OverviewTab } from './tabs.js';
 
 /** Client detail with tabs (brief Module B). Tabs for contracts, projects and invoices arrive with those modules. */
@@ -120,6 +121,20 @@ export function ClientDetailPage() {
             label: t('ui.clients.tabs.documents'),
             content: <DocumentsTab clientId={c.id} canUpdate={canUpdate} />,
           },
+          ...(can(access.data, 'contracts.contract.read')
+            ? [
+                {
+                  value: 'contracts',
+                  label: t('ui.contracts.clientTab'),
+                  content: (
+                    <ClientContractsTab
+                      clientId={c.id}
+                      canCreate={can(access.data, 'contracts.contract.manage') && !c.archived}
+                    />
+                  ),
+                },
+              ]
+            : []),
           {
             value: 'activity',
             label: t('ui.clients.tabs.activity'),

@@ -35,6 +35,13 @@ export class TenantDatabase {
     return resolveTenantByHost(this.db, hostname);
   }
 
+  /** IDs of active companies (security-definer function; no business data). For scheduled jobs. */
+  async activeTenantIds(): Promise<string[]> {
+    await this.ensureSafeRole();
+    const result = await this.db.execute<{ id: string }>(sql`select app.active_tenant_ids() as id`);
+    return result.rows.map((r) => r.id);
+  }
+
   /** A new time-ordered ID for a company about to be created (no context exists for it yet). */
   async newTenantId(): Promise<string> {
     await this.ensureSafeRole();

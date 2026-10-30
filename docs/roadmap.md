@@ -8,7 +8,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | 1 | Foundation — split into milestones below | **In progress** — done (1.1–1.5b) |
 | 2 | Executive shell & dashboard (honest empty states until modules exist) | Done 2026-10-29 (2a shell, 2b dashboard) |
 | 3 | Clients / CRM | Done 2026-10-30 |
-| 4 | Contracts & engagement letters (incl. bilingual templates, PDF) | — |
+| 4 | Contracts & engagement letters (incl. bilingual templates, PDF) | Done 2026-10-30 |
 | 5 | Projects / engagements & budgeting | — |
 | 6 | Tasks & hour allocation (concurrency-safe) | — |
 | 7 | Timesheets & time tracking | — |

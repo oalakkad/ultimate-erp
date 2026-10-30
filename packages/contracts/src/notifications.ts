@@ -2,7 +2,15 @@ import { z } from 'zod';
 
 // In-app notifications (docs/modules/platform-jobs.md §5). Each module adds its own types.
 
-export const NOTIFICATION_TYPES = ['access.member_joined', 'access.roles_changed'] as const;
+export const NOTIFICATION_TYPES = [
+  'access.member_joined',
+  'access.roles_changed',
+  'contracts.submitted',
+  'contracts.approved',
+  'contracts.rejected',
+  'contracts.renewal_due',
+  'contracts.expired',
+] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 /** Most recipients one `notify` call may address (protection against accidental mass sends). */

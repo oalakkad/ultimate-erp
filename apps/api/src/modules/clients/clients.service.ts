@@ -44,6 +44,7 @@ import { type Request } from 'express';
 import { type z } from 'zod';
 import { AuditLog } from '../../platform/audit/audit-log.js';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
+import { nextDocumentNumber } from '../../platform/database/numbering.js';
 import { pgErrorCode, UNIQUE_VIOLATION } from '../../platform/database/pg-error.js';
 import { AppError } from '../../platform/errors/app-error.js';
 import { messageFor } from '../../platform/errors/to-error-response.js';
@@ -226,7 +227,7 @@ export class ClientsService {
         if (!input.confirmDuplicate) await this.assertNoSimilarName(tx, nameKey);
         if (input.accountManagerMembershipId)
           await this.assertActiveMember(tx, input.accountManagerMembershipId);
-        const number = await this.nextNumber(tx, access.tenantId);
+        const number = await nextDocumentNumber(tx, access.tenantId, 'client', 'C');
         const [row] = await tx
           .insert(clients)
           .values({
@@ -669,17 +670,6 @@ export class ClientsService {
       accountManager,
       version: row.version,
     };
-  }
-
-  /** Next number C-0001, C-0002 … — row-locked so concurrent creates never collide or skip. */
-  private async nextNumber(tx: TenantTransaction, tenantId: string): Promise<string> {
-    const result = await tx.execute<{ value: string }>(sql`
-      insert into number_sequences (tenant_id, name, next_value) values (${tenantId}, 'client', 2)
-      on conflict (tenant_id, name) do update set next_value = number_sequences.next_value + 1
-      returning next_value - 1 as value`);
-    const value = Number(result.rows[0]?.value);
-    if (!Number.isInteger(value) || value < 1) throw new Error('client number sequence failed');
-    return `C-${String(value).padStart(4, '0')}`;
   }
 
   private async assertNoSimilarName(tx: TenantTransaction, nameKey: string) {

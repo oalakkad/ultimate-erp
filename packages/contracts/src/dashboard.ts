@@ -15,6 +15,9 @@ export const ACTIVITY_ACTIONS = [
   'files.file.infected',
   'clients.client.created',
   'clients.client.archived',
+  'contracts.contract.created',
+  'contracts.contract.approved',
+  'contracts.contract.signed',
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 
@@ -47,6 +50,11 @@ export const dashboardSummarySchema = z
     /** Clients (people who can read clients). */
     clients: z
       .object({ active: z.number().int().min(0), newThisMonth: z.number().int().min(0) })
+      .strict()
+      .optional(),
+    /** Contracts (people who can read contracts): active, and ending within 60 days. */
+    contracts: z
+      .object({ active: z.number().int().min(0), expiringSoon: z.number().int().min(0) })
       .strict()
       .optional(),
     /** Latest business events (people who can read the audit log). */

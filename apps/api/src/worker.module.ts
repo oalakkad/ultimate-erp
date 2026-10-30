@@ -1,6 +1,8 @@
 import { type DynamicModule, Injectable, Module } from '@nestjs/common';
 import { JOB_QUEUES } from '@ultimate-erp/db';
+import { ContractsDailyHandler } from './modules/contracts/contracts.service.js';
 import { FileScanHandler, type FileScanJob } from './modules/files/files.service.js';
+import { NotifierModule } from './platform/notifications/notifier.js';
 import { AuditModule } from './platform/audit/audit.module.js';
 import { type AppConfig } from './platform/config/config.js';
 import { ConfigModule } from './platform/config/config.module.js';
@@ -20,6 +22,7 @@ export class JobHandlers {
     private readonly jobs: JobQueue,
     private readonly email: EmailDeliveryHandler,
     private readonly fileScan: FileScanHandler,
+    private readonly contractsDaily: ContractsDailyHandler,
   ) {}
 
   async start(): Promise<void> {
@@ -27,6 +30,11 @@ export class JobHandlers {
     await this.jobs.work<FileScanJob>('file.scan', (job) =>
       this.fileScan.handle(job, job.retryCount >= JOB_QUEUES['file.scan'].retryLimit),
     );
+    await this.jobs.work('contracts.daily', async (job) => {
+      await this.contractsDaily.handle(job);
+    });
+    // Every day at 08:00 Kuwait time (renewal reminders, expiry).
+    await this.jobs.schedule('contracts.daily', '0 8 * * *', 'Asia/Kuwait');
   }
 }
 
@@ -43,8 +51,9 @@ export class WorkerModule {
         JobsModule.forRoot('worker'),
         MailModule,
         AuditModule,
+        NotifierModule,
       ],
-      providers: [JobHandlers, FileScanHandler, ObjectStorage, VirusScanner],
+      providers: [JobHandlers, FileScanHandler, ContractsDailyHandler, ObjectStorage, VirusScanner],
     };
   }
 }

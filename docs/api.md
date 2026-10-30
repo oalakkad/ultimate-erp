@@ -134,6 +134,12 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET/POST | `/api/v1/clients/:id/interactions` | read / `.update` | Communication history (append-only) | 3 |
 | GET/POST/DELETE | `/api/v1/clients/:id/documents[/:fileId]`, `POST …/:fileId/download` | read / `.update` | Attach my uploaded file, list, detach, 5-minute download of clean files | 3 |
 | GET | `/api/v1/clients/:id/activity` | read | Timeline (action codes, actor names, changed field names) | 3 |
+| GET/POST/PATCH | `/api/v1/contract-templates[/:id]` | read / `contracts.template.manage` | Bilingual templates with `{{placeholders}}` | 4 |
+| GET/POST | `/api/v1/contracts` | `contracts.contract.read` / `.manage` | Register (search, status, kind, clientId, expiringWithinDays, cursor) / create from template or blank (CT-/EL- numbers) | 4 |
+| GET/PATCH | `/api/v1/contracts/:id` | read / `.manage` | One document with `actions` I may take / edit terms (draft only, `version`) | 4 |
+| GET/POST | `/api/v1/contracts/:id/versions` | read / `.manage` | Text history / new version (draft only) | 4 |
+| POST | `/api/v1/contracts/:id/{submit,approve,reject,send,sign,activate,terminate}` | per action (approve/reject: `.approve`, not the submitter) | State machine (docs/modules/contracts.md §4); invalid ⇒ 409 `invalid_transition` | 4 |
+| POST | `/api/v1/contracts/:id/signed-copy/download` | read | 5-minute link to the clean signed copy | 4 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
 | GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |
 | POST | `/api/v1/notifications/:id/read` | Member | Mark one of mine read (anyone else's ⇒ 404) | 1.5a |

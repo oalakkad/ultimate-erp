@@ -10,6 +10,11 @@ import { ClientDetailPage } from '../routes/clients/detail.js';
 import { ClientsPage } from '../routes/clients/list.js';
 import { NewClientPage } from '../routes/clients/new.js';
 import { CompaniesPage } from '../routes/companies.js';
+import { ContractDetailPage } from '../routes/contracts/detail.js';
+import { ContractsPage } from '../routes/contracts/list.js';
+import { NewContractPage } from '../routes/contracts/new.js';
+import { ContractPrintPage } from '../routes/contracts/print.js';
+import { ContractTemplatesPage } from '../routes/contracts/templates.js';
 import { DashboardPage } from '../routes/dashboard.js';
 import { GalleryPage } from '../routes/gallery.js';
 import { HandoffPage } from '../routes/handoff.js';
@@ -128,6 +133,34 @@ const clientRoute = createRoute({
   path: '/clients/$clientId',
   component: ClientDetailPage,
 });
+const contractsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/contracts',
+  component: ContractsPage,
+  validateSearch: searchOf('expiring'),
+});
+const newContractRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/contracts/new',
+  component: NewContractPage,
+  validateSearch: searchOf('clientId'),
+});
+const contractTemplatesRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/contracts/templates',
+  component: ContractTemplatesPage,
+});
+const contractRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/contracts/$contractId',
+  component: ContractDetailPage,
+});
+/** Print view: outside the app frame so it prints cleanly. */
+const contractPrintRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/contracts/$contractId/print',
+  component: ContractPrintPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -146,12 +179,17 @@ export const router = createRouter({
     handoffRoute,
     invitationRoute,
     galleryRoute,
+    contractPrintRoute,
     appRoute.addChildren([
       dashboardRoute,
       membersRoute,
       clientsRoute,
       newClientRoute,
       clientRoute,
+      contractsRoute,
+      newContractRoute,
+      contractTemplatesRoute,
+      contractRoute,
       accountRoute,
     ]),
   ]),

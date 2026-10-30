@@ -7,9 +7,10 @@ import {
   hasPermission,
   type Permission,
 } from '@ultimate-erp/contracts';
-import { auditEvents, clients, invitations, memberships } from '@ultimate-erp/db';
+import { auditEvents, clients, contracts, invitations, memberships } from '@ultimate-erp/db';
 import { and, count, desc, eq, gt, gte, inArray, isNull } from 'drizzle-orm';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
+import { kuwaitToday } from '../contracts/contracts.service.js';
 import { NoStoreInterceptor } from '../../platform/http/no-store.interceptor.js';
 import { ApiContract } from '../../platform/openapi/api-contract.js';
 import { type AccessContext, CurrentAccess } from '../access/access-context.js';
@@ -83,6 +84,22 @@ export class DashboardService {
             and(gte(clients.createdAt, startOfMonthInKuwait(now)), isNull(clients.archivedAt)),
           );
         out.clients = { active: active?.n ?? 0, newThisMonth: fresh?.n ?? 0 };
+      }
+      if (may('contracts.contract.read')) {
+        const active = await tx
+          .select({ endDate: contracts.endDate })
+          .from(contracts)
+          .where(eq(contracts.status, 'active'));
+        const today = kuwaitToday(now);
+        const limit = new Date(Date.parse(`${today}T00:00:00Z`) + 60 * 86_400_000)
+          .toISOString()
+          .slice(0, 10);
+        out.contracts = {
+          active: active.length,
+          expiringSoon: active.filter(
+            (c) => c.endDate !== null && c.endDate >= today && c.endDate <= limit,
+          ).length,
+        };
       }
       let activity: (typeof auditEvents.$inferSelect)[] | undefined;
       if (may('audit.event.read')) {

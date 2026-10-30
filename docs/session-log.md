@@ -6,6 +6,20 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 5 (continued): Phase 4 (Contracts & engagement letters) built + committed
+
+### Hand-over 4 (A–H)
+- **A Built:** see `docs/modules/contracts.md` §10.
+- **B Files:** contracts `agreements.ts`, permissions (+4), notifications (+5 types), dashboard; db `schema/contracts.ts`, migrations 0015/0016, `jobs.ts` (`contracts.daily`); api `modules/contracts/`, `platform/database/numbering.ts`, Notifier `notifySystem`, `TenantDatabase.activeTenantIds`, `JobQueue.schedule`, worker registration, dashboard section, `test/contracts.spec.ts`; web `routes/contracts/` (list, new, detail, print, templates, client-tab, shared), router, nav, palette, client tab, dashboard card, notification texts; ui Dialog description type.
+- **C Architecture:** client → contracts (composite FK); one state machine (`TRANSITIONS`) drives both the API checks and the `actions` the UI shows; the daily job iterates companies by ID and works inside each with RLS.
+- **D Security:** separation of duties in API + DB; transitions re-check permission + source state server-side; signed copy must be my own clean upload; documents never deleted; print view uses the same authorised API; "Signed" is never presented as an e-signature.
+- **E Tests:** `pnpm check` **308** passed; journey EN + AR 2 passed; gallery 6; `pnpm security` clean.
+- **F Verify:** project-status "How to verify Phase 4".
+- **G Open:** server-side PDF (Phase 12 with invoices); e-signature provider (integration, later); projects/invoices links come with Phases 5/12. Dev processes: same orphan note as Phase 3 (a fresh `pnpm --filter @ultimate-erp/api dev` serves :3000 next to the old vite on :5173).
+- **H Next:** Phase 5 Projects / engagements & budgeting.
+
+---
+
 ## 2026-10-30 — Session 5 (continued): Phase 3 (Clients / CRM) built + committed
 
 ### Hand-over 3 (A–H)

@@ -19,7 +19,7 @@ interface OverlayProps {
   onOpenChange?: (open: boolean) => void;
   trigger?: ReactNode;
   title: string;
-  description?: string;
+  description?: string | undefined;
   /** Accessible name of the close button (from the catalogs). */
   closeLabel: string;
   children?: ReactNode;

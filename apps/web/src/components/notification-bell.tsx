@@ -34,6 +34,17 @@ function useNotificationText() {
           .join(' · ');
         return t('ui.notifications.types.access_roles_changed', { roles });
       }
+      case 'contracts.submitted':
+      case 'contracts.approved':
+      case 'contracts.rejected':
+      case 'contracts.renewal_due':
+      case 'contracts.expired': {
+        const key = item.type.replace('.', '_') as 'contracts_expired';
+        return t(`ui.notifications.types.${key}`, {
+          number: item.params.number ?? '',
+          endDate: item.params.endDate ?? '',
+        });
+      }
     }
   };
 }
