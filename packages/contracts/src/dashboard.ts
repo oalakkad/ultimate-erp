@@ -81,6 +81,14 @@ export const dashboardSummarySchema = z
       })
       .strict()
       .optional(),
+    /** My hours this week, and entries waiting for my approval (approvers only). */
+    time: z
+      .object({
+        thisWeekHours: z.string(),
+        waitingForMe: z.number().int().min(0).nullable(),
+      })
+      .strict()
+      .optional(),
     /** Latest business events (people who can read the audit log). */
     activity: z
       .object({ items: z.array(activityItemSchema) })

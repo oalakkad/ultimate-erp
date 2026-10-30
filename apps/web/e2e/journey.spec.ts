@@ -1,7 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
 import { type Browser, expect, type Page, test } from '@playwright/test';
 import { type Locale, type MessageKey, type MessageParams, translate } from '@ultimate-erp/i18n';
-import { deleteEmailsTo, linkFromEmail, resetDevRateLimits, totpNow } from './support/dev-stack.js';
+import {
+  deleteEmailsTo,
+  linkFromEmail,
+  resetDevRateLimits,
+  totpNow,
+  waitForSteadyApi,
+} from './support/dev-stack.js';
 
 // Milestone 1.4b acceptance (docs/modules/web-ui.md §8): the whole first-day journey in each
 // language against the real dev stack (`pnpm dev`): sign up → confirm email → sign in → create
@@ -37,7 +43,11 @@ async function newPage(browser: Browser, locale: Locale) {
   return context.newPage();
 }
 
-test.beforeAll(resetDevRateLimits);
+test.beforeAll(async () => {
+  test.setTimeout(90_000);
+  await waitForSteadyApi();
+  await resetDevRateLimits();
+});
 
 for (const locale of ['en', 'ar'] as const) {
   test(`first-day journey — ${locale}`, async ({ browser }) => {
@@ -440,6 +450,29 @@ for (const locale of ['en', 'ar'] as const) {
           .getByText('Inventory count'),
       ).toBeVisible();
       await expectAccessible(page, 'task board');
+
+      // --- Phase 7: the Owner logs 3.5 h on the task and submits; the Manager approves ----------
+      await page.getByRole('link', { name: t('ui.shell.time') }).click();
+      await expect(page.getByText(t('ui.time.noEntries'))).toBeVisible();
+      await expectAccessible(page, 'my time (empty)');
+      const logCard = page.locator('form').filter({ hasText: t('ui.time.add') });
+      await logCard.getByLabel(t('ui.time.task')).click();
+      await page.getByRole('option', { name: /Inventory count/ }).click();
+      await logCard.getByLabel(t('ui.time.hours')).fill('3.5');
+      await logCard.getByLabel(t('ui.time.description')).fill('Warehouse 1');
+      await logCard.getByRole('button', { name: t('ui.time.add') }).click();
+      await expect(page.getByText(/Warehouse 1/)).toBeVisible();
+      await expectAccessible(page, 'my time (draft)');
+      await page.getByRole('button', { name: t('ui.time.submitWeek') }).click();
+      await expect(page.getByText(t('ui.time.status.submitted')).first()).toBeVisible();
+
+      await guest.goto(`http://${slug}.localhost:5173/time/approvals`);
+      await guest.getByRole('checkbox', { name: t('ui.time.selectAll') }).click();
+      await expectAccessible(guest, 'time approvals');
+      await guest.getByRole('button', { name: t('ui.time.approveSelected', { count: 1 }) }).click();
+      await expect(guest.getByText(t('ui.time.nothingToApprove'))).toBeVisible();
+      await page.reload();
+      await expect(page.getByText(t('ui.time.status.approved')).first()).toBeVisible();
 
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();

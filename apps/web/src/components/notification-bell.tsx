@@ -45,6 +45,15 @@ function useNotificationText() {
           endDate: item.params.endDate ?? '',
         });
       }
+      case 'time.submitted':
+      case 'time.approved':
+      case 'time.rejected': {
+        const key = item.type.replace('.', '_') as 'time_submitted';
+        return t(`ui.notifications.types.${key}`, {
+          name: item.params.name ?? '',
+          week: item.params.week ?? '',
+        });
+      }
       case 'tasks.assigned':
       case 'tasks.overdue': {
         const key = item.type.replace('.', '_') as 'tasks_assigned';

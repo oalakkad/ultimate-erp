@@ -191,6 +191,9 @@ describe('every tenant-owned table is protected (catalog guard for future tables
       'task_documents',
       'tasks',
       'tenant_domains',
+      'time_entries',
+      'time_timers',
+      'timesheets',
     ]);
     for (const row of rows) {
       expect(row, row.table).toMatchObject({ rls: true, forced: true, composite_key: true });

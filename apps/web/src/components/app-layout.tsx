@@ -28,6 +28,8 @@ import {
   FileSignature,
   FolderKanban,
   ListChecks,
+  Clock,
+  ClipboardCheck,
   ChevronsUpDown,
   LayoutGrid,
   LogOut,
@@ -103,6 +105,8 @@ export function AppLayout() {
   // Team leaders and employees see the projects they work on.
   const canReadProjects = canAny(access.data, 'projects.project.read');
   const canReadTasks = canAny(access.data, 'tasks.task.read');
+  const canLogTime = canAny(access.data, 'time.entry.create');
+  const canApproveTime = canAny(access.data, 'time.timesheet.approve');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -208,6 +212,26 @@ export function AppLayout() {
         label: t('ui.shell.tasks'),
         run: () => {
           go('/tasks');
+        },
+      });
+    }
+    if (canLogTime) {
+      list.push({
+        id: 'page:time',
+        group: 'pages',
+        label: t('ui.shell.time'),
+        run: () => {
+          go('/time');
+        },
+      });
+    }
+    if (canApproveTime) {
+      list.push({
+        id: 'page:time-approvals',
+        group: 'pages',
+        label: t('ui.shell.timeApprovals'),
+        run: () => {
+          go('/time/approvals');
         },
       });
     }
@@ -348,6 +372,8 @@ export function AppLayout() {
     canReadContracts,
     canReadProjects,
     canReadTasks,
+    canLogTime,
+    canApproveTime,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -458,6 +484,22 @@ export function AppLayout() {
           icon={<ListChecks aria-hidden />}
           label={t('ui.shell.tasks')}
           current={path.startsWith('/tasks')}
+        />
+      )}
+      {canLogTime && (
+        <NavItem
+          {...link('/time')}
+          icon={<Clock aria-hidden />}
+          label={t('ui.shell.time')}
+          current={path === '/time'}
+        />
+      )}
+      {canApproveTime && (
+        <NavItem
+          {...link('/time/approvals')}
+          icon={<ClipboardCheck aria-hidden />}
+          label={t('ui.shell.timeApprovals')}
+          current={path === '/time/approvals'}
         />
       )}
       {canReadMembers && (

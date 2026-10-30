@@ -24,6 +24,7 @@ import {
   projects,
   taskAllocations,
   tasks,
+  timeEntries,
   type TenantTransaction,
 } from '@ultimate-erp/db';
 import { and, desc, eq, ilike, inArray, isNull, lt, ne, or, type SQL, sql } from 'drizzle-orm';
@@ -412,7 +413,8 @@ export class ProjectsService {
       const project = await this.readable(tx, access, id);
       const budgeted = hundredths(project.budgetHours);
       const allocated = await this.allocatedHundredths(tx, id);
-      const approved = 0n;
+      const time = await this.timeTotals(tx, id);
+      const approved = time.approved;
       const used = allocated > approved ? allocated : approved;
       const warning =
         budgeted === 0n
@@ -428,12 +430,29 @@ export class ProjectsService {
         budgeted: formatHours(budgeted),
         allocated: formatHours(allocated),
         remaining: formatHours(budgeted - allocated),
-        logged: '0',
+        logged: formatHours(time.logged),
         approved: formatHours(approved),
-        billable: '0',
+        billable: formatHours(time.billable),
         warning,
       };
     });
+  }
+
+  /** Logged (not rejected), approved and approved-billable time on the project (timesheets.md §3). */
+  private async timeTotals(tx: TenantTransaction, projectId: string) {
+    const [row] = await tx
+      .select({
+        logged: sql<string>`coalesce(sum(${timeEntries.hours}) filter (where ${timeEntries.status} <> 'rejected'), 0)::text`,
+        approved: sql<string>`coalesce(sum(${timeEntries.hours}) filter (where ${timeEntries.status} = 'approved'), 0)::text`,
+        billable: sql<string>`coalesce(sum(${timeEntries.hours}) filter (where ${timeEntries.status} = 'approved' and ${timeEntries.billable}), 0)::text`,
+      })
+      .from(timeEntries)
+      .where(eq(timeEntries.projectId, projectId));
+    return {
+      logged: hundredths(row?.logged ?? '0'),
+      approved: hundredths(row?.approved ?? '0'),
+      billable: hundredths(row?.billable ?? '0'),
+    };
   }
 
   /** Hours allocated on the project's tasks that are not cancelled (docs/modules/tasks.md §3). */

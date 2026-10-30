@@ -148,6 +148,20 @@
       "when": 1793358319331,
       "tag": "0020_tasks_security",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793360538778,
+      "tag": "0021_time_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793360540637,
+      "tag": "0022_time_security",
+      "breakpoints": true
     }
   ]
 }

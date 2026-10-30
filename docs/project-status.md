@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) and Phase 6 (Tasks & hour allocation) built and committed 2026-10-30. **Next: Phase 7 (Timesheets & time tracking).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phase 6 (Tasks & hour allocation) and Phase 7 (Timesheets) built and committed 2026-10-30. **Next: Phase 8 (Employee & team management).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -65,6 +65,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Workload shows open allocated hours per person; capacity limits wait for employee records (Phase 8) and will warn, not block.
 - Overdue alert once per task (re-armed by a new due date); team leads get project scope for tasks until teams exist.
 
+## Decisions 2026-10-30 (Phase 7, Claude in nonstop mode — reviewable)
+- Work week Sunday–Saturday (Kuwait); a company setting can change it later.
+- Time is approved per entry by the project's manager (Owner/CEO anywhere); nobody approves their own time (API + database).
+- Only people allocated to a task log time on it; someone with logged time stays on the task.
+- Approved time is locked; approvers can reopen an entry with a reason (audited).
+- Overtime and profitability are not computed until payroll rules and cost rates exist (Phases 11–12).
+
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
 2. **Design pilot** — no firm available yet. Seek feedback from 1–2 audit/GRC practitioners before Phase 5–7.
@@ -117,11 +124,17 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 3 — Clients / CRM** (2026-10-30; spec `modules/clients.md`): clients with bilingual names, numbers, duplicate protection, contacts and authorized representatives, communication history, virus-scanned documents, activity timeline, search/filter/sort/paging, CSV export, archive; dashboard card; palette search. Tests: 300 unit/integration + 8 browser.
 
+- **Phase 7 — Timesheets & time tracking** (2026-10-30; spec `modules/timesheets.md`): time entries on assigned tasks, timer, weekly timesheet, submit, approval by the project manager with send-back and correction, reopen of approved time (audited), duplicate and 24-hour guards, billable/non-billable, summaries, planned vs actual, real project actual/billable hours, dashboard Time card. Tests: 337 unit/integration + 8 browser.
+
 - **Phase 6 — Tasks & hour allocation** (2026-10-30; spec `modules/tasks.md`): tasks with priority, dates, estimate, workflow, dependencies, comments, documents, activity; allocations per person checked against the project budget under a lock (simultaneous requests can't exceed it), Owner override with reason; live budget/workload preview; workload per person; assignment and overdue notifications; list + board; project Tasks tab; dashboard My work. Tests: 329 unit/integration + 8 browser.
 
 - **Phase 5 — Projects & budgeting** (2026-10-30; spec `modules/projects.md`): projects per client with an optional contract of the same client, P- numbering, manager + team, status machine, budget hours/amount with revision history, hours summary with 80 %/100 % warnings, documents, activity, project-scoped access, client tab, dashboard card. Tests: 320 unit/integration + 8 browser.
 
 - **Phase 4 — Contracts & engagement letters** (2026-10-30; spec `modules/contracts.md`): bilingual templates, CT-/EL- numbering, versions, draft → review → approved → sent → signed copy → active → expired/terminated with separation of duties, renewal reminders and expiry (daily 08:00 Kuwait), print view for PDF, client tab, dashboard card. Tests: 308 unit/integration + 8 browser.
+
+## How to verify Phase 7
+1. `pnpm check` → api `213` (others as Phase 6); `pnpm e2e:journey` → `2 passed`.
+2. As someone assigned to a task: My time → choose the task, 3.5 hours → Add entry → Submit week. As that project's manager: the bell shows it; Time approvals → Select all → Approve. The project's Hours card now shows 3.5 approved; the task shows planned vs actual. Try approving your own time → not offered.
 
 ## How to verify Phase 6
 1. `pnpm check` → api `205` (others as Phase 5); `pnpm e2e:journey` → `2 passed`.
@@ -189,4 +202,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 7 (Timesheets & time tracking), built in nonstop mode: spec `docs/modules/timesheets.md` first. See the newest entry in `session-log.md`.
+Phase 8 (Employee & team management), built in nonstop mode: spec `docs/modules/people.md` first. See the newest entry in `session-log.md`.

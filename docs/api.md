@@ -157,6 +157,15 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET/POST | `/api/v1/tasks/:id/comments` | read / work | Append-only comments | 6 |
 | GET/POST/DELETE | `/api/v1/tasks/:id/documents[/:fileId]` (+ `/download`) | read / work | Task documents | 6 |
 | GET | `/api/v1/tasks/:id/activity` | read | Timeline | 6 |
+| GET | `/api/v1/timesheets/mine?week=` | `time.entry.create` (own) | My week (Sunday–Saturday) with entries, day totals, `canSubmit` | 7 |
+| POST | `/api/v1/timesheets/:id/submit` | own | Submit my week; project managers notified | 7 |
+| POST/PATCH/DELETE | `/api/v1/time-entries[/:id]` | own | Log time on a task I'm assigned to (≤ 24 h a day, duplicate guard with `confirmDuplicate`) / correct or delete drafts and rejected entries | 7 |
+| GET | `/api/v1/approvals/time` | `time.timesheet.approve` | Submitted entries I may decide (projects I manage; Owner/CEO all; never mine) | 7 |
+| POST | `/api/v1/time-entries/{approve,reject}` | approve | `{ ids }` / `{ ids, reason }` | 7 |
+| POST | `/api/v1/time-entries/:id/reopen` | approve | Send an approved entry back with a reason (audited) | 7 |
+| GET/POST | `/api/v1/timer`, `/api/v1/timer/stop` | own | My running timer / start on a task / stop → draft entry | 7 |
+| GET | `/api/v1/time/summary?from&to&membershipId` | `time.entry.read` (own; others need company) | Per day, per project, billable share | 7 |
+| GET | `/api/v1/tasks/:id/time` | task read | Allocated vs logged vs approved per person | 7 |
 | GET | `/api/v1/workload?projectId=` | allocation.manage on the project, or company read | Open tasks / hours / overdue per person | 6 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
 | GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |

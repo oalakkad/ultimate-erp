@@ -56,6 +56,7 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | tasks.task.work (move my tasks through the workflow, comment) | company | company | project | project | own | — |
 | tasks.allocation.manage | company | company | project | project | — | — |
 | time.entry.create | own | own | own | own | own | — |
+| time.entry.read | company | company | project | own | own | — |
 | time.timesheet.approve | company | company | project/team | team | — | — |
 | leave.request.approve | company | company | team | team | — | — |
 | payroll.run.prepare | — | company* | — | — | — | — |

@@ -710,12 +710,13 @@ describe('dashboard summary (Phase 2b)', () => {
     expect(after.activity?.items[1]?.actorName).toBe('bob');
   });
 
-  it('shows an Employee only what their role allows (their own tasks only)', async () => {
+  it('shows an Employee only what their role allows (their own tasks and time only)', async () => {
     const { owner, host } = await founder();
     const bob = await person('bob');
     await join(bob, host, owner, 'employee');
     expect(await summary(bob, host)).toEqual({
       tasks: { mineOpen: 0, mineOverdue: 0, companyOverdue: null },
+      time: { thisWeekHours: '0', waitingForMe: null },
     });
   });
 

@@ -10,6 +10,8 @@ import {
   FileSignature,
   FolderKanban,
   ListChecks,
+  Clock,
+  ClipboardCheck,
   AlarmClock,
   Circle,
   Hourglass,
@@ -62,7 +64,7 @@ export function DashboardPage() {
       />
     );
   } else {
-    const { setup, team, clients, contracts, projects, tasks, activity } = summary.data;
+    const { setup, team, clients, contracts, projects, tasks, time, activity } = summary.data;
     const steps = setup
       ? [
           { label: t('ui.dashboard.stepCompany'), done: true },
@@ -99,6 +101,38 @@ export function DashboardPage() {
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {time && (
+            <Card
+              title={t('ui.dashboard.time')}
+              action={
+                <Link to="/time" className="text-[13px] font-semibold text-plum hover:underline">
+                  {t('ui.shell.time')}
+                </Link>
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Tile
+                  tone="mint"
+                  label={t('ui.dashboard.hoursThisWeek')}
+                  value={formatNumber(locale, Number(time.thisWeekHours), {
+                    maximumFractionDigits: 2,
+                  })}
+                  icon={<Clock />}
+                />
+                {time.waitingForMe !== null && (
+                  <Link to="/time/approvals" className="rounded-tile focus-visible:outline-2">
+                    <Tile
+                      tone="lilac"
+                      label={t('ui.dashboard.waitingApproval')}
+                      value={formatNumber(locale, time.waitingForMe)}
+                      icon={<ClipboardCheck />}
+                    />
+                  </Link>
+                )}
+              </div>
             </Card>
           )}
 

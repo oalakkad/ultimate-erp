@@ -76,3 +76,26 @@ export async function totpNow(secret: string): Promise<string> {
   const step = Math.floor(Date.now() / 1000 / 30);
   return createOTP(base32.decode(secret)).hotp(step);
 }
+
+/**
+ * Waits until the dev API answers steadily. `pnpm e2e:journey` rebuilds the shared packages
+ * first, which makes the API's file watcher restart it; starting before that settles fails
+ * at sign-up for no real reason.
+ */
+export async function waitForSteadyApi(timeoutMs = 60_000): Promise<void> {
+  const health = `http://127.0.0.1:${process.env.API_PORT ?? '3000'}/api/v1/health`;
+  const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  const deadline = Date.now() + timeoutMs;
+  let healthyInRow = 0;
+  await pause(2000);
+  while (Date.now() < deadline) {
+    const ok = await fetch(health).then(
+      (r) => r.ok,
+      () => false,
+    );
+    healthyInRow = ok ? healthyInRow + 1 : 0;
+    if (healthyInRow >= 3) return;
+    await pause(1000);
+  }
+  throw new Error(`The dev API at ${health} did not become steady within ${timeoutMs} ms`);
+}

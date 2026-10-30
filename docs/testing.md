@@ -93,6 +93,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 7 | + time API (8) incl. own-time approval blocked in API and database, week rule trigger, timer, duplicate guard; journey: Owner logs and submits time, Manager approves; axe on 3 more screens; journey now waits for a steady dev API | 337 unit/integration (api 213, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |
 | 6 | + tasks API (10) incl. parallel allocations against one budget, override audit, scopes per role, dependencies, overdue job; journey: Manager plans a task for two people with live remaining hours, Owner starts it, comments, board; axe on 5 more screens | 329 unit/integration (api 205, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |
 | 5 | + projects API (12) incl. project scope per role, same-client contract, append-only budget history; journey: Manager creates a project on the letter, revises budget, starts it; Owner sees dashboard card + list; axe on 6 more screens | 320 unit/integration (api 196, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |
 | 4 | + contracts API (8) incl. daily job and SoD; journey: two-person contract flow + print, axe on 7 more screens | 308 unit/integration (api 184, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |

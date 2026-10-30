@@ -35,6 +35,7 @@ import { errorReference, errorText } from '../../lib/errors.js';
 import { DocumentsTab } from '../clients/tabs.js';
 import { dateText } from '../contracts/shared.js';
 import { hoursText } from '../projects/shared.js';
+import { TaskTimeCard } from '../time/task-time.js';
 import { AllocationEditor } from './new.js';
 import {
   AllocationImpact,
@@ -120,6 +121,10 @@ export function TaskDetailPage() {
         <div className="grid content-start gap-4">
           <WorkflowCard task={x} />
           <PeopleCard task={x} />
+          <TaskTimeCard
+            taskId={x.id}
+            canLog={x.actions.includes('comment') && x.status !== 'cancelled'}
+          />
           <DependenciesCard task={x} />
         </div>
       </div>

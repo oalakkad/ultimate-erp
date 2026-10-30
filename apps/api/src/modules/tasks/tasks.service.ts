@@ -25,6 +25,7 @@ import {
   taskDependencies,
   taskDocuments,
   tasks,
+  timeEntries,
   type TenantTransaction,
 } from '@ultimate-erp/db';
 import {
@@ -466,6 +467,19 @@ export class TasksService {
       .filter((a) => !wanted.some((w) => w.membershipId === a.membershipId))
       .map((a) => a.membershipId);
     if (removed.length > 0) {
+      // Someone who logged time on the task stays on it (their time refers to the allocation).
+      const [logged] = await tx
+        .select({ id: timeEntries.id })
+        .from(timeEntries)
+        .where(and(eq(timeEntries.taskId, task.id), inArray(timeEntries.membershipId, removed)))
+        .limit(1);
+      if (logged) {
+        throw conflict(
+          'allocations',
+          'has_time',
+          'Someone you removed has already logged time on this task.',
+        );
+      }
       await tx
         .delete(taskAllocations)
         .where(

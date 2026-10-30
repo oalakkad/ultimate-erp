@@ -22,6 +22,8 @@ import { NewProjectPage } from '../routes/projects/new.js';
 import { TaskDetailPage } from '../routes/tasks/detail.js';
 import { TasksPage } from '../routes/tasks/list.js';
 import { NewTaskPage } from '../routes/tasks/new.js';
+import { TimeApprovalsPage } from '../routes/time/approvals.js';
+import { MyTimePage } from '../routes/time/my-time.js';
 import { GalleryPage } from '../routes/gallery.js';
 import { HandoffPage } from '../routes/handoff.js';
 import { InvitationPage } from '../routes/invitation.js';
@@ -200,6 +202,17 @@ const taskRoute = createRoute({
   path: '/tasks/$taskId',
   component: TaskDetailPage,
 });
+const timeRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/time',
+  component: MyTimePage,
+  validateSearch: searchOf('week', 'taskId'),
+});
+const timeApprovalsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/time/approvals',
+  component: TimeApprovalsPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -235,6 +248,8 @@ export const router = createRouter({
       tasksRoute,
       newTaskRoute,
       taskRoute,
+      timeRoute,
+      timeApprovalsRoute,
       accountRoute,
     ]),
   ]),

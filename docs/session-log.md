@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 6 (continued): Phase 7 (Timesheets & time tracking) built + committed
+
+### Hand-over 7 (A–H)
+- **A Built:** time entries on tasks the person is assigned to, a timer, weekly timesheets (Sunday–Saturday), submit → approval by each project's manager (Owner/CEO anywhere) with send-back and correction, reopen of approved time with a reason, duplicate and 24-hour-a-day guards, billable defaults from the project, period summaries, planned vs actual per task; projects now show real logged / approved / billable hours. Web: My time, Time approvals, task "Planned vs actual", sidebar, palette, dashboard Time card, notifications. See `docs/modules/timesheets.md` §11.
+- **B Files:** contracts `time.ts`, permissions (+`time.entry.read`), notifications (+3), dashboard (`time`); db `schema/time.ts`, migrations 0021/0022 (incl. `app.time_entries_guard` trigger), isolation list; api `modules/time/` (service, controller), projects service (real time totals), tasks service (keep people with logged time), dashboard, `test/time.spec.ts`, access test update; web `routes/time/` (my-time, approvals, task-time), router, app-layout, task detail, dashboard, notification bell; i18n `time` EN/AR; journey Phase 7 steps + `waitForSteadyApi` (fixes a start-up race after the pre-build).
+- **C Architecture:** allocation → time entries (composite FK: only assignees log time) → timesheet of the same person (composite FK) → project totals. Approval is per entry, so one week can go to several project managers.
+- **D Security:** forced RLS on 3 new tables; database trigger keeps entries inside their week, blocks self-decisions and deleting submitted/approved entries; API re-checks approver scope per entry; approved time locked; reopen audited with reason.
+- **E Tests:** `pnpm check` **337** passed (api 213, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e:journey` 2 passed (one earlier failure was the API restarting after the pre-build; fixed with a steady-API wait); `pnpm e2e` 6 passed; `pnpm security` clean (accepted esbuild moderate only). The catalog test caught an untranslated Arabic label (fixed).
+- **F Verify:** project-status "How to verify Phase 7".
+- **G Open:** overtime (Phase 11), profitability (11/12), utilisation vs capacity (8), UI to browse approved entries for reopening (API exists), monthly summary screen.
+- **Repo state:** committed ("Phase 7"); `pnpm dev` running; dev DB migrated to 0022. Not pushed.
+- **H Next:** Phase 8 Employee & team management (employee records with restricted fields, teams, capacity → team scopes and utilisation).
+
+---
+
 ## 2026-10-30 — Session 6 (continued): Phase 6 (Tasks & hour allocation) built + committed
 
 ### Hand-over 6 (A–H)

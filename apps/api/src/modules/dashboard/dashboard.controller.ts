@@ -16,10 +16,13 @@ import {
   projects,
   taskAllocations,
   tasks,
+  timeEntries,
 } from '@ultimate-erp/db';
 import { and, count, desc, eq, gt, gte, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { kuwaitToday } from '../contracts/contracts.service.js';
+import { formatHours, hundredths } from '../projects/projects.service.js';
+import { weekStartOf } from '../time/time.service.js';
 import { NoStoreInterceptor } from '../../platform/http/no-store.interceptor.js';
 import { ApiContract } from '../../platform/openapi/api-contract.js';
 import { type AccessContext, CurrentAccess } from '../access/access-context.js';
@@ -157,6 +160,36 @@ export class DashboardService {
           mineOverdue: mineOverdue?.n ?? 0,
           companyOverdue: companyOverdue ? companyOverdue.n : null,
         };
+      }
+      if (hasPermission(access.permissions, 'time.entry.create', 'own')) {
+        const weekStart = weekStartOf(kuwaitToday(now));
+        const [week] = await tx
+          .select({ total: sql<string>`coalesce(sum(${timeEntries.hours}), 0)::text` })
+          .from(timeEntries)
+          .where(
+            and(
+              eq(timeEntries.membershipId, access.membershipId),
+              gte(timeEntries.workDate, weekStart),
+              ne(timeEntries.status, 'rejected'),
+            ),
+          );
+        let waitingForMe: number | null = null;
+        const approveAll = may('time.timesheet.approve');
+        if (approveAll || hasPermission(access.permissions, 'time.timesheet.approve', 'project')) {
+          const [waiting] = await tx
+            .select({ n: count() })
+            .from(timeEntries)
+            .innerJoin(projects, eq(projects.id, timeEntries.projectId))
+            .where(
+              and(
+                eq(timeEntries.status, 'submitted'),
+                ne(timeEntries.membershipId, access.membershipId),
+                approveAll ? undefined : eq(projects.managerMembershipId, access.membershipId),
+              ),
+            );
+          waitingForMe = waiting?.n ?? 0;
+        }
+        out.time = { thisWeekHours: formatHours(hundredths(week?.total ?? '0')), waitingForMe };
       }
       let activity: (typeof auditEvents.$inferSelect)[] | undefined;
       if (may('audit.event.read')) {
