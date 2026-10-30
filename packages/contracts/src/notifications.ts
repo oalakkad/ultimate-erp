@@ -10,6 +10,8 @@ export const NOTIFICATION_TYPES = [
   'contracts.rejected',
   'contracts.renewal_due',
   'contracts.expired',
+  'tasks.assigned',
+  'tasks.overdue',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

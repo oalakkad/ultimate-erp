@@ -76,8 +76,8 @@ describe('permission evaluation', () => {
 
   it('team does not cover project and vice versa', () => {
     const lead = effectivePermissions(['team_leader']);
-    expect(hasPermission(lead, 'tasks.allocation.manage', 'team')).toBe(true);
-    expect(hasPermission(lead, 'tasks.allocation.manage', 'project')).toBe(false);
+    expect(hasPermission(lead, 'leave.request.approve', 'team')).toBe(true);
+    expect(hasPermission(lead, 'leave.request.approve', 'project')).toBe(false);
   });
 
   it('several roles combine', () => {

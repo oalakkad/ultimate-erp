@@ -45,6 +45,15 @@ function useNotificationText() {
           endDate: item.params.endDate ?? '',
         });
       }
+      case 'tasks.assigned':
+      case 'tasks.overdue': {
+        const key = item.type.replace('.', '_') as 'tasks_assigned';
+        return t(`ui.notifications.types.${key}`, {
+          number: item.params.number ?? '',
+          title: item.params.title ?? '',
+          dueDate: item.params.dueDate ?? '',
+        });
+      }
     }
   };
 }

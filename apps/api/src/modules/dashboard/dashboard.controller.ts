@@ -14,8 +14,10 @@ import {
   invitations,
   memberships,
   projects,
+  taskAllocations,
+  tasks,
 } from '@ultimate-erp/db';
-import { and, count, desc, eq, gt, gte, inArray, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, gt, gte, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { kuwaitToday } from '../contracts/contracts.service.js';
 import { NoStoreInterceptor } from '../../platform/http/no-store.interceptor.js';
@@ -117,11 +119,43 @@ export class DashboardService {
         const limit = new Date(Date.parse(`${today}T00:00:00Z`) + 30 * 86_400_000)
           .toISOString()
           .slice(0, 10);
+        // Open projects whose allocations on non-cancelled tasks exceed the budget.
+        const over = await tx
+          .select({ id: projects.id })
+          .from(projects)
+          .innerJoin(taskAllocations, eq(taskAllocations.projectId, projects.id))
+          .innerJoin(tasks, eq(tasks.id, taskAllocations.taskId))
+          .where(
+            and(
+              inArray(projects.status, ['planned', 'active', 'on_hold']),
+              isNull(projects.archivedAt),
+              ne(tasks.status, 'cancelled'),
+            ),
+          )
+          .groupBy(projects.id, projects.budgetHours)
+          .having(sql`sum(${taskAllocations.hours}) > ${projects.budgetHours}`);
         out.projects = {
+          overBudget: over.length,
           active: active.length,
           endingSoon: active.filter(
             (p) => p.endDate !== null && p.endDate >= today && p.endDate <= limit,
           ).length,
+        };
+      }
+      if (hasPermission(access.permissions, 'tasks.task.read', 'own')) {
+        const today = kuwaitToday(now);
+        const open = inArray(tasks.status, ['backlog', 'ready', 'in_progress', 'in_review']);
+        const overdue = and(open, lt(tasks.dueDate, today));
+        const mine = sql`exists (select 1 from task_allocations ta where ta.tenant_id = ${tasks.tenantId} and ta.task_id = ${tasks.id} and ta.membership_id = ${access.membershipId})`;
+        const [mineOpen] = await tx.select({ n: count() }).from(tasks).where(and(open, mine));
+        const [mineOverdue] = await tx.select({ n: count() }).from(tasks).where(and(overdue, mine));
+        const [companyOverdue] = may('tasks.task.read')
+          ? await tx.select({ n: count() }).from(tasks).where(overdue)
+          : [];
+        out.tasks = {
+          mineOpen: mineOpen?.n ?? 0,
+          mineOverdue: mineOverdue?.n ?? 0,
+          companyOverdue: companyOverdue ? companyOverdue.n : null,
         };
       }
       let activity: (typeof auditEvents.$inferSelect)[] | undefined;

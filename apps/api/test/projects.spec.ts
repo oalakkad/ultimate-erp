@@ -452,7 +452,7 @@ describe('dashboard', () => {
     const summary = dashboardSummarySchema.parse(
       (await f.owner.get('/api/v1/dashboard/summary', f.host)).body,
     );
-    expect(summary.projects).toEqual({ active: 2, endingSoon: 1 });
+    expect(summary.projects).toEqual({ active: 2, endingSoon: 1, overBudget: 0 });
     const employeeView = dashboardSummarySchema.parse(
       (await f.employee.get('/api/v1/dashboard/summary', f.host)).body,
     );

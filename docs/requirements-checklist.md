@@ -99,7 +99,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | B Clients / CRM (contacts, communication history, notes, attachments, related records, timeline, dedupe, export) | 3 | ✅ 3 (modules/clients.md); related contracts/projects/invoices tabs arrive with Phases 4/5/12 |
 | C Contracts & engagement letters (templates, numbering, states, versions, renewals, approvals, e-signature integration) | 4 | ✅ 4 (modules/contracts.md); e-signature provider = later integration (not claimed); server-side PDF with invoices (12) |
 | D Projects & budgeting (billing methods, budget revisions, limits & warnings) | 5 | ✅ 5 (modules/projects.md); live allocated/actual hours arrive with Phases 6–7; "over budget" dashboard count with Phase 6 |
-| E Tasks & time (lifecycle, dependencies, recurring, board/list/calendar, allocation workflow steps 1–12, concurrency-safe) | 6 | ⏳ domain-model §3 |
+| E Tasks & time (lifecycle, dependencies, recurring, board/list/calendar, allocation workflow steps 1–12, concurrency-safe) | 6 | ✅ 6 (modules/tasks.md): allocation workflow, concurrency-safe budget, workload, dependencies, comments, board; time logging/approval with Phase 7; recurring + calendar deferred (decision) |
 | F Timesheets & performance (timers, approvals, billable, overtime, utilization, profitability) | 7 | ⏳ |
 | G Employees & teams (profiles, hierarchy, documents, restricted personal data, on/offboarding) | 8 (minimal record in 1.3) | ⏳ |
 | H Leave (configurable policies, ledger balances, approvals, calendar) | 9 — after Kuwaiti labour rules confirmed | ⏳ ❓ legal |

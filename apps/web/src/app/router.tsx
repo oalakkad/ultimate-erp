@@ -19,6 +19,9 @@ import { DashboardPage } from '../routes/dashboard.js';
 import { ProjectDetailPage } from '../routes/projects/detail.js';
 import { ProjectsPage } from '../routes/projects/list.js';
 import { NewProjectPage } from '../routes/projects/new.js';
+import { TaskDetailPage } from '../routes/tasks/detail.js';
+import { TasksPage } from '../routes/tasks/list.js';
+import { NewTaskPage } from '../routes/tasks/new.js';
 import { GalleryPage } from '../routes/gallery.js';
 import { HandoffPage } from '../routes/handoff.js';
 import { InvitationPage } from '../routes/invitation.js';
@@ -180,6 +183,23 @@ const projectRoute = createRoute({
   path: '/projects/$projectId',
   component: ProjectDetailPage,
 });
+const tasksRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/tasks',
+  component: TasksPage,
+  validateSearch: searchOf('mine', 'overdue'),
+});
+const newTaskRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/tasks/new',
+  component: NewTaskPage,
+  validateSearch: searchOf('projectId'),
+});
+const taskRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/tasks/$taskId',
+  component: TaskDetailPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -212,6 +232,9 @@ export const router = createRouter({
       projectsRoute,
       newProjectRoute,
       projectRoute,
+      tasksRoute,
+      newTaskRoute,
+      taskRoute,
       accountRoute,
     ]),
   ]),

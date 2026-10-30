@@ -148,6 +148,16 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET | `/api/v1/projects/:id/hours` | read | Budgeted, allocated, remaining, logged, approved, billable + warning | 5 |
 | GET/POST/DELETE | `/api/v1/projects/:id/documents[/:fileId]` (+ `/download`) | read / `.manage` | Project documents (clean files only, 5-minute links) | 5 |
 | GET | `/api/v1/projects/:id/activity` | read | Timeline from the audit trail | 5 |
+| GET/POST | `/api/v1/tasks` | `tasks.task.read` (own) / `tasks.task.manage` (project) | List (search, projectId, clientId, status, state, priority, assignee=me, overdue, cursor; scope-filtered) / create with allocations in one transaction (T- numbers) | 6 |
+| POST | `/api/v1/tasks/allocation-preview` | `tasks.allocation.manage` | Budget remaining after + each person's open workload; nothing saved | 6 |
+| GET/PATCH | `/api/v1/tasks/:id` | read / manage | One task with `actions`, `nextStatuses`, `blockedBy` / edit (`version`) | 6 |
+| POST | `/api/v1/tasks/:id/status` | `tasks.task.work` (own) | Workflow; blocked tasks can't start; cancel/reopen need manage | 6 |
+| PUT | `/api/v1/tasks/:id/allocations` | `tasks.allocation.manage` | Replace people + hours; over budget ⇒ 409 `over_budget` unless `override` + `overrideReason` with `projects.budget.override` | 6 |
+| PUT | `/api/v1/tasks/:id/dependencies` | manage | Blocked-by list (same project, no loops) | 6 |
+| GET/POST | `/api/v1/tasks/:id/comments` | read / work | Append-only comments | 6 |
+| GET/POST/DELETE | `/api/v1/tasks/:id/documents[/:fileId]` (+ `/download`) | read / work | Task documents | 6 |
+| GET | `/api/v1/tasks/:id/activity` | read | Timeline | 6 |
+| GET | `/api/v1/workload?projectId=` | allocation.manage on the project, or company read | Open tasks / hours / overdue per person | 6 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
 | GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |
 | POST | `/api/v1/notifications/:id/read` | Member | Mark one of mine read (anyone else's ⇒ 404) | 1.5a |

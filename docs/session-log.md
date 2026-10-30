@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 6 (continued): Phase 6 (Tasks & hour allocation) built + committed
+
+### Hand-over 6 (A–H)
+- **A Built:** tasks (T-0001, priority, dates, estimate, workflow backlog → ready → in progress → in review → completed / cancelled, dependencies, comments, documents, activity) and per-person hour allocations checked against the project budget inside one transaction with the project row locked, Owner/CEO override with a reason; live preview of remaining hours and workload; workload per person; assignment + overdue notifications (daily 08:00 Kuwait job `tasks.daily`); project allocated hours and "over budget" now real. Web: Tasks list + board, New task (12-step workflow), task page, project Tasks tab, sidebar, palette, dashboard "My work". See `docs/modules/tasks.md` §11.
+- **B Files:** contracts `tasks.ts`, permissions (+3: tasks.task.read/manage/work; team lead allocation now project scope), notifications (+2), dashboard (`tasks`, `projects.overBudget`); db `schema/tasks.ts`, migrations 0019/0020, `jobs.ts` (`tasks.daily`), isolation list; api `modules/tasks/` (service with `TasksDailyHandler`, controller), projects service (real allocated hours, team-removal guard), dashboard, worker registration, `test/tasks.spec.ts`, small updates to projects/access/contracts permission tests; web `routes/tasks/` (list, new, detail, shared, project-tab), router, app-layout, project detail tab, dashboard card, notification bell texts; i18n `tasks` EN/AR; journey Phase 6 steps.
+- **C Architecture:** project → tasks → allocations (composite FKs: an allocation's project must be its task's project, and the person must be on that project's team). Every allocation change locks the project row first, so concurrent requests are checked one after another against the same budget. Timesheets (Phase 7) will log time against task allocations.
+- **D Security:** forced RLS on 5 new tables; comments append-only for the app role (tested); scope checks per task (own = assigned, project = on the team); override needs a two-factor permission + reason (audited); other companies 404.
+- **E Tests:** `pnpm check` **329** passed (api 205, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e:journey` 2 passed on the first run; `pnpm e2e` 6 passed; `pnpm security` clean (accepted esbuild moderate only). Found and fixed during testing: the overdue job would have alerted on tasks of cancelled projects.
+- **F Verify:** project-status "How to verify Phase 6".
+- **G Open:** recurring tasks, calendar view, board drag-and-drop (decided not now); workload capacity limits (Phase 8); actual/approved hours (Phase 7); palette does not search tasks by title yet.
+- **Repo state:** committed ("Phase 6"); `pnpm dev` running; dev DB migrated to 0020. Not pushed.
+- **H Next:** Phase 7 Timesheets & time tracking (log time against allocations, submit/approve/reject, actual vs allocated vs billable).
+
+---
+
 ## 2026-10-30 — Session 6: Phase 5 (Projects & budgeting) built + committed
 
 ### Hand-over 5 (A–H)

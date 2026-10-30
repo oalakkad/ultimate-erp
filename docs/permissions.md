@@ -51,7 +51,10 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | projects.project.manage | company | company | project | — | — | — |
 | projects.budget.update | company | company | project | — | — | — |
 | projects.budget.override | company | company* | — | — | — | — |
-| tasks.allocation.manage | company | company | project | team | — | — |
+| tasks.task.read | company | company | company | project | own | — |
+| tasks.task.manage (create, edit, dependencies, any status) | company | company | project | project | — | — |
+| tasks.task.work (move my tasks through the workflow, comment) | company | company | project | project | own | — |
+| tasks.allocation.manage | company | company | project | project | — | — |
 | time.entry.create | own | own | own | own | own | — |
 | time.timesheet.approve | company | company | project/team | team | — | — |
 | leave.request.approve | company | company | team | team | — | — |

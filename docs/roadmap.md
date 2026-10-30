@@ -10,7 +10,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | 3 | Clients / CRM | Done 2026-10-30 |
 | 4 | Contracts & engagement letters (incl. bilingual templates, PDF) | Done 2026-10-30 |
 | 5 | Projects / engagements & budgeting | Done 2026-10-30 |
-| 6 | Tasks & hour allocation (concurrency-safe) | — |
+| 6 | Tasks & hour allocation (concurrency-safe) | Done 2026-10-30 |
 | 7 | Timesheets & time tracking | — |
 | 8 | Employees, teams, invitations | — |
 | 9 | Leave management (after Kuwaiti labour rules confirmed) | — |

@@ -405,6 +405,42 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(page.getByRole('link', { name: projectName })).toBeVisible();
       await expectAccessible(page, 'projects list');
 
+      // --- Phase 6: the Manager plans a task with hours for two people; the Owner starts it ----
+      await guest.getByRole('tab', { name: t('ui.projects.tabs.tasks') }).click();
+      await expect(guest.getByText(t('ui.tasks.empty'))).toBeVisible();
+      await guest.getByRole('link', { name: t('ui.tasks.newForProject') }).click();
+      await expect(guest.getByText(/150[.,٫]5/).first()).toBeVisible();
+      await guest.getByLabel(t('ui.tasks.fields.title')).fill('Inventory count');
+      await guest.getByRole('checkbox', { name: invitee.name }).click();
+      await guest.getByLabel(t('ui.tasks.hoursFor', { name: invitee.name })).fill('20');
+      await guest.getByRole('checkbox', { name: owner.name }).click();
+      await guest.getByLabel(t('ui.tasks.hoursFor', { name: owner.name })).fill('15');
+      // The effect on the budget is shown before saving: 150.5 − 35 = 115.5 remaining.
+      await expect(guest.getByRole('status').filter({ hasText: /115[.,٫]5/ })).toBeVisible();
+      await expectAccessible(guest, 'new task');
+      await guest.getByRole('button', { name: t('ui.tasks.create') }).click();
+      await expect(guest.getByRole('heading', { name: 'Inventory count' })).toBeVisible();
+      await expectAccessible(guest, 'task');
+
+      await page.goto(`http://${slug}.localhost:5173/tasks`);
+      await page.getByRole('link', { name: 'Inventory count' }).click();
+      await page.getByRole('button', { name: t('ui.tasks.moveTo.in_progress') }).click();
+      await expect(
+        page.getByRole('button', { name: t('ui.tasks.moveTo.in_review') }),
+      ).toBeVisible();
+      await page.getByLabel(t('ui.tasks.addComment')).fill('Started with warehouse 1');
+      await page.getByRole('button', { name: t('ui.tasks.postComment') }).click();
+      await expect(page.getByText('Started with warehouse 1')).toBeVisible();
+      await expectAccessible(page, 'task (in progress)');
+      await page.goto(`http://${slug}.localhost:5173/tasks`);
+      await page.getByRole('tab', { name: t('ui.tasks.viewBoard') }).click();
+      await expect(
+        page
+          .getByRole('region', { name: t('ui.tasks.status.in_progress') })
+          .getByText('Inventory count'),
+      ).toBeVisible();
+      await expectAccessible(page, 'task board');
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');

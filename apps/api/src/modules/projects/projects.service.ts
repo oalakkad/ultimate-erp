@@ -22,9 +22,11 @@ import {
   projectDocuments,
   projectMembers,
   projects,
+  taskAllocations,
+  tasks,
   type TenantTransaction,
 } from '@ultimate-erp/db';
-import { and, desc, eq, ilike, inArray, isNull, lt, or, type SQL, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, inArray, isNull, lt, ne, or, type SQL, sql } from 'drizzle-orm';
 import { type Request } from 'express';
 import { type z } from 'zod';
 import { AuditLog } from '../../platform/audit/audit-log.js';
@@ -58,7 +60,7 @@ export const hundredths = (hours: string): bigint => {
   const [whole = '0', frac = ''] = hours.split('.');
   return BigInt(whole) * 100n + BigInt((frac + '00').slice(0, 2));
 };
-const formatHours = (h: bigint): string => {
+export const formatHours = (h: bigint): string => {
   const sign = h < 0n ? '-' : '';
   const abs = h < 0n ? -h : h;
   const frac = abs % 100n;
@@ -358,7 +360,7 @@ export class ProjectsService {
       const current = await this.readable(tx, access, id, true);
       await this.require(tx, access, 'projects.budget.update', current);
       this.assertOpen(current);
-      const allocated = this.allocatedHundredths();
+      const allocated = await this.allocatedHundredths(tx, id);
       if (hundredths(input.budgetHours) < allocated) {
         const mayOverride =
           input.override && (await this.may(tx, access, 'projects.budget.override', current));
@@ -402,14 +404,14 @@ export class ProjectsService {
   }
 
   /**
-   * The five hour measures (docs/modules/projects.md §3). Allocations arrive with tasks
-   * (Phase 6) and logged/approved/billable with timesheets (Phase 7); until then they are 0.
+   * The hour measures (docs/modules/projects.md §3). Allocated comes from tasks (Phase 6);
+   * logged / approved / billable arrive with timesheets (Phase 7) and are 0 until then.
    */
   async hours(access: AccessContext, id: string) {
     return this.database.withTenant(access.tenantId, async (tx) => {
       const project = await this.readable(tx, access, id);
       const budgeted = hundredths(project.budgetHours);
-      const allocated = this.allocatedHundredths();
+      const allocated = await this.allocatedHundredths(tx, id);
       const approved = 0n;
       const used = allocated > approved ? allocated : approved;
       const warning =
@@ -434,9 +436,14 @@ export class ProjectsService {
     });
   }
 
-  /** Sum of task allocations — none exist before Phase 6 (tasks module), so 0 for now. */
-  private allocatedHundredths(): bigint {
-    return 0n;
+  /** Hours allocated on the project's tasks that are not cancelled (docs/modules/tasks.md §3). */
+  private async allocatedHundredths(tx: TenantTransaction, projectId: string): Promise<bigint> {
+    const [row] = await tx
+      .select({ total: sql<string>`coalesce(sum(${taskAllocations.hours}), 0)::text` })
+      .from(taskAllocations)
+      .innerJoin(tasks, eq(tasks.id, taskAllocations.taskId))
+      .where(and(eq(taskAllocations.projectId, projectId), ne(tasks.status, 'cancelled')));
+    return hundredths(row?.total ?? '0');
   }
 
   // --- team ----------------------------------------------------------------------------------
@@ -467,6 +474,21 @@ export class ProjectsService {
         );
       }
       if (remove.length > 0) {
+        // People with hours on this project's tasks stay on the team (their work is recorded there).
+        const [busy] = await tx
+          .select({ id: taskAllocations.membershipId })
+          .from(taskAllocations)
+          .where(
+            and(eq(taskAllocations.projectId, id), inArray(taskAllocations.membershipId, remove)),
+          )
+          .limit(1);
+        if (busy) {
+          throw conflict(
+            'memberIds',
+            'has_allocations',
+            'Someone you removed still has hours on tasks of this project.',
+          );
+        }
         await tx
           .delete(projectMembers)
           .where(

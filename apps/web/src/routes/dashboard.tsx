@@ -9,6 +9,8 @@ import {
   CircleCheck,
   FileSignature,
   FolderKanban,
+  ListChecks,
+  AlarmClock,
   Circle,
   Hourglass,
   MailPlus,
@@ -60,7 +62,7 @@ export function DashboardPage() {
       />
     );
   } else {
-    const { setup, team, clients, contracts, projects, activity } = summary.data;
+    const { setup, team, clients, contracts, projects, tasks, activity } = summary.data;
     const steps = setup
       ? [
           { label: t('ui.dashboard.stepCompany'), done: true },
@@ -97,6 +99,50 @@ export function DashboardPage() {
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {tasks && (
+            <Card
+              title={t('ui.dashboard.tasks')}
+              action={
+                <Link
+                  to="/tasks"
+                  search={{ mine: '1' }}
+                  className="text-[13px] font-semibold text-plum hover:underline"
+                >
+                  {t('ui.dashboard.myTasks')}
+                </Link>
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Tile
+                  tone="sky"
+                  label={t('ui.dashboard.myOpenTasks')}
+                  value={formatNumber(locale, tasks.mineOpen)}
+                  icon={<ListChecks />}
+                />
+                <Tile
+                  tone="blush"
+                  label={t('ui.dashboard.myOverdueTasks')}
+                  value={formatNumber(locale, tasks.mineOverdue)}
+                  icon={<AlarmClock />}
+                />
+                {tasks.companyOverdue !== null && (
+                  <Link
+                    to="/tasks"
+                    search={{ overdue: '1' }}
+                    className="rounded-tile focus-visible:outline-2"
+                  >
+                    <Tile
+                      tone="butter"
+                      label={t('ui.dashboard.companyOverdueTasks')}
+                      value={formatNumber(locale, tasks.companyOverdue)}
+                      icon={<AlarmClock />}
+                    />
+                  </Link>
+                )}
+              </div>
             </Card>
           )}
 

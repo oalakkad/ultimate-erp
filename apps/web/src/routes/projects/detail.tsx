@@ -33,9 +33,10 @@ import { FormError } from '../../components/auth-layout.js';
 import { AppPageHeader } from '../../components/page-header.js';
 import { api, isApiError } from '../../lib/api.js';
 import { errorReference, errorText } from '../../lib/errors.js';
-import { can, useAccess } from '../../lib/session.js';
+import { can, canAny, useAccess } from '../../lib/session.js';
 import { DocumentsTab } from '../clients/tabs.js';
 import { dateText } from '../contracts/shared.js';
+import { ProjectTasksTab } from '../tasks/project-tab.js';
 import { hoursText, projectKey, ProjectStatusChip } from './shared.js';
 
 /** Statuses that close the project for good — confirmed in a dialog first. */
@@ -45,6 +46,7 @@ const FINAL: ProjectStatus[] = ['completed', 'cancelled'];
 export function ProjectDetailPage() {
   const { t, locale } = useI18n();
   const { projectId } = useParams({ from: '/app/projects/$projectId' });
+  const access = useAccess(true);
   const project = useQuery({
     queryKey: projectKey(projectId),
     queryFn: () => api(`/projects/${projectId}`, { schema: projectSchema }),
@@ -64,6 +66,7 @@ export function ProjectDetailPage() {
   }
   const p = project.data;
   const canManage = p.actions.includes('edit');
+  const open = p.status !== 'completed' && p.status !== 'cancelled';
   return (
     <div className="grid gap-4">
       <AppPageHeader title={locale === 'ar' ? p.name.ar : p.name.en} />
@@ -99,6 +102,17 @@ export function ProjectDetailPage() {
           <Tabs
             label={t('ui.projects.title')}
             items={[
+              {
+                value: 'tasks',
+                label: t('ui.projects.tabs.tasks'),
+                content: (
+                  <ProjectTasksTab
+                    projectId={p.id}
+                    canCreate={open && canAny(access.data, 'tasks.task.manage')}
+                    canAllocate={canAny(access.data, 'tasks.allocation.manage')}
+                  />
+                ),
+              },
               {
                 value: 'details',
                 label: t('ui.projects.tabs.details'),

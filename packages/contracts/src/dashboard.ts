@@ -21,6 +21,8 @@ export const ACTIVITY_ACTIONS = [
   'projects.project.created',
   'projects.project.status_changed',
   'projects.budget.revised',
+  'tasks.task.created',
+  'tasks.allocation.override',
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 
@@ -62,7 +64,21 @@ export const dashboardSummarySchema = z
       .optional(),
     /** Projects (people who can read projects company-wide): active, and ending within 30 days. */
     projects: z
-      .object({ active: z.number().int().min(0), endingSoon: z.number().int().min(0) })
+      .object({
+        active: z.number().int().min(0),
+        endingSoon: z.number().int().min(0),
+        /** Open projects whose allocated hours exceed the budget. */
+        overBudget: z.number().int().min(0),
+      })
+      .strict()
+      .optional(),
+    /** My tasks (anyone who has tasks): open, and overdue among them; company-wide overdue for company readers. */
+    tasks: z
+      .object({
+        mineOpen: z.number().int().min(0),
+        mineOverdue: z.number().int().min(0),
+        companyOverdue: z.number().int().min(0).nullable(),
+      })
       .strict()
       .optional(),
     /** Latest business events (people who can read the audit log). */

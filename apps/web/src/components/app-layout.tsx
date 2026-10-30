@@ -27,6 +27,7 @@ import {
   Building2,
   FileSignature,
   FolderKanban,
+  ListChecks,
   ChevronsUpDown,
   LayoutGrid,
   LogOut,
@@ -101,6 +102,7 @@ export function AppLayout() {
   const canReadContracts = can(access.data, 'contracts.contract.read');
   // Team leaders and employees see the projects they work on.
   const canReadProjects = canAny(access.data, 'projects.project.read');
+  const canReadTasks = canAny(access.data, 'tasks.task.read');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -196,6 +198,26 @@ export function AppLayout() {
         label: t('ui.shell.projects'),
         run: () => {
           go('/projects');
+        },
+      });
+    }
+    if (canReadTasks) {
+      list.push({
+        id: 'page:tasks',
+        group: 'pages',
+        label: t('ui.shell.tasks'),
+        run: () => {
+          go('/tasks');
+        },
+      });
+    }
+    if (canAny(access.data, 'tasks.task.manage')) {
+      list.push({
+        id: 'action:new-task',
+        group: 'actions',
+        label: t('ui.tasks.new'),
+        run: () => {
+          go('/tasks/new');
         },
       });
     }
@@ -325,6 +347,7 @@ export function AppLayout() {
     canReadClients,
     canReadContracts,
     canReadProjects,
+    canReadTasks,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -427,6 +450,14 @@ export function AppLayout() {
           icon={<FolderKanban aria-hidden />}
           label={t('ui.shell.projects')}
           current={path.startsWith('/projects')}
+        />
+      )}
+      {canReadTasks && (
+        <NavItem
+          {...link('/tasks')}
+          icon={<ListChecks aria-hidden />}
+          label={t('ui.shell.tasks')}
+          current={path.startsWith('/tasks')}
         />
       )}
       {canReadMembers && (
