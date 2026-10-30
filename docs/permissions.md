@@ -71,6 +71,7 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | payroll.run.prepare | — | company* | — | — | — | — |
 | payroll.run.approve | — | company* | — | — | — | — |
 | payroll.payslip.read | own | company* | own | own | own | — |
+| billing.invoice.read | company | company | project | — | — | — |
 | billing.invoice.issue | company | company | — | — | — | — |
 | billing.payment.record | company | company | — | — | — | — |
 | audit.event.read | company | company | — | — | — | — |

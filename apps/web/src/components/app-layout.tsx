@@ -35,6 +35,7 @@ import {
   Fingerprint,
   Wallet,
   ReceiptText,
+  FileText as InvoiceIcon,
   ChevronsUpDown,
   LayoutGrid,
   LogOut,
@@ -120,6 +121,7 @@ export function AppLayout() {
     can(access.data, 'payroll.run.approve') ||
     can(access.data, 'payroll.payslip.read');
   const canPayslips = canAny(access.data, 'payroll.payslip.read');
+  const canInvoices = canAny(access.data, 'billing.invoice.read');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -243,6 +245,26 @@ export function AppLayout() {
         label: t('ui.people.organisation'),
         run: () => {
           go('/organisation');
+        },
+      });
+    }
+    if (canInvoices) {
+      list.push({
+        id: 'page:invoices',
+        group: 'pages',
+        label: t('ui.shell.invoices'),
+        run: () => {
+          go('/invoices');
+        },
+      });
+    }
+    if (can(access.data, 'billing.invoice.issue')) {
+      list.push({
+        id: 'action:new-invoice',
+        group: 'actions',
+        label: t('ui.billing.new'),
+        run: () => {
+          go('/invoices/new');
         },
       });
     }
@@ -450,6 +472,7 @@ export function AppLayout() {
     canAttend,
     payrollStaff,
     canPayslips,
+    canInvoices,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -600,6 +623,14 @@ export function AppLayout() {
           icon={<Fingerprint aria-hidden />}
           label={t('ui.shell.attendance')}
           current={path.startsWith('/attendance')}
+        />
+      )}
+      {canInvoices && (
+        <NavItem
+          {...link('/invoices')}
+          icon={<InvoiceIcon aria-hidden />}
+          label={t('ui.shell.invoices')}
+          current={path.startsWith('/invoices')}
         />
       )}
       {payrollStaff && (

@@ -11,10 +11,11 @@ import { can, canAny, useAccess } from '../../lib/session.js';
 import { clientKey } from './keys.js';
 import { STATUS_CHIP } from './list.js';
 import { ClientContractsTab } from '../contracts/client-tab.js';
+import { InvoiceList } from '../billing/invoices.js';
 import { ClientProjectsTab } from '../projects/client-tab.js';
 import { ActivityTab, CommunicationTab, ContactsTab, DocumentsTab, OverviewTab } from './tabs.js';
 
-/** Client detail with tabs (brief Module B). The invoices tab arrives with billing. */
+/** Client detail with tabs (brief Module B). Invoices tab from Phase 12. */
 export function ClientDetailPage() {
   const { t, locale } = useI18n();
   const toast = useToast();
@@ -147,6 +148,15 @@ export function ClientDetailPage() {
                       canCreate={can(access.data, 'projects.project.create') && !c.archived}
                     />
                   ),
+                },
+              ]
+            : []),
+          ...(can(access.data, 'billing.invoice.read')
+            ? [
+                {
+                  value: 'invoices',
+                  label: t('ui.billing.clientTab'),
+                  content: <InvoiceList clientId={c.id} />,
                 },
               ]
             : []),

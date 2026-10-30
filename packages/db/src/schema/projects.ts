@@ -60,6 +60,7 @@ export const projects = pgTable(
   },
   (t) => [
     unique('projects_tenant_id_id_key').on(t.tenantId, t.id),
+    unique('projects_tenant_client_id_key').on(t.tenantId, t.clientId, t.id),
     unique('projects_tenant_number_key').on(t.tenantId, t.number),
     index('projects_tenant_client_idx').on(t.tenantId, t.clientId),
     foreignKey({

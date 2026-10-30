@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { type ActivityItem, dashboardSummarySchema } from '@ultimate-erp/contracts';
-import { formatDate, formatNumber } from '@ultimate-erp/i18n';
+import { formatDate, formatMoney, formatNumber } from '@ultimate-erp/i18n';
 import { Card, ErrorState, LoadingState, Meter, Tile } from '@ultimate-erp/ui';
 import {
   Briefcase,
@@ -13,6 +13,7 @@ import {
   Clock,
   Plane,
   Fingerprint,
+  Banknote,
   ClipboardCheck,
   AlarmClock,
   Circle,
@@ -66,8 +67,19 @@ export function DashboardPage() {
       />
     );
   } else {
-    const { setup, team, clients, contracts, projects, tasks, time, leave, attendance, activity } =
-      summary.data;
+    const {
+      setup,
+      team,
+      clients,
+      contracts,
+      projects,
+      tasks,
+      time,
+      leave,
+      attendance,
+      billing,
+      activity,
+    } = summary.data;
     const steps = setup
       ? [
           { label: t('ui.dashboard.stepCompany'), done: true },
@@ -104,6 +116,41 @@ export function DashboardPage() {
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {billing && (
+            <Card
+              title={t('ui.dashboard.billing')}
+              action={
+                <Link
+                  to="/invoices"
+                  className="text-[13px] font-semibold text-plum hover:underline"
+                >
+                  {t('ui.shell.invoices')}
+                </Link>
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Tile
+                  tone="sky"
+                  label={t('ui.dashboard.outstanding')}
+                  value={formatMoney(locale, billing.outstanding, 'KWD')}
+                  icon={<Banknote />}
+                />
+                <Link
+                  to="/invoices"
+                  search={{ overdue: '1' }}
+                  className="rounded-tile focus-visible:outline-2"
+                >
+                  <Tile
+                    tone="blush"
+                    label={t('ui.dashboard.overdueInvoices', { count: billing.overdueCount })}
+                    value={formatMoney(locale, billing.overdue, 'KWD')}
+                    icon={<Banknote />}
+                  />
+                </Link>
+              </div>
             </Card>
           )}
 

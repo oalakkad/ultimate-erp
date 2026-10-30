@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 6 (continued): Phase 12 (Invoicing & payments) built + committed
+
+### Hand-over 12 (A–H)
+- **A Built:** invoices (drafts, issue with INV- numbers, lines with discounts and configured taxes, client/contract/project links), drafts from approved billable time (each entry billed once), recorded payments (partial), reversals, credit notes (CN-), void, overdue state and weekly reminders to finance, aging and revenue reports, bilingual print view, client Invoices tab, dashboard Receivables. See `docs/modules/billing.md` §11.
+- **B Files:** contracts `billing.ts`, permissions (+`billing.invoice.read`), notifications (+1), dashboard (`billing`); db `schema/billing.ts`, projects (tenant+client+id key), migrations 0031/0032 (`app.invoices_guard`, `app.invoice_draft_only`, payment column grant), `jobs.ts` (`billing.daily`), isolation list; api `modules/billing/` (service with `lineTotals` and `BillingDailyHandler`, controller), worker registration, dashboard, `test/billing.spec.ts`; web `routes/billing/` (invoices, invoice, print), router, app-layout, client tab, dashboard card, notification bell; i18n `billing` EN/AR; journey Phase 12 steps.
+- **C Architecture:** client → (contract, project of the same client) → invoice → lines; approved billable time entries → invoice (unique link); payments and credit notes → balance → status. Money is computed in fils with the same exact helpers as payroll.
+- **D Security:** forced RLS on 5 tables; issued invoices undeletable and immutable in amounts/client/number, void needs a reason and no payments, void stays void, lines and billed time frozen after issue (triggers); payments insert-only except marking reversed (column grant); payment recording needs a two-factor permission; managers limited to invoices of projects they manage.
+- **E Tests:** `pnpm check` **373** passed (api 249, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e:journey` 2 passed (first run); `pnpm e2e` 6 passed; `pnpm security` clean (accepted esbuild moderate only). One test initially checked the payment rule as the migration role (which owns the tables); it now checks the application role, as intended.
+- **F Verify:** project-status "How to verify Phase 12".
+- **G Open:** server-generated PDF and client delivery links, KNET/payment-gateway integration (would create "provider" payments), multi-currency.
+- **Repo state:** committed ("Phase 12"); `pnpm dev` running; dev DB migrated to 0032. Not pushed.
+- **H Next:** Phase 13 Notifications & announcements.
+
+---
+
 ## 2026-10-30 — Session 6 (continued): Phase 11 (Payroll — test-only until verified) built + committed
 
 ### Hand-over 11 (A–H)

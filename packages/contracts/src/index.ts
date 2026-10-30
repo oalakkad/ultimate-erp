@@ -17,3 +17,4 @@ export * from './people.js';
 export * from './leave.js';
 export * from './attendance.js';
 export * from './payroll.js';
+export * from './billing.js';

@@ -22,6 +22,9 @@ import { NewProjectPage } from '../routes/projects/new.js';
 import { AttendancePage } from '../routes/attendance/attendance.js';
 import { KioskPage } from '../routes/attendance/kiosk.js';
 import { ScanPage } from '../routes/attendance/scan.js';
+import { InvoicePage, NewInvoicePage } from '../routes/billing/invoice.js';
+import { InvoicesPage } from '../routes/billing/invoices.js';
+import { InvoicePrintPage } from '../routes/billing/print.js';
 import { LeavePage } from '../routes/leave/leave.js';
 import { PayrollPage } from '../routes/payroll/payroll.js';
 import { MyPayslipsPage } from '../routes/payroll/payslips.js';
@@ -276,6 +279,29 @@ const payslipsRoute = createRoute({
   path: '/payroll/payslips',
   component: MyPayslipsPage,
 });
+const invoicesRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/invoices',
+  component: InvoicesPage,
+  validateSearch: searchOf('overdue'),
+});
+const newInvoiceRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/invoices/new',
+  component: NewInvoicePage,
+  validateSearch: searchOf('clientId'),
+});
+const invoiceRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/invoices/$invoiceId',
+  component: InvoicePage,
+});
+/** Print view: outside the app frame so it prints cleanly. */
+const invoicePrintRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/invoices/$invoiceId/print',
+  component: InvoicePrintPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -296,6 +322,7 @@ export const router = createRouter({
     galleryRoute,
     contractPrintRoute,
     kioskRoute,
+    invoicePrintRoute,
     appRoute.addChildren([
       dashboardRoute,
       membersRoute,
@@ -323,6 +350,9 @@ export const router = createRouter({
       payrollRoute,
       payrollRunRoute,
       payslipsRoute,
+      invoicesRoute,
+      newInvoiceRoute,
+      invoiceRoute,
       accountRoute,
     ]),
   ]),

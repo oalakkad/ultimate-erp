@@ -31,6 +31,14 @@ export const JOB_QUEUES = {
     expireInSeconds: 5 * 60,
     deleteAfterSeconds: 7 * 24 * 60 * 60,
   },
+  /** Daily billing check: reminds finance staff of overdue invoices (docs/modules/billing.md §2). */
+  'billing.daily': {
+    retryLimit: 3,
+    retryDelay: 300,
+    retryBackoff: true,
+    expireInSeconds: 30 * 60,
+    deleteAfterSeconds: 30 * 24 * 60 * 60,
+  },
   /** Daily task check: alerts assignees of tasks that became overdue (docs/modules/tasks.md §2). */
   'tasks.daily': {
     retryLimit: 3,

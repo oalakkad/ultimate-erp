@@ -618,6 +618,34 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(guest.getByText(t('ui.payroll.noPayslips'))).toBeVisible();
       await expectAccessible(guest, 'my payslips');
 
+      // --- Phase 12: the Owner invoices the approved time, issues it and records a payment -------
+      await page.getByRole('link', { name: t('ui.shell.invoices') }).click();
+      await expect(page.getByText(t('ui.billing.empty'))).toBeVisible();
+      await expectAccessible(page, 'invoices (empty)');
+      await page.getByRole('link', { name: t('ui.billing.new') }).click();
+      await page.getByLabel(t('ui.billing.client')).click();
+      await page.getByRole('option', { name: new RegExp(clientName) }).click();
+      await page.getByLabel(t('ui.billing.project')).click();
+      await page.getByRole('option', { name: /P-0001/ }).click();
+      await page.getByLabel(t('ui.billing.hourlyRate')).fill('20');
+      await expectAccessible(page, 'new invoice');
+      await page.getByRole('button', { name: t('ui.billing.draftFromTime') }).click();
+      await expect(page.getByRole('heading', { name: t('ui.billing.draftLabel') })).toBeVisible();
+      await page.getByRole('button', { name: t('ui.billing.issue') }).click();
+      await expect(page.getByRole('heading', { name: 'INV-0001' })).toBeVisible();
+      await page.getByRole('button', { name: t('ui.billing.recordPayment') }).click();
+      const payDialog = page.getByRole('dialog');
+      await payDialog.getByLabel(t('ui.billing.amount')).fill('50');
+      await expectAccessible(page, 'record payment');
+      await payDialog.getByRole('button', { name: t('ui.billing.dialog.pay') }).click();
+      await expect(page.getByText(t('ui.billing.statusName.partially_paid')).first()).toBeVisible();
+      await expectAccessible(page, 'invoice (partly paid)');
+      const invoicePrint = await page.context().newPage();
+      await invoicePrint.goto(page.url().replace(/\/?$/, '/print'));
+      await expect(invoicePrint.getByText('INV-0001').first()).toBeVisible();
+      await expectAccessible(invoicePrint, 'invoice print');
+      await invoicePrint.close();
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');

@@ -23,6 +23,7 @@ export const NOTIFICATION_TYPES = [
   'attendance.correction_decided',
   'payroll.submitted',
   'payroll.payslip_ready',
+  'billing.overdue',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

@@ -3,6 +3,7 @@ import { JOB_QUEUES } from '@ultimate-erp/db';
 import { ContractsDailyHandler } from './modules/contracts/contracts.service.js';
 import { FileScanHandler, type FileScanJob } from './modules/files/files.service.js';
 import { TasksDailyHandler } from './modules/tasks/tasks.service.js';
+import { BillingDailyHandler } from './modules/billing/billing.service.js';
 import { NotifierModule } from './platform/notifications/notifier.js';
 import { AuditModule } from './platform/audit/audit.module.js';
 import { type AppConfig } from './platform/config/config.js';
@@ -25,6 +26,7 @@ export class JobHandlers {
     private readonly fileScan: FileScanHandler,
     private readonly contractsDaily: ContractsDailyHandler,
     private readonly tasksDaily: TasksDailyHandler,
+    private readonly billingDaily: BillingDailyHandler,
   ) {}
 
   async start(): Promise<void> {
@@ -42,6 +44,11 @@ export class JobHandlers {
     });
     // Every day at 08:00 Kuwait time (overdue alerts).
     await this.jobs.schedule('tasks.daily', '0 8 * * *', 'Asia/Kuwait');
+    await this.jobs.work('billing.daily', async (job) => {
+      await this.billingDaily.handle(job);
+    });
+    // Every day at 08:00 Kuwait time (overdue invoice reminders).
+    await this.jobs.schedule('billing.daily', '0 8 * * *', 'Asia/Kuwait');
   }
 }
 
@@ -65,6 +72,7 @@ export class WorkerModule {
         FileScanHandler,
         ContractsDailyHandler,
         TasksDailyHandler,
+        BillingDailyHandler,
         ObjectStorage,
         VirusScanner,
       ],

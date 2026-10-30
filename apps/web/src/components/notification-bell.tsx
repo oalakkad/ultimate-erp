@@ -45,6 +45,11 @@ function useNotificationText() {
           endDate: item.params.endDate ?? '',
         });
       }
+      case 'billing.overdue':
+        return t('ui.notifications.types.billing_overdue', {
+          number: item.params.number ?? '',
+          dueDate: item.params.dueDate ?? '',
+        });
       case 'payroll.submitted':
       case 'payroll.payslip_ready': {
         const key = item.type.replace('.', '_') as 'payroll_submitted';

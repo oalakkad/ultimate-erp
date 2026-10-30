@@ -22,6 +22,8 @@ import { and, count, desc, eq, gt, gte, inArray, isNull, lt, ne, sql } from 'dri
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { kuwaitToday } from '../contracts/contracts.service.js';
 import { AttendanceModule } from '../attendance/attendance.controller.js';
+import { BillingModule } from '../billing/billing.controller.js';
+import { BillingService } from '../billing/billing.service.js';
 import { AttendanceService } from '../attendance/attendance.service.js';
 import { LeaveModule } from '../leave/leave.controller.js';
 import { LeaveService } from '../leave/leave.service.js';
@@ -55,6 +57,7 @@ export class DashboardService {
     private readonly identity: IdentityService,
     private readonly leave: LeaveService,
     private readonly attendance: AttendanceService,
+    private readonly billing: BillingService,
   ) {}
 
   async summary(access: AccessContext): Promise<DashboardSummary> {
@@ -200,6 +203,9 @@ export class DashboardService {
       if (hasPermission(access.permissions, 'leave.request.create', 'own')) {
         out.leave = await this.leave.dashboard(tx, access);
       }
+      if (may('billing.invoice.read')) {
+        out.billing = await this.billing.dashboard(tx);
+      }
       if (hasPermission(access.permissions, 'attendance.read', 'team')) {
         out.attendance = await this.attendance.dashboard(tx, access);
       }
@@ -254,7 +260,7 @@ export class DashboardController {
 }
 
 @Module({
-  imports: [AccessModule, IdentityModule, LeaveModule, AttendanceModule],
+  imports: [AccessModule, IdentityModule, LeaveModule, AttendanceModule, BillingModule],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

@@ -196,6 +196,12 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | POST | `/api/v1/payroll/runs/:id/{calculate,submit,approve,pay,cancel}` | prepare / approve | Workflow with separation of duties; test runs never payable | 11 |
 | GET | `/api/v1/payroll/runs/:id/export.csv` | `exports.confidential` | Approved run as CSV (audited) | 11 |
 | GET | `/api/v1/payroll/payslips/mine`, `/payslips/:id` | read (own) | My approved payslips / one payslip | 11 |
+| GET/PATCH | `/api/v1/billing/settings` | `billing.invoice.read` / `billing.invoice.issue` | Payment terms and taxes (flagged until verified) | 12 |
+| GET/POST | `/api/v1/invoices` (+ `/from-time`) | read (project) / issue | Register; draft by hand or from approved billable time (each entry once) | 12 |
+| GET/PATCH/DELETE | `/api/v1/invoices/:id` | read / issue | One invoice; edit or delete drafts only | 12 |
+| POST | `/api/v1/invoices/:id/{issue,void}`, `/credit-notes` | issue | Number on issue; void without payments; credit notes | 12 |
+| POST | `/api/v1/invoices/:id/payments`, `/api/v1/payments/:id/reverse` | `billing.payment.record` | Recorded payments; reversal with reason | 12 |
+| GET | `/api/v1/billing/aging`, `/billing/revenue?year=` | read (company) | Receivables by age and client; invoiced vs received by month | 12 |
 | GET | `/api/v1/org-chart` | read | Reporting lines of people I may see | 8 |
 | GET | `/api/v1/workload?projectId=` | allocation.manage on the project, or company read | Open tasks / hours / overdue per person | 6 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |
