@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Navigate, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import {
   clientListResponseSchema,
   memberListResponseSchema,
@@ -33,7 +33,7 @@ import {
   UserRound,
   Users,
 } from 'lucide-react';
-import { type MouseEvent, useEffect, useMemo, useState } from 'react';
+import { type MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../app/i18n.js';
 import { LanguageSwitch, ThemeSwitch, useChangeLocale } from '../app/switches.js';
 import { api } from '../lib/api.js';
@@ -55,6 +55,22 @@ const initialsOf = (name: string) =>
 
 /** Key names are the same in every language; Apple keyboards show ⌘ instead of Ctrl. */
 const SHORTCUT_LABEL = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘ K' : 'Ctrl K';
+
+/**
+ * Leaves this page exactly once (replace, so Back does not return here). Used instead of the
+ * router's <Navigate> inside this layout, which re-fired on every render while the layout's own
+ * queries settled and could loop ("Maximum update depth exceeded" on the signed-out home page).
+ */
+function RedirectOnce({ href }: { href: string }) {
+  const navigate = useNavigate();
+  const done = useRef(false);
+  useEffect(() => {
+    if (done.current) return;
+    done.current = true;
+    void navigate({ href, replace: true });
+  }, [navigate, href]);
+  return null;
+}
 
 /** A plain left click (not ctrl/⌘/shift/middle — those open a new tab, which the href handles). */
 const isPlainClick = (e: MouseEvent) =>
@@ -308,11 +324,12 @@ export function AppLayout() {
       </div>
     );
   }
-  if (!tenant.data) return <Navigate to={me.data ? '/companies' : '/sign-in'} />;
-  if (!me.data) return <Navigate to="/sign-in" search={{ returnTo: location.pathname }} />;
-  if (!access.data) return <Navigate to="/sign-in" />;
+  if (!tenant.data) return <RedirectOnce href={me.data ? '/companies' : '/sign-in'} />;
+  if (!me.data)
+    return <RedirectOnce href={`/sign-in?returnTo=${encodeURIComponent(location.pathname)}`} />;
+  if (!access.data) return <RedirectOnce href="/sign-in" />;
   if (access.data.twoFactorRequired && location.pathname !== '/account') {
-    return <Navigate to="/account" />;
+    return <RedirectOnce href="/account" />;
   }
 
   const user = me.data.user;

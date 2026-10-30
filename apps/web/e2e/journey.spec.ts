@@ -308,7 +308,10 @@ for (const locale of ['en', 'ar'] as const) {
       await rolesDialog.getByRole('checkbox', { name: t('roles.employee') }).click();
       await rolesDialog.getByRole('checkbox', { name: t('roles.manager') }).click();
       await rolesDialog.getByRole('button', { name: t('ui.members.saveRoles') }).click();
-      await expect(page.getByText(t('ui.members.rolesSaved'))).toBeVisible();
+      // The lasting result, not the short-lived toast: the member's row now shows Manager.
+      await expect(
+        page.getByRole('row', { name: new RegExp(invitee.email) }).getByText(t('roles.manager')),
+      ).toBeVisible();
 
       await guest.reload();
       await guest.getByRole('link', { name: t('ui.shell.contracts') }).click();
