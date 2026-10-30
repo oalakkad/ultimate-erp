@@ -11,6 +11,7 @@ import {
   FolderKanban,
   ListChecks,
   Clock,
+  Plane,
   ClipboardCheck,
   AlarmClock,
   Circle,
@@ -64,7 +65,8 @@ export function DashboardPage() {
       />
     );
   } else {
-    const { setup, team, clients, contracts, projects, tasks, time, activity } = summary.data;
+    const { setup, team, clients, contracts, projects, tasks, time, leave, activity } =
+      summary.data;
     const steps = setup
       ? [
           { label: t('ui.dashboard.stepCompany'), done: true },
@@ -101,6 +103,40 @@ export function DashboardPage() {
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {leave && (
+            <Card
+              title={t('ui.dashboard.leave')}
+              action={
+                <Link to="/leave" className="text-[13px] font-semibold text-plum hover:underline">
+                  {t('ui.shell.leave')}
+                </Link>
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Tile
+                  tone="sky"
+                  label={t('ui.dashboard.onLeaveToday')}
+                  value={formatNumber(locale, leave.onLeaveToday)}
+                  icon={<Plane />}
+                />
+                {leave.waitingForMe !== null && (
+                  <Link
+                    to="/leave"
+                    search={{ view: 'approvals' }}
+                    className="rounded-tile focus-visible:outline-2"
+                  >
+                    <Tile
+                      tone="butter"
+                      label={t('ui.dashboard.leaveWaiting')}
+                      value={formatNumber(locale, leave.waitingForMe)}
+                      icon={<Plane />}
+                    />
+                  </Link>
+                )}
+              </div>
             </Card>
           )}
 

@@ -19,6 +19,7 @@ import { DashboardPage } from '../routes/dashboard.js';
 import { ProjectDetailPage } from '../routes/projects/detail.js';
 import { ProjectsPage } from '../routes/projects/list.js';
 import { NewProjectPage } from '../routes/projects/new.js';
+import { LeavePage } from '../routes/leave/leave.js';
 import { PersonPage } from '../routes/people/detail.js';
 import { PeoplePage } from '../routes/people/list.js';
 import { OrganisationPage } from '../routes/people/organisation.js';
@@ -231,6 +232,12 @@ const organisationRoute = createRoute({
   path: '/organisation',
   component: OrganisationPage,
 });
+const leaveRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/leave',
+  component: LeavePage,
+  validateSearch: searchOf('view'),
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -271,6 +278,7 @@ export const router = createRouter({
       peopleRoute,
       personRoute,
       organisationRoute,
+      leaveRoute,
       accountRoute,
     ]),
   ]),

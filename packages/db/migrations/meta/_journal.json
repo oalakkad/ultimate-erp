@@ -176,6 +176,20 @@
       "when": 1793362396220,
       "tag": "0024_people_security",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793364465784,
+      "tag": "0025_leave_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793364467529,
+      "tag": "0026_leave_security",
+      "breakpoints": true
     }
   ]
 }

@@ -21,6 +21,8 @@ import {
 import { and, count, desc, eq, gt, gte, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { kuwaitToday } from '../contracts/contracts.service.js';
+import { LeaveModule } from '../leave/leave.controller.js';
+import { LeaveService } from '../leave/leave.service.js';
 import { formatHours, hundredths } from '../projects/projects.service.js';
 import { weekStartOf } from '../time/time.service.js';
 import { NoStoreInterceptor } from '../../platform/http/no-store.interceptor.js';
@@ -49,6 +51,7 @@ export class DashboardService {
   constructor(
     private readonly database: TenantDatabase,
     private readonly identity: IdentityService,
+    private readonly leave: LeaveService,
   ) {}
 
   async summary(access: AccessContext): Promise<DashboardSummary> {
@@ -191,6 +194,9 @@ export class DashboardService {
         }
         out.time = { thisWeekHours: formatHours(hundredths(week?.total ?? '0')), waitingForMe };
       }
+      if (hasPermission(access.permissions, 'leave.request.create', 'own')) {
+        out.leave = await this.leave.dashboard(tx, access);
+      }
       let activity: (typeof auditEvents.$inferSelect)[] | undefined;
       if (may('audit.event.read')) {
         activity = await tx
@@ -242,7 +248,7 @@ export class DashboardController {
 }
 
 @Module({
-  imports: [AccessModule, IdentityModule],
+  imports: [AccessModule, IdentityModule, LeaveModule],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

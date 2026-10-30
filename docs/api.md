@@ -175,6 +175,13 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET | `/api/v1/people/:id/history`, `/checklist` (+ POST, PATCH `/:itemId`) | details level / manage | Employment history; on/offboarding checklists | 8 |
 | GET/POST/DELETE | `/api/v1/people/:id/documents[/:fileId]` (+ `/download`) | details level / manage | Confidential documents only for restricted readers | 8 |
 | GET/POST/PATCH | `/api/v1/departments`, `/api/v1/teams` (+ PUT `/teams/:id/members`) | read / `people.org.manage` | Organisation | 8 |
+| GET/POST/PATCH | `/api/v1/leave/types[/:id]` | `leave.request.create` / `leave.policy.manage` | Company leave policies (defaults flagged `toVerify`; `confirmVerified` clears it) | 9 |
+| GET/PUT | `/api/v1/leave/holidays?year=` | create / policy | Public holidays of a year | 9 |
+| GET | `/api/v1/leave/balances?membershipId&year` | own (others by read scope) | Accrued, adjustments, taken, pending, balance per type | 9 |
+| POST | `/api/v1/leave/adjustments` | policy | Balance adjustment with a note | 9 |
+| GET/POST | `/api/v1/leave/requests` (+ `/preview`) | create | Mine / approvals / one person; apply (overlap, balance, document checks) | 9 |
+| POST | `/api/v1/leave/requests/:id/{approve,reject,withdraw,cancel}` | approve (team) / own | Workflow; deduction and restoration once each (ledger unique key) | 9 |
+| GET | `/api/v1/leave/calendar?from&to` | `leave.request.read` | Approved and pending leave + holidays (≤ 92 days) | 9 |
 | GET | `/api/v1/org-chart` | read | Reporting lines of people I may see | 8 |
 | GET | `/api/v1/workload?projectId=` | allocation.manage on the project, or company read | Open tasks / hours / overdue per person | 6 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |

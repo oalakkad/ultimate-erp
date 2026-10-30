@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets) and 8 (Employees & teams) built and committed 2026-10-30. **Next: Phase 9 (Leave management).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams) and 9 (Leave) built and committed 2026-10-30. **Next: Phase 10 (Attendance).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -79,6 +79,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - "Team" scope = teams I lead + my direct reports. Default schedule Sunday–Thursday, 40 h/week (per employee, not a legal value).
 - Leaving suspends the person's access to the company and clears their teams; the record becomes read-only.
 
+## Decisions 2026-10-30 (Phase 9, Claude in nonstop mode — reviewable)
+- Pre-filled leave types, **all flagged "to be verified by a Kuwaiti lawyer/accountant"**: Annual 30 working days/year accrued monthly; Sick 15 days/year with a document; Unpaid (no balance); Maternity 70 days with a document. An Owner/HR ticks "verified" after professional review.
+- Working days come from each person's schedule (default Sunday–Thursday); public holidays are entered by the company each year.
+- Balances are a ledger: accrued − taken + restored ± adjustments; no automatic carry-over or expiry (HR adjusts with a note).
+- Team leads and direct managers approve their people; Owner/CEO/HR approve anyone; nobody approves their own (API + database).
+
 ## Open questions
 1. **GRC tooling scope** — deferred (2026-10-24). Build the core ERP (Phases 1–7) first; revisit GRC delivery tooling once the core works. Data model keeps "engagement" central so GRC modules can attach later.
 2. **Design pilot** — no firm available yet. Seek feedback from 1–2 audit/GRC practitioners before Phase 5–7.
@@ -131,6 +137,8 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 3 — Clients / CRM** (2026-10-30; spec `modules/clients.md`): clients with bilingual names, numbers, duplicate protection, contacts and authorized representatives, communication history, virus-scanned documents, activity timeline, search/filter/sort/paging, CSV export, archive; dashboard card; palette search. Tests: 300 unit/integration + 8 browser.
 
+- **Phase 9 — Leave management** (2026-10-30; spec `modules/leave.md`): configurable leave types (Kuwait defaults flagged "to be verified"), accrual, ledger balances with database-enforced single deduction, working days minus holidays, half days, documents, approve/reject/withdraw/cancel, overlap check, team calendar, notifications, dashboard card. Tests: 351 unit/integration + 8 browser.
+
 - **Phase 8 — Employees & teams** (2026-10-30; spec `modules/people.md`): employee records with numbers, departments, teams, reporting line, lifecycle with on/offboarding checklists, schedules and capacity (utilisation), documents, encrypted private details and emergency contacts, employment history, three access levels. Tests: 346 unit/integration + 8 browser.
 
 - **Phase 7 — Timesheets & time tracking** (2026-10-30; spec `modules/timesheets.md`): time entries on assigned tasks, timer, weekly timesheet, submit, approval by the project manager with send-back and correction, reopen of approved time (audited), duplicate and 24-hour guards, billable/non-billable, summaries, planned vs actual, real project actual/billable hours, dashboard Time card. Tests: 337 unit/integration + 8 browser.
@@ -140,6 +148,10 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - **Phase 5 — Projects & budgeting** (2026-10-30; spec `modules/projects.md`): projects per client with an optional contract of the same client, P- numbering, manager + team, status machine, budget hours/amount with revision history, hours summary with 80 %/100 % warnings, documents, activity, project-scoped access, client tab, dashboard card. Tests: 320 unit/integration + 8 browser.
 
 - **Phase 4 — Contracts & engagement letters** (2026-10-30; spec `modules/contracts.md`): bilingual templates, CT-/EL- numbering, versions, draft → review → approved → sent → signed copy → active → expired/terminated with separation of duties, renewal reminders and expiry (daily 08:00 Kuwait), print view for PDF, client tab, dashboard card. Tests: 308 unit/integration + 8 browser.
+
+## How to verify Phase 9
+1. `pnpm check` → api `227` (others as Phase 8); `pnpm e2e:journey` → `2 passed`.
+2. Leave → Policies: the four types show "To be verified". Add a public holiday. As an employee with a record: My leave → choose Annual leave, pick dates → the box shows working days and the balance after → Send. As their team lead or the Owner: Approvals → Approve → the balance drops once; Team calendar shows the leave.
 
 ## How to verify Phase 8
 1. `pnpm check` → api `222` (others as Phase 7); `pnpm e2e:journey` → `2 passed`.
@@ -215,4 +227,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 9 (Leave management), built in nonstop mode: spec `docs/modules/leave.md` first, legal values as company settings marked "to be verified by a Kuwaiti lawyer/accountant". See the newest entry in `session-log.md`.
+Phase 10 (Attendance with rotating signed QR), built in nonstop mode: spec `docs/modules/attendance.md` first. See the newest entry in `session-log.md`.

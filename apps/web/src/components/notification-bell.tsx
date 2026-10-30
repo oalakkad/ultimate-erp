@@ -45,6 +45,17 @@ function useNotificationText() {
           endDate: item.params.endDate ?? '',
         });
       }
+      case 'leave.requested':
+      case 'leave.approved':
+      case 'leave.rejected':
+      case 'leave.cancelled': {
+        const key = item.type.replace('.', '_') as 'leave_requested';
+        return t(`ui.notifications.types.${key}`, {
+          name: item.params.name ?? '',
+          from: item.params.from ?? '',
+          to: item.params.to ?? '',
+        });
+      }
       case 'time.submitted':
       case 'time.approved':
       case 'time.rejected': {

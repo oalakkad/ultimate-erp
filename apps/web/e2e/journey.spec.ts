@@ -508,6 +508,39 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(page.getByRole('link', { name: invitee.name })).toBeVisible();
       await expectAccessible(page, 'organisation');
 
+      // --- Phase 9: the colleague applies for leave; the Owner approves; the calendar shows it -----
+      const inTwoWeeks = new Date(Date.now() + 14 * 86_400_000);
+      inTwoWeeks.setUTCDate(inTwoWeeks.getUTCDate() - inTwoWeeks.getUTCDay()); // a Sunday
+      const leaveStart = inTwoWeeks.toISOString().slice(0, 10);
+      const leaveEnd = new Date(inTwoWeeks.getTime() + 86_400_000).toISOString().slice(0, 10);
+      await guest.reload();
+      await guest.getByRole('link', { name: t('ui.shell.leave') }).click();
+      await expect(guest.getByText(t('ui.leave.noRequests'))).toBeVisible();
+      await expectAccessible(guest, 'my leave');
+      await guest.getByLabel(t('ui.leave.type')).click();
+      await guest
+        .getByRole('option', { name: locale === 'ar' ? 'إجازة بدون راتب' : 'Unpaid leave' })
+        .click();
+      await guest.getByLabel(t('ui.leave.from')).fill(leaveStart);
+      await guest.getByLabel(t('ui.leave.to')).fill(leaveEnd);
+      await expect(
+        guest.getByRole('status').filter({ hasText: t('ui.leave.previewDays', { days: '2' }) }),
+      ).toBeVisible();
+      await guest.getByRole('button', { name: t('ui.leave.submit') }).click();
+      await expect(guest.getByText(t('ui.leave.status.pending')).first()).toBeVisible();
+
+      await page.goto(`http://${slug}.localhost:5173/leave`);
+      await page.getByRole('tab', { name: t('ui.leave.tabs.approvals') }).click();
+      await expectAccessible(page, 'leave approvals');
+      await page.getByRole('button', { name: t('ui.leave.actions.approve') }).click();
+      await expect(page.getByText(t('ui.leave.nothingWaiting'))).toBeVisible();
+      await page.getByRole('tab', { name: t('ui.leave.tabs.calendar') }).click();
+      await expect(page.getByText(invitee.name).first()).toBeVisible();
+      await expectAccessible(page, 'leave calendar');
+      await page.getByRole('tab', { name: t('ui.leave.tabs.policies') }).click();
+      await expect(page.getByText(t('ui.leave.verifyNote'))).toBeVisible();
+      await expectAccessible(page, 'leave policies');
+
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
       await expectAccessible(page, 'my account');

@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-30 — Session 6 (continued): Phase 9 (Leave management) built + committed
+
+### Hand-over 9 (A–H)
+- **A Built:** company leave types (four Kuwait defaults flagged "to be verified by a Kuwaiti lawyer/accountant"), public holidays, ledger-based balances with monthly/yearly accrual from the joining date, applications counting working days minus holidays (half days, documents), approval by team lead/manager/Owner/CEO/HR, reject with note, withdraw, cancel with restoration, overlap check, team calendar, notifications, dashboard Leave card. See `docs/modules/leave.md` §11.
+- **B Files:** contracts `leave.ts`, permissions (+`leave.request.create`, `leave.request.read`, `leave.policy.manage`), notifications (+4), dashboard (`leave`); db `schema/leave.ts`, migrations 0025/0026 (incl. `app.leave_requests_guard`), isolation list; api `modules/leave/` (service, controller), dashboard, `test/leave.spec.ts`, access test update; web `routes/leave/leave.tsx`, router, app-layout, dashboard card, notification bell; i18n `leave` EN/AR; journey Phase 9 steps.
+- **C Architecture:** employee record (schedule, joining date) + leave type (policy) + holidays → working days; approval writes ledger rows (one per year of the leave) inside one transaction with the person's employee row locked; balances are always computed from policy + ledger.
+- **D Security:** forced RLS on 4 new tables; ledger append-only for the app and unique per (request, kind, year) so a request can't be deducted or restored twice even in a race; database trigger blocks self-decisions; team scope checked per request; supporting documents must be my own uploads.
+- **E Tests:** `pnpm check` **351** passed (api 227, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e:journey` 2 passed (first run); `pnpm e2e` 6 passed; `pnpm security` clean (accepted esbuild moderate only). The catalog test caught one untranslated Arabic label (fixed).
+- **F Verify:** project-status "How to verify Phase 9".
+- **G Open:** adjustments screen (API exists), carry-over/expiry rules, leave reducing capacity, attendance and payroll links (Phases 10–11). **Owner action:** have a Kuwaiti lawyer/accountant review the four default leave types before real use.
+- **Repo state:** committed ("Phase 9"); `pnpm dev` running; dev DB migrated to 0026. Not pushed.
+- **H Next:** Phase 10 Attendance (check-in/out with a rotating signed QR code, per brief Module I and "QR code security").
+
+---
+
 ## 2026-10-30 — Session 6 (continued): Phase 8 (Employees & teams) built + committed
 
 ### Hand-over 8 (A–H)

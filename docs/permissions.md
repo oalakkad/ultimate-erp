@@ -60,7 +60,10 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | time.entry.create | own | own | own | own | own | — |
 | time.entry.read | company | company | project | own | own | — |
 | time.timesheet.approve | company | company | project/team | team | — | — |
+| leave.request.create | own | own | own | own | own | — |
+| leave.request.read | company | company | team | team | own | — |
 | leave.request.approve | company | company | team | team | — | — |
+| leave.policy.manage (types, holidays, adjustments) | company | company | — | — | — | — |
 | payroll.run.prepare | — | company* | — | — | — | — |
 | payroll.run.approve | — | company* | — | — | — | — |
 | payroll.payslip.read | — | company* | — | — | own | — |

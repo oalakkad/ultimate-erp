@@ -89,6 +89,14 @@ export const dashboardSummarySchema = z
       })
       .strict()
       .optional(),
+    /** Leave: people I may see who are away today, and requests waiting for my decision. */
+    leave: z
+      .object({
+        onLeaveToday: z.number().int().min(0),
+        waitingForMe: z.number().int().min(0).nullable(),
+      })
+      .strict()
+      .optional(),
     /** Latest business events (people who can read the audit log). */
     activity: z
       .object({ items: z.array(activityItemSchema) })

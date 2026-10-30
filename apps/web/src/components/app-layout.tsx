@@ -31,6 +31,7 @@ import {
   Clock,
   ClipboardCheck,
   Contact,
+  Plane,
   ChevronsUpDown,
   LayoutGrid,
   LogOut,
@@ -109,6 +110,7 @@ export function AppLayout() {
   const canLogTime = canAny(access.data, 'time.entry.create');
   const canApproveTime = canAny(access.data, 'time.timesheet.approve');
   const canReadPeople = canAny(access.data, 'people.employee.read');
+  const canLeave = canAny(access.data, 'leave.request.create');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -232,6 +234,16 @@ export function AppLayout() {
         label: t('ui.people.organisation'),
         run: () => {
           go('/organisation');
+        },
+      });
+    }
+    if (canLeave) {
+      list.push({
+        id: 'page:leave',
+        group: 'pages',
+        label: t('ui.shell.leave'),
+        run: () => {
+          go('/leave');
         },
       });
     }
@@ -395,6 +407,7 @@ export function AppLayout() {
     canLogTime,
     canApproveTime,
     canReadPeople,
+    canLeave,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -529,6 +542,14 @@ export function AppLayout() {
           icon={<Contact aria-hidden />}
           label={t('ui.shell.people')}
           current={path.startsWith('/people') || path === '/organisation'}
+        />
+      )}
+      {canLeave && (
+        <NavItem
+          {...link('/leave')}
+          icon={<Plane aria-hidden />}
+          label={t('ui.shell.leave')}
+          current={path === '/leave'}
         />
       )}
       {canReadMembers && (
