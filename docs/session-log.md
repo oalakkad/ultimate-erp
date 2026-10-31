@@ -6,6 +6,17 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-31 — Session 8 (continued): Phase 15d — Phase 15 complete
+
+### Hand-over 15d (A–H)
+- **A Built:** OpenTelemetry traces (`apps/api/src/telemetry.ts`, preloaded with `--import` in the image, worker and start scripts; off unless `OTEL_EXPORTER_OTLP_ENDPOINT`; query strings, client addresses and user agents removed; SQL with placeholders only) — lean set (sdk-trace, OTLP/HTTP exporter, http + pg instrumentation; sdk-node dropped for its large tree); security review R1–R15 with evidence (`security.md` §2d); monitoring and incident runbook with a tabletop walk-through (`operations.md` §6–7); production readiness assessment and owner go-live checklist (`release-readiness.md`).
+- **B Files:** api `src/telemetry.ts`, `test/telemetry.spec.ts`, `package.json` (OpenTelemetry deps, start scripts); infra api Dockerfile CMD, prod compose (worker command, `OTEL_EXPORTER_OTLP_ENDPOINT`); `THIRD_PARTY_NOTICES.txt` regenerated; docs security, operations, release-readiness (new), hardening, roadmap, checklist, project-status, README.
+- **E Tests:** format, lint, typecheck ✅; API **302** passed (incl. telemetry: the built API sends an HTTP span and a PostgreSQL span to a local OTLP receiver, with no email from the query string); other packages unchanged and green in the previous full run (db 39, contracts 36, web 23, ui 16, i18n 10 → 426 total); `pnpm security` clean (licences incl. OpenTelemetry, notices current).
+- **G Open:** tabletop gap — an admin cannot end another person's sessions without removing them (follow-up); owner go-live checklist in `release-readiness.md`. The owner tried sign-up: confirmation emails go to the local Mailpit inbox (http://localhost:8025), not Gmail — explained; real SMTP needs an app password in `.env` if wanted.
+- **Repo state:** committed ("Phase 15d"). Not pushed. `pnpm dev` running.
+- **H Next:** Phase 16 — React Native app (plan first: Expo, shared contracts, sign-in with two-factor and company hand-off, attendance scan, notifications, tasks, time, leave; EN/AR RTL).
+
+---
 ## 2026-10-31 — Session 8 (continued): Phase 15c (performance) built + committed
 
 ### Hand-over 15c (A–H)

@@ -28,7 +28,7 @@ Show with evidence, not claims, that the system can be installed, run, backed up
 - `EXPLAIN (ANALYZE, BUFFERS)` on the slowest queries; index or query fixes only where measured.
 - Web: route-level code splitting (the >500 kB bundle warning, open since Phase 2).
 
-### 15d — Security, isolation, accessibility, monitoring, readiness
+### 15d — Security, isolation, accessibility, monitoring, readiness — ✅ done 2026-10-31 (`release-readiness.md`)
 - **Isolation completeness test:** reads the PostgreSQL catalogue and fails if any table with a `tenant_id` lacks ENABLE + FORCE RLS and a policy, or is missing from the isolation test list — new tables can't slip through.
 - Security review: walk `security.md` R1–R15 and the OWASP ASVS L2 sections that apply, with evidence per row (test name, file, or screenshot) in `compliance.md` §4. Dependency review (`pnpm audit` incl. moderate, outdated majors).
 - Accessibility sweep: axe on every screen, EN + AR, light + dark; keyboard-only pass of the main journey.

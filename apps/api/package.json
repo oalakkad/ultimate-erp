@@ -9,10 +9,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json && concurrently --kill-others --names tsc,api,worker \"tsc -p tsconfig.build.json --watch --preserveWatchOutput\" \"node --env-file-if-exists=../../.env --watch --enable-source-maps dist/main.js\" \"node --env-file-if-exists=../../.env --watch --enable-source-maps dist/worker.js\"",
-    "start": "node --enable-source-maps dist/main.js",
+    "start": "node --enable-source-maps --import ./dist/telemetry.js dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "start:worker": "node --enable-source-maps dist/worker.js"
+    "start:worker": "node --enable-source-maps --import ./dist/telemetry.js dist/worker.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1152.0",
@@ -20,6 +20,14 @@
     "@nestjs/common": "12.2.0",
     "@nestjs/core": "12.2.0",
     "@nestjs/platform-express": "12.2.0",
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/context-async-hooks": "3.0.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.300.0",
+    "@opentelemetry/instrumentation": "0.300.0",
+    "@opentelemetry/instrumentation-http": "0.300.0",
+    "@opentelemetry/instrumentation-pg": "0.77.0",
+    "@opentelemetry/resources": "3.0.0",
+    "@opentelemetry/sdk-trace": "3.0.0",
     "@ultimate-erp/contracts": "workspace:*",
     "@ultimate-erp/db": "workspace:*",
     "@ultimate-erp/i18n": "workspace:*",

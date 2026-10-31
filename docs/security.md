@@ -20,7 +20,7 @@ Status: **Draft — Phase 0.** Targets OWASP ASVS 5.0 Level 2 for the whole app,
 | R12 | Notification/announcement leaks or mass-send accidents | Recipient set resolved server-side with authorization; announcements require permission, preview + confirmation with recipient count; rate limited; audited. | Tests. |
 | R13 | QR attendance spoofing | Short-lived signed rotating codes, authenticated check-in, server time, replay protection, optional geofence; corrections audited. | Phase 10 tests. |
 | R14 | Developer/technical admin seeing business data | Technical admin role has system permissions only (health, logs without PII, integrations); no business-data permissions by default; support access to tenant data is time-boxed, tenant-approved and audited. | Permission tests. |
-| R15 | Data breach response (Kuwait: 24h CITRA notification) | Incident runbook, audit trail, alerting. | Phase 15 tabletop. |
+| R15 | Data breach response (Kuwait: 24h CITRA notification) | Incident runbook (operations.md §7), audit trail, alerting. | Tabletop walk-through 2026-10-31 (operations.md §7). |
 
 ## 2. Baseline controls (Phase 1 must deliver)
 
@@ -61,6 +61,26 @@ Found by running the production compose file end to end (`pnpm deploy:verify`) a
 | No limits on exports, uploads, report runs | Bulk data exfiltration speed, storage / scanner / database load | Per-member limits: 30 exports/h, 100 uploads/h, 120 report runs/10 min (`route-limit.ts`), 429 + Retry-After | `hardening.spec.ts` |
 | `NAME_FILE` secrets promised (§2a) but not implemented | Secrets only via plain environment variables | `withFileValues` in the API and backup tool | `config.spec.ts` |
 | Docker build context included local `backups/` | Real (encrypted) data inside build layers | `.dockerignore` | — |
+## 2d. Phase 15d security review (2026-10-31): each risk with its evidence
+Internal review, not a substitute for the external penetration test recommended before the first paying customer (hardening.md §3).
+
+| Risk | Status | Evidence (automated unless stated) |
+|---|---|---|
+| R1 Cross-tenant leak | ✅ Controlled | `packages/db/test/isolation.spec.ts` (forced RLS on every company table — catalogue guard fails for any new table without it; B cannot read/write/link A), cross-tenant cases in every module suite, `hardening.spec.ts` (company from Host only), restore drill keeps isolation (`backup.spec.ts`) |
+| R2 IDOR / access control | ✅ Controlled | `access.spec.ts` permission matrix, 404 for records outside scope in each module suite |
+| R3 Account takeover | ✅ Controlled | `identity.spec.ts` (MFA, lockout, throttling, session revoke, reset tokens), `breached-password.spec.ts`; client address correct behind proxies (`client-ip.spec.ts`) |
+| R4 Privilege escalation | ✅ Controlled | `access.spec.ts` (role changes need permission, no self-elevation, audited) |
+| R5 Financial / payroll tampering | ✅ Controlled | `payroll.spec.ts`, `billing.spec.ts`, `expenses.spec.ts` (separation of duties, immutable issued records — database triggers) |
+| R6 Injection | ✅ Controlled | Drizzle parameters only; long ID lists as one validated array parameter (`sql-helpers.ts`); Zod validation (`http.spec.ts`); CSP on app and API (deploy test) |
+| R7 CSRF | ✅ Controlled | SameSite cookies + Origin check (`http.spec.ts`; proven on a non-standard port by the deploy test) |
+| R8 Unsafe uploads | ✅ Controlled | `files.spec.ts` (content sniffing, size, ClamAV, attachment-only signed links); upload limit (`hardening.spec.ts`) |
+| R9 Sensitive data in logs / telemetry | ✅ Controlled | `logger-options.spec.ts`, `monitoring.spec.ts` (scrubbing), `telemetry.spec.ts` (no query strings/addresses in traces) |
+| R10 Supply chain | ✅ Controlled | `pnpm security` in CI: audit (1 moderate accepted, §2b), licence allow-list, notices up to date |
+| R11 Secrets exposure | ✅ Controlled | gitleaks in CI; production guard refuses example secrets and placeholders (`config.spec.ts`); `NAME_FILE` secrets; backups excluded from images |
+| R12 Mass-send accidents | ✅ Controlled | `announcements.spec.ts` (count confirmation, daily limit, audit) |
+| R13 QR attendance spoofing | ✅ Controlled | `attendance.spec.ts` (rotating signed codes, replay protection) |
+| R14 Technical admin sees business data | ✅ By design | No platform-operator access path exists yet (`erp_platform` is NOLOGIN); to design with support access |
+| R15 Breach response (Kuwait CITRA 24 h) | 🟡 Runbook ready | `operations.md` §7 incident runbook + tabletop walk-through 2026-10-31; legal confirmation of the notification duty is an owner item (compliance.md ⚖️) |
 ## 2b. Accepted risks (reviewed)
 | Finding | Why accepted | Revisit |
 |---|---|---|

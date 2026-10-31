@@ -52,6 +52,8 @@ x-app-env: &app-env
   S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
   CLAMAV_HOST: clamav
   SENTRY_DSN: ${SENTRY_DSN:-}
+  # Optional traces to your OpenTelemetry collector (OTLP/HTTP), e.g. http://otel-collector:4318
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
   # Proxies in front of the API that append X-Forwarded-For: the web container (1) plus your HTTPS
   # proxy (2). Wrong values put everyone in one rate-limit bucket (docs/operations.md section 5).
   TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-2}
@@ -131,7 +133,7 @@ services:
 
   worker:
     image: ultimate-erp-api:latest
-    command: ['node', '--enable-source-maps', 'dist/worker.js']
+    command: ['node', '--enable-source-maps', '--import', './dist/telemetry.js', 'dist/worker.js']
     restart: unless-stopped
     environment: *app-env
     depends_on:

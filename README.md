@@ -69,7 +69,7 @@ docs/               Architecture, decisions, roadmap, status
 ## Documentation
 - [Project status](docs/project-status.md)
 - [Roadmap](docs/roadmap.md) · [Requirements checklist](docs/requirements-checklist.md)
-- [Testing](docs/testing.md) · [API conventions](docs/api.md) · [Database](docs/database.md) · [Operations runbook](docs/operations.md) · [Hardening plan](docs/hardening.md)
+- [Testing](docs/testing.md) · [API conventions](docs/api.md) · [Database](docs/database.md) · [Operations runbook](docs/operations.md) · [Readiness](docs/release-readiness.md) · [Performance](docs/performance.md) · [Hardening plan](docs/hardening.md)
 - [Product brief](docs/product-brief.md) · [Session log](docs/session-log.md)
 - [Architecture](docs/architecture.md) and [decisions](docs/decisions/)
 - [Domain model](docs/domain-model.md) · [Security](docs/security.md) · [Permissions](docs/permissions.md) · [Compliance](docs/compliance.md) · [Design system](docs/design-system.md)

@@ -233,7 +233,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Organized code & docs; reproducible setup & deployment | ✅ setup; deployment proven end to end by `pnpm deploy:verify` (CI `deploy` job) 15b |
 | Documented security & compliance assessment | 🟡 security.md + compliance.md ongoing |
 | Ready for React Native client | 🟡 shared contracts ✅ |
-| Production readiness shown by evidence | 🟡 backups 15a, deployment 15b, performance 15c (`performance.md`); readiness report 15d |
+| Production readiness shown by evidence | ✅ `release-readiness.md` (15d): every brief Phase 15 item with evidence; owner go-live checklist |
 
 ## §25 First task (Phase 0)
 | Requirement | Status |
