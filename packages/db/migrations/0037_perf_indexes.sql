@@ -1,0 +1,1 @@
+CREATE INDEX "time_entries_submitted_idx" ON "time_entries" USING btree ("tenant_id","project_id") WHERE status = 'submitted';

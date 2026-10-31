@@ -194,7 +194,8 @@ export class DashboardService {
             .innerJoin(projects, eq(projects.id, timeEntries.projectId))
             .where(
               and(
-                eq(timeEntries.status, 'submitted'),
+                // Literal, so the partial index time_entries_submitted_idx applies (a parameter would not).
+                sql`${timeEntries.status} = 'submitted'`,
                 ne(timeEntries.membershipId, access.membershipId),
                 approveAll ? undefined : eq(projects.managerMembershipId, access.membershipId),
               ),

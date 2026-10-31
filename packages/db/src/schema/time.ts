@@ -81,6 +81,10 @@ export const timeEntries = pgTable(
     index('time_entries_project_idx').on(t.tenantId, t.projectId, t.status),
     index('time_entries_task_idx').on(t.tenantId, t.taskId),
     index('time_entries_member_date_idx').on(t.tenantId, t.membershipId, t.workDate),
+    // Approval queues and the dashboard count only what waits for a decision (Phase 15c).
+    index('time_entries_submitted_idx')
+      .on(t.tenantId, t.projectId)
+      .where(sql`status = 'submitted'`),
     // The entry belongs to its own person's timesheet …
     foreignKey({
       name: 'time_entries_timesheet_fk',

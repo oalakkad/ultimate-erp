@@ -37,6 +37,7 @@ import {
   lte,
   notInArray,
   or,
+  sql,
   type SQL,
 } from 'drizzle-orm';
 import { type Request } from 'express';
@@ -45,6 +46,7 @@ import { type Job } from 'pg-boss';
 import { AuditLog } from '../../platform/audit/audit-log.js';
 import { nextDocumentNumber } from '../../platform/database/numbering.js';
 import { pgErrorCode } from '../../platform/database/pg-error.js';
+import { anyUuid } from '../../platform/database/sql-helpers.js';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { AppError } from '../../platform/errors/app-error.js';
 import { messageFor } from '../../platform/errors/to-error-response.js';
@@ -80,8 +82,6 @@ const conflict = (path: string, code: string, message: string) =>
   new AppError('CONFLICT', HttpStatus.CONFLICT, message, [{ path, code }]);
 const addDays = (iso: string, n: number) =>
   new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
-const daysBetween = (a: string, b: string) =>
-  Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 /** An exact decimal string as numerator / denominator. */
 const fraction = (value: string) => {
   const [whole = '0', frac = ''] = value.split('.');
@@ -676,69 +676,64 @@ export class BillingService {
   async aging(access: AccessContext) {
     if (!hasPermission(access.permissions, 'billing.invoice.read', 'company')) throw forbidden();
     return this.database.withTenant(access.tenantId, async (tx) => {
-      const today = kuwaitToday();
-      const rows = await tx
-        .select({ invoice: invoices, client: clients })
-        .from(invoices)
-        .innerJoin(clients, eq(clients.id, invoices.clientId))
-        .where(inArray(invoices.status, [...OPEN]));
-      const balances = await this.balances(
-        tx,
-        rows.map((r) => r.invoice.id),
-      );
+      const dues = this.openDues(kuwaitToday());
       const keys = ['current', 'd1_30', 'd31_60', 'd61_90', 'd90_plus'] as const;
-      const buckets = new Map(keys.map((k) => [k, { amount: 0n, count: 0 }]));
-      const byClient = new Map<
-        string,
-        { name: { en: string; ar: string }; outstanding: bigint; overdue: bigint }
-      >();
-      let total = 0n;
-      for (const { invoice, client } of rows) {
-        const b = balances.get(invoice.id);
-        const due = kwdToFils(invoice.total) - (b?.paid ?? 0n) - (b?.credited ?? 0n);
-        if (due <= 0n) continue;
-        const late = invoice.dueDate ? daysBetween(invoice.dueDate, today) : 0;
-        const key =
-          late <= 0
-            ? 'current'
-            : late <= 30
-              ? 'd1_30'
-              : late <= 60
-                ? 'd31_60'
-                : late <= 90
-                  ? 'd61_90'
-                  : 'd90_plus';
-        const bucket = buckets.get(key) ?? { amount: 0n, count: 0 };
-        bucket.amount += due;
-        bucket.count += 1;
-        total += due;
-        const c = byClient.get(client.id) ?? {
-          name: { en: client.legalNameEn, ar: client.legalNameAr },
-          outstanding: 0n,
-          overdue: 0n,
-        };
-        c.outstanding += due;
-        if (late > 0) c.overdue += due;
-        byClient.set(client.id, c);
-      }
+      // Buckets and per-client totals are summed in the database (exact numeric sums).
+      const bucketRows = await tx.execute<{ key: string; amount: string; n: number }>(sql`
+        select case when late <= 0 then 'current' when late <= 30 then 'd1_30'
+                    when late <= 60 then 'd31_60' when late <= 90 then 'd61_90' else 'd90_plus' end as key,
+               sum(due)::text as amount, count(*)::int as n
+          from ${dues} where due > 0 group by 1`);
+      const clientRows = await tx.execute<{
+        id: string;
+        name_en: string;
+        name_ar: string;
+        outstanding: string;
+        overdue: string;
+      }>(sql`
+        select c.id, c.legal_name_en as name_en, c.legal_name_ar as name_ar,
+               sum(d.due)::text as outstanding,
+               coalesce(sum(d.due) filter (where d.late > 0), 0)::text as overdue
+          from ${dues} join clients c on c.id = d.client_id
+         where d.due > 0
+         group by c.id, c.legal_name_en, c.legal_name_ar
+         order by sum(d.due) desc, c.id`);
+      const buckets = new Map(bucketRows.rows.map((r) => [r.key, r]));
+      const total = bucketRows.rows.reduce((t, r) => t + kwdToFils(r.amount), 0n);
       return {
         currency: 'KWD',
         buckets: keys.map((k) => ({
           key: k,
-          amount: filsToKwd(buckets.get(k)?.amount ?? 0n),
-          count: buckets.get(k)?.count ?? 0,
+          amount: filsToKwd(kwdToFils(buckets.get(k)?.amount ?? '0')),
+          count: buckets.get(k)?.n ?? 0,
         })),
         total: filsToKwd(total),
-        clients: [...byClient.entries()]
-          .sort((a, b) => Number(b[1].outstanding - a[1].outstanding))
-          .map(([id, c]) => ({
-            id,
-            name: c.name,
-            outstanding: filsToKwd(c.outstanding),
-            overdue: filsToKwd(c.overdue),
-          })),
+        clients: clientRows.rows.map((r) => ({
+          id: r.id,
+          name: { en: r.name_en, ar: r.name_ar },
+          outstanding: filsToKwd(kwdToFils(r.outstanding)),
+          overdue: filsToKwd(kwdToFils(r.overdue)),
+        })),
       };
     });
+  }
+
+  /**
+   * Open invoices with what is still due and how many days late they are (0 without a due
+   * date), as a subquery `d` (client_id, due, late) for sums in the database.
+   */
+  private openDues(today: string): SQL {
+    return sql`(
+      select i.client_id,
+             i.total - coalesce(p.amount, 0) - coalesce(cn.amount, 0) as due,
+             coalesce(${today}::date - i.due_date, 0) as late
+        from invoices i
+        left join (select invoice_id, sum(amount) as amount from payments
+                    where status = 'recorded' group by invoice_id) p on p.invoice_id = i.id
+        left join (select invoice_id, sum(amount) as amount from credit_notes
+                    group by invoice_id) cn on cn.invoice_id = i.id
+       where i.status in ('issued', 'partially_paid')
+    ) d`;
   }
 
   async revenue(access: AccessContext, year: number) {
@@ -822,28 +817,17 @@ export class BillingService {
   }
 
   async dashboard(tx: TenantTransaction) {
-    const today = kuwaitToday();
-    const rows = await tx
-      .select()
-      .from(invoices)
-      .where(inArray(invoices.status, [...OPEN]));
-    const balances = await this.balances(
-      tx,
-      rows.map((r) => r.id),
-    );
-    let outstanding = 0n;
-    let overdue = 0n;
-    let overdueCount = 0;
-    for (const r of rows) {
-      const b = balances.get(r.id);
-      const due = kwdToFils(r.total) - (b?.paid ?? 0n) - (b?.credited ?? 0n);
-      outstanding += due;
-      if (r.dueDate && r.dueDate < today && due > 0n) {
-        overdue += due;
-        overdueCount += 1;
-      }
-    }
-    return { outstanding: filsToKwd(outstanding), overdue: filsToKwd(overdue), overdueCount };
+    const result = await tx.execute<{ outstanding: string; overdue: string; n: number }>(sql`
+      select coalesce(sum(due), 0)::text as outstanding,
+             coalesce(sum(due) filter (where late > 0 and due > 0), 0)::text as overdue,
+             (count(*) filter (where late > 0 and due > 0))::int as n
+        from ${this.openDues(kuwaitToday())}`);
+    const row = result.rows[0];
+    return {
+      outstanding: filsToKwd(kwdToFils(row?.outstanding ?? '0')),
+      overdue: filsToKwd(kwdToFils(row?.overdue ?? '0')),
+      overdueCount: row?.n ?? 0,
+    };
   }
 
   // --- helpers -------------------------------------------------------------------------------
@@ -906,21 +890,25 @@ export class BillingService {
     return row;
   }
 
+  /** Paid and credited amounts per invoice, summed in the database (exact numeric sums). */
   private async balances(tx: TenantTransaction, ids: string[]) {
     const out = new Map<string, { paid: bigint; credited: bigint }>();
     if (ids.length === 0) return out;
     for (const p of await tx
-      .select()
+      .select({ invoiceId: payments.invoiceId, amount: sql<string>`sum(${payments.amount})::text` })
       .from(payments)
-      .where(and(inArray(payments.invoiceId, ids), eq(payments.status, 'recorded')))) {
-      const b = out.get(p.invoiceId) ?? { paid: 0n, credited: 0n };
-      b.paid += kwdToFils(p.amount);
-      out.set(p.invoiceId, b);
+      .where(and(anyUuid(payments.invoiceId, ids), eq(payments.status, 'recorded')))
+      .groupBy(payments.invoiceId)) {
+      out.set(p.invoiceId, { paid: kwdToFils(p.amount), credited: 0n });
     }
     for (const c of await tx
-      .select()
+      .select({
+        invoiceId: creditNotes.invoiceId,
+        amount: sql<string>`sum(${creditNotes.amount})::text`,
+      })
       .from(creditNotes)
-      .where(inArray(creditNotes.invoiceId, ids))) {
+      .where(anyUuid(creditNotes.invoiceId, ids))
+      .groupBy(creditNotes.invoiceId)) {
       const b = out.get(c.invoiceId) ?? { paid: 0n, credited: 0n };
       b.credited += kwdToFils(c.amount);
       out.set(c.invoiceId, b);

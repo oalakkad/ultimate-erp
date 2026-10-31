@@ -1,51 +1,12 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  lazyRouteComponent,
+  Outlet,
+} from '@tanstack/react-router';
 import { UiProvider } from '@ultimate-erp/ui';
 import { AppLayout } from '../components/app-layout.js';
-import { AccountPage } from '../routes/account.js';
-import { AnnouncementsPage } from '../routes/announcements.js';
-import { CheckEmailPage, VerifyEmailPage } from '../routes/auth/email-pages.js';
-import { ForgotPasswordPage, ResetPasswordPage } from '../routes/auth/password-pages.js';
-import { SignInPage } from '../routes/auth/sign-in.js';
-import { SignUpPage } from '../routes/auth/sign-up.js';
-import { ClientDetailPage } from '../routes/clients/detail.js';
-import { ClientsPage } from '../routes/clients/list.js';
-import { NewClientPage } from '../routes/clients/new.js';
-import { CompaniesPage } from '../routes/companies.js';
-import { ContractDetailPage } from '../routes/contracts/detail.js';
-import { ContractsPage } from '../routes/contracts/list.js';
-import { NewContractPage } from '../routes/contracts/new.js';
-import { ContractPrintPage } from '../routes/contracts/print.js';
-import { ContractTemplatesPage } from '../routes/contracts/templates.js';
-import { DashboardPage } from '../routes/dashboard.js';
-import { ProjectDetailPage } from '../routes/projects/detail.js';
-import { ProjectsPage } from '../routes/projects/list.js';
-import { NewProjectPage } from '../routes/projects/new.js';
-import { AttendancePage } from '../routes/attendance/attendance.js';
-import { KioskPage } from '../routes/attendance/kiosk.js';
-import { ScanPage } from '../routes/attendance/scan.js';
-import { InvoicePage, NewInvoicePage } from '../routes/billing/invoice.js';
-import { InvoicesPage } from '../routes/billing/invoices.js';
-import { AuditLogPage } from '../routes/audit.js';
-import { ExpenseClaimPage } from '../routes/expenses/claim.js';
-import { ReportPage, ReportsPage } from '../routes/reports.js';
-import { ExpensesPage } from '../routes/expenses/expenses.js';
-import { InvoicePrintPage } from '../routes/billing/print.js';
-import { LeavePage } from '../routes/leave/leave.js';
-import { PayrollPage } from '../routes/payroll/payroll.js';
-import { MyPayslipsPage } from '../routes/payroll/payslips.js';
-import { PayrollRunPage } from '../routes/payroll/run.js';
-import { PersonPage } from '../routes/people/detail.js';
-import { PeoplePage } from '../routes/people/list.js';
-import { OrganisationPage } from '../routes/people/organisation.js';
-import { TaskDetailPage } from '../routes/tasks/detail.js';
-import { TasksPage } from '../routes/tasks/list.js';
-import { NewTaskPage } from '../routes/tasks/new.js';
-import { TimeApprovalsPage } from '../routes/time/approvals.js';
-import { MyTimePage } from '../routes/time/my-time.js';
-import { GalleryPage } from '../routes/gallery.js';
-import { HandoffPage } from '../routes/handoff.js';
-import { InvitationPage } from '../routes/invitation.js';
-import { MembersPage } from '../routes/members.js';
 import { useI18n } from './i18n.js';
 
 function RootLayout() {
@@ -76,59 +37,65 @@ const rootRoute = createRootRoute({ component: RootLayout });
 const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/sign-in',
-  component: SignInPage,
+  component: lazyRouteComponent(() => import('../routes/auth/sign-in.js'), 'SignInPage'),
   validateSearch: searchOf('returnTo'),
 });
 const signUpRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/sign-up',
-  component: SignUpPage,
+  component: lazyRouteComponent(() => import('../routes/auth/sign-up.js'), 'SignUpPage'),
   validateSearch: searchOf('returnTo'),
 });
 const checkEmailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/check-email',
-  component: CheckEmailPage,
+  component: lazyRouteComponent(() => import('../routes/auth/email-pages.js'), 'CheckEmailPage'),
   validateSearch: searchOf('email', 'returnTo'),
 });
 const verifyEmailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/verify-email',
-  component: VerifyEmailPage,
+  component: lazyRouteComponent(() => import('../routes/auth/email-pages.js'), 'VerifyEmailPage'),
   validateSearch: searchOf('token'),
 });
 const forgotRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/forgot-password',
-  component: ForgotPasswordPage,
+  component: lazyRouteComponent(
+    () => import('../routes/auth/password-pages.js'),
+    'ForgotPasswordPage',
+  ),
 });
 const resetRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/reset-password',
-  component: ResetPasswordPage,
+  component: lazyRouteComponent(
+    () => import('../routes/auth/password-pages.js'),
+    'ResetPasswordPage',
+  ),
   validateSearch: searchOf('token'),
 });
 const companiesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/companies',
-  component: CompaniesPage,
+  component: lazyRouteComponent(() => import('../routes/companies.js'), 'CompaniesPage'),
 });
 const handoffRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/handoff',
-  component: HandoffPage,
+  component: lazyRouteComponent(() => import('../routes/handoff.js'), 'HandoffPage'),
   validateSearch: searchOf('ticket'),
 });
 const invitationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/invitations/accept',
-  component: InvitationPage,
+  component: lazyRouteComponent(() => import('../routes/invitation.js'), 'InvitationPage'),
   validateSearch: searchOf('token'),
 });
 const galleryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/gallery',
-  component: GalleryPage,
+  component: lazyRouteComponent(() => import('../routes/gallery.js'), 'GalleryPage'),
 });
 
 /** The signed-in company app (guards live in AppLayout). */
@@ -136,211 +103,223 @@ const appRoute = createRoute({ getParentRoute: () => rootRoute, id: 'app', compo
 const dashboardRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/',
-  component: DashboardPage,
+  component: lazyRouteComponent(() => import('../routes/dashboard.js'), 'DashboardPage'),
 });
 const membersRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/members',
-  component: MembersPage,
+  component: lazyRouteComponent(() => import('../routes/members.js'), 'MembersPage'),
   validateSearch: searchOf('invite'),
 });
 const clientsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/clients',
-  component: ClientsPage,
+  component: lazyRouteComponent(() => import('../routes/clients/list.js'), 'ClientsPage'),
 });
 const newClientRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/clients/new',
-  component: NewClientPage,
+  component: lazyRouteComponent(() => import('../routes/clients/new.js'), 'NewClientPage'),
 });
 const clientRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/clients/$clientId',
-  component: ClientDetailPage,
+  component: lazyRouteComponent(() => import('../routes/clients/detail.js'), 'ClientDetailPage'),
 });
 const contractsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/contracts',
-  component: ContractsPage,
+  component: lazyRouteComponent(() => import('../routes/contracts/list.js'), 'ContractsPage'),
   validateSearch: searchOf('expiring'),
 });
 const newContractRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/contracts/new',
-  component: NewContractPage,
+  component: lazyRouteComponent(() => import('../routes/contracts/new.js'), 'NewContractPage'),
   validateSearch: searchOf('clientId'),
 });
 const contractTemplatesRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/contracts/templates',
-  component: ContractTemplatesPage,
+  component: lazyRouteComponent(
+    () => import('../routes/contracts/templates.js'),
+    'ContractTemplatesPage',
+  ),
 });
 const contractRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/contracts/$contractId',
-  component: ContractDetailPage,
+  component: lazyRouteComponent(
+    () => import('../routes/contracts/detail.js'),
+    'ContractDetailPage',
+  ),
 });
 /** Print view: outside the app frame so it prints cleanly. */
 const contractPrintRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/contracts/$contractId/print',
-  component: ContractPrintPage,
+  component: lazyRouteComponent(() => import('../routes/contracts/print.js'), 'ContractPrintPage'),
 });
 const projectsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/projects',
-  component: ProjectsPage,
+  component: lazyRouteComponent(() => import('../routes/projects/list.js'), 'ProjectsPage'),
 });
 const newProjectRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/projects/new',
-  component: NewProjectPage,
+  component: lazyRouteComponent(() => import('../routes/projects/new.js'), 'NewProjectPage'),
   validateSearch: searchOf('clientId'),
 });
 const projectRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/projects/$projectId',
-  component: ProjectDetailPage,
+  component: lazyRouteComponent(() => import('../routes/projects/detail.js'), 'ProjectDetailPage'),
 });
 const tasksRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/tasks',
-  component: TasksPage,
+  component: lazyRouteComponent(() => import('../routes/tasks/list.js'), 'TasksPage'),
   validateSearch: searchOf('mine', 'overdue'),
 });
 const newTaskRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/tasks/new',
-  component: NewTaskPage,
+  component: lazyRouteComponent(() => import('../routes/tasks/new.js'), 'NewTaskPage'),
   validateSearch: searchOf('projectId'),
 });
 const taskRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/tasks/$taskId',
-  component: TaskDetailPage,
+  component: lazyRouteComponent(() => import('../routes/tasks/detail.js'), 'TaskDetailPage'),
 });
 const timeRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/time',
-  component: MyTimePage,
+  component: lazyRouteComponent(() => import('../routes/time/my-time.js'), 'MyTimePage'),
   validateSearch: searchOf('week', 'taskId'),
 });
 const timeApprovalsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/time/approvals',
-  component: TimeApprovalsPage,
+  component: lazyRouteComponent(() => import('../routes/time/approvals.js'), 'TimeApprovalsPage'),
 });
 const peopleRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/people',
-  component: PeoplePage,
+  component: lazyRouteComponent(() => import('../routes/people/list.js'), 'PeoplePage'),
 });
 const personRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/people/$membershipId',
-  component: PersonPage,
+  component: lazyRouteComponent(() => import('../routes/people/detail.js'), 'PersonPage'),
 });
 const organisationRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/organisation',
-  component: OrganisationPage,
+  component: lazyRouteComponent(
+    () => import('../routes/people/organisation.js'),
+    'OrganisationPage',
+  ),
 });
 const leaveRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/leave',
-  component: LeavePage,
+  component: lazyRouteComponent(() => import('../routes/leave/leave.js'), 'LeavePage'),
   validateSearch: searchOf('view'),
 });
 const attendanceRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/attendance',
-  component: AttendancePage,
+  component: lazyRouteComponent(
+    () => import('../routes/attendance/attendance.js'),
+    'AttendancePage',
+  ),
 });
 const attendanceScanRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/attendance/scan',
-  component: ScanPage,
+  component: lazyRouteComponent(() => import('../routes/attendance/scan.js'), 'ScanPage'),
   validateSearch: searchOf('code'),
 });
 /** Kiosk display: outside the app frame, full screen at the office. */
 const kioskRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/attendance/kiosk/$siteId',
-  component: KioskPage,
+  component: lazyRouteComponent(() => import('../routes/attendance/kiosk.js'), 'KioskPage'),
 });
 const payrollRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/payroll',
-  component: PayrollPage,
+  component: lazyRouteComponent(() => import('../routes/payroll/payroll.js'), 'PayrollPage'),
 });
 const payrollRunRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/payroll/runs/$runId',
-  component: PayrollRunPage,
+  component: lazyRouteComponent(() => import('../routes/payroll/run.js'), 'PayrollRunPage'),
 });
 const payslipsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/payroll/payslips',
-  component: MyPayslipsPage,
+  component: lazyRouteComponent(() => import('../routes/payroll/payslips.js'), 'MyPayslipsPage'),
 });
 const invoicesRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/invoices',
-  component: InvoicesPage,
+  component: lazyRouteComponent(() => import('../routes/billing/invoices.js'), 'InvoicesPage'),
   validateSearch: searchOf('overdue'),
 });
 const newInvoiceRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/invoices/new',
-  component: NewInvoicePage,
+  component: lazyRouteComponent(() => import('../routes/billing/invoice.js'), 'NewInvoicePage'),
   validateSearch: searchOf('clientId'),
 });
 const invoiceRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/invoices/$invoiceId',
-  component: InvoicePage,
+  component: lazyRouteComponent(() => import('../routes/billing/invoice.js'), 'InvoicePage'),
 });
 /** Print view: outside the app frame so it prints cleanly. */
 const invoicePrintRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/invoices/$invoiceId/print',
-  component: InvoicePrintPage,
+  component: lazyRouteComponent(() => import('../routes/billing/print.js'), 'InvoicePrintPage'),
 });
 const expensesRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/expenses',
-  component: ExpensesPage,
+  component: lazyRouteComponent(() => import('../routes/expenses/expenses.js'), 'ExpensesPage'),
 });
 const expenseClaimRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/expenses/$claimId',
-  component: ExpenseClaimPage,
+  component: lazyRouteComponent(() => import('../routes/expenses/claim.js'), 'ExpenseClaimPage'),
 });
 const reportsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/reports',
-  component: ReportsPage,
+  component: lazyRouteComponent(() => import('../routes/reports.js'), 'ReportsPage'),
 });
 const reportRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/reports/$reportKey',
-  component: ReportPage,
+  component: lazyRouteComponent(() => import('../routes/reports.js'), 'ReportPage'),
 });
 const auditRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/audit',
-  component: AuditLogPage,
+  component: lazyRouteComponent(() => import('../routes/audit.js'), 'AuditLogPage'),
 });
 const announcementsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/announcements',
-  component: AnnouncementsPage,
+  component: lazyRouteComponent(() => import('../routes/announcements.js'), 'AnnouncementsPage'),
 });
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
-  component: AccountPage,
+  component: lazyRouteComponent(() => import('../routes/account.js'), 'AccountPage'),
 });
 
 export const router = createRouter({

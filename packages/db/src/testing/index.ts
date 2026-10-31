@@ -11,6 +11,11 @@ export interface TestDatabase extends DatabaseUrls {
   stop(): Promise<void>;
 }
 
+export interface TestDatabaseOptions {
+  /** PostgreSQL server settings (`-c name=value`), e.g. for performance measurements. */
+  serverSettings?: Record<string, string>;
+}
+
 function withUser(url: string, user: string, password: string): string {
   const parsed = new URL(url);
   parsed.username = user;
@@ -22,10 +27,15 @@ function withUser(url: string, user: string, password: string): string {
  * Starts a throwaway PostgreSQL in Docker with no roles and no tables: a brand-new server, as a
  * restore or a first installation finds it. For tests only.
  */
-export async function startEmptyTestDatabase(): Promise<TestDatabase> {
-  const container: StartedPostgreSqlContainer = await new PostgreSqlContainer(
-    POSTGRES_IMAGE,
-  ).start();
+export async function startEmptyTestDatabase(
+  options: TestDatabaseOptions = {},
+): Promise<TestDatabase> {
+  const definition = new PostgreSqlContainer(POSTGRES_IMAGE);
+  if (options.serverSettings) {
+    const flags = Object.entries(options.serverSettings).flatMap(([k, v]) => ['-c', `${k}=${v}`]);
+    definition.withCommand(['postgres', ...flags]);
+  }
+  const container: StartedPostgreSqlContainer = await definition.start();
   const adminUrl = container.getConnectionUri();
   return {
     adminUrl,
@@ -42,8 +52,8 @@ export async function startEmptyTestDatabase(): Promise<TestDatabase> {
  * Starts a throwaway PostgreSQL in Docker with roles bootstrapped and all migrations applied,
  * exactly like a real installation. For tests only.
  */
-export async function startTestDatabase(): Promise<TestDatabase> {
-  const database = await startEmptyTestDatabase();
+export async function startTestDatabase(options: TestDatabaseOptions = {}): Promise<TestDatabase> {
+  const database = await startEmptyTestDatabase(options);
   await bootstrapDatabase(database);
   await runMigrations(database.migratorUrl);
   return database;

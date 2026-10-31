@@ -263,7 +263,8 @@ export class TimeService {
   async approvals(access: AccessContext) {
     return this.database.withTenant(access.tenantId, async (tx) => {
       const conditions: (SQL | undefined)[] = [
-        eq(timeEntries.status, 'submitted'),
+        // Literal, so the partial index time_entries_submitted_idx applies (a parameter would not).
+        sql`${timeEntries.status} = 'submitted'`,
         ne(timeEntries.membershipId, access.membershipId),
       ];
       if (!hasPermission(access.permissions, 'time.timesheet.approve', 'company')) {

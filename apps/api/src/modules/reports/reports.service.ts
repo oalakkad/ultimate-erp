@@ -27,9 +27,10 @@ import {
   type TenantTransaction,
   timeEntries,
 } from '@ultimate-erp/db';
-import { and, asc, eq, gte, inArray, lte, ne, type SQL } from 'drizzle-orm';
+import { and, type AnyColumn, asc, eq, gte, inArray, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { type Request } from 'express';
 import { AuditLog } from '../../platform/audit/audit-log.js';
+import { anyUuid } from '../../platform/database/sql-helpers.js';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { AppError } from '../../platform/errors/app-error.js';
 import { messageFor } from '../../platform/errors/to-error-response.js';
@@ -82,7 +83,6 @@ const DAY = 86_400_000;
 const daysBetween = (a: string, b: string) =>
   Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / DAY);
 const kuwaitDayStart = (iso: string) => new Date(Date.parse(`${iso}T00:00:00+03:00`));
-const kuwaitDate = (d: Date) => new Date(d.getTime() + 3 * 3_600_000).toISOString().slice(0, 10);
 const money = (fils: bigint) => filsToKwd(fils);
 const sumFils = (values: string[]) => values.reduce((t, v) => t + kwdToFils(v), 0n);
 /** Ratio as a percentage with one decimal ("82.5"), or null when the base is zero. */
@@ -525,18 +525,41 @@ export class ReportsService {
       .orderBy(asc(projects.number));
   }
 
+  /**
+   * `column = any(ids)` only when the report is narrowed (client, project or a manager's scope).
+   * A company-wide report covers every project anyway, and checking a list of thousands of IDs
+   * against every row is the most expensive part of the query (Phase 15c).
+   */
+  private narrowedTo(column: AnyColumn, ids: string[], q: Query, scope: Scope): SQL | undefined {
+    return q.clientId || q.projectId || scope ? anyUuid(column, ids) : undefined;
+  }
+
   private async projectsReport(tx: TenantTransaction, q: Query, scope: Scope): Promise<Row[]> {
     const list = await this.projectRows(tx, q, scope);
     const ids = list.map((r) => r.project.id);
     if (ids.length === 0) return [];
+    // Summed in the database: one row per project instead of every allocation and entry.
     const allocated = await tx
-      .select({ projectId: taskAllocations.projectId, hours: taskAllocations.hours })
+      .select({
+        projectId: taskAllocations.projectId,
+        hours: sql<string>`sum(${taskAllocations.hours})::text`,
+      })
       .from(taskAllocations)
-      .where(inArray(taskAllocations.projectId, ids));
+      .where(this.narrowedTo(taskAllocations.projectId, ids, q, scope))
+      .groupBy(taskAllocations.projectId);
     const approved = await tx
-      .select({ projectId: timeEntries.projectId, hours: timeEntries.hours })
+      .select({
+        projectId: timeEntries.projectId,
+        hours: sql<string>`sum(${timeEntries.hours})::text`,
+      })
       .from(timeEntries)
-      .where(and(inArray(timeEntries.projectId, ids), eq(timeEntries.status, 'approved')));
+      .where(
+        and(
+          this.narrowedTo(timeEntries.projectId, ids, q, scope),
+          eq(timeEntries.status, 'approved'),
+        ),
+      )
+      .groupBy(timeEntries.projectId);
     const sum = (rows: { projectId: string; hours: string }[]) => {
       const m = new Map<string, bigint>();
       for (const r of rows) m.set(r.projectId, (m.get(r.projectId) ?? 0n) + hundredths(r.hours));
@@ -568,7 +591,7 @@ export class ReportsService {
       .from(invoices)
       .where(
         and(
-          inArray(invoices.projectId, ids),
+          anyUuid(invoices.projectId, ids),
           inArray(invoices.status, [...LIVE_INVOICE]),
           gte(invoices.issueDate, q.from),
           lte(invoices.issueDate, q.to),
@@ -580,7 +603,7 @@ export class ReportsService {
       .innerJoin(expenseClaims, eq(expenseClaims.id, expenseLines.claimId))
       .where(
         and(
-          inArray(expenseLines.projectId, ids),
+          anyUuid(expenseLines.projectId, ids),
           inArray(expenseClaims.status, ['approved', 'reimbursed']),
           gte(expenseLines.spentOn, q.from),
           lte(expenseLines.spentOn, q.to),
@@ -631,11 +654,12 @@ export class ReportsService {
   private async utilizationReport(tx: TenantTransaction, q: Query, scope: Scope): Promise<Row[]> {
     const staff = await this.people(tx, q, scope);
     if (staff.length === 0) return [];
-    const time = await tx
+    // One row per person, summed in the database (a year is ~1 million entries at target size).
+    const sums = await tx
       .select({
         membershipId: timeEntries.membershipId,
-        hours: timeEntries.hours,
-        billable: timeEntries.billable,
+        approved: sql<string>`sum(${timeEntries.hours})::text`,
+        billable: sql<string>`coalesce(sum(${timeEntries.hours}) filter (where ${timeEntries.billable}), 0)::text`,
       })
       .from(timeEntries)
       .where(
@@ -643,12 +667,16 @@ export class ReportsService {
           eq(timeEntries.status, 'approved'),
           gte(timeEntries.workDate, q.from),
           lte(timeEntries.workDate, q.to),
-          inArray(
-            timeEntries.membershipId,
-            staff.map((s) => s.employee.membershipId),
-          ),
+          scope
+            ? anyUuid(
+                timeEntries.membershipId,
+                staff.map((s) => s.employee.membershipId),
+              )
+            : undefined,
         ),
-      );
+      )
+      .groupBy(timeEntries.membershipId);
+    const time = new Map(sums.map((s) => [s.membershipId, s]));
     // Count each weekday in the period once.
     const weekdays = [0, 0, 0, 0, 0, 0, 0];
     for (let i = 0; i <= daysBetween(q.from, q.to); i++) {
@@ -661,9 +689,9 @@ export class ReportsService {
       // capacity = weekly hours ÷ work days × working days in the period (hundredths, exact).
       const capacity =
         workDays === 0 ? 0n : (hundredths(e.weeklyHours) * BigInt(days)) / BigInt(workDays);
-      const mine = time.filter((t) => t.membershipId === e.membershipId);
-      const approved = mine.reduce((t, r) => t + hundredths(r.hours), 0n);
-      const billable = mine.filter((r) => r.billable).reduce((t, r) => t + hundredths(r.hours), 0n);
+      const mine = time.get(e.membershipId);
+      const approved = hundredths(mine?.approved ?? '0');
+      const billable = hundredths(mine?.billable ?? '0');
       return {
         person: name,
         capacityHours: formatHours(capacity),
@@ -678,116 +706,109 @@ export class ReportsService {
     const list = await this.projectRows(tx, q, null);
     const ids = list.map((r) => r.project.id);
     if (ids.length === 0) return [];
-    const all = await tx.select().from(tasks).where(inArray(tasks.projectId, ids));
-    const start = kuwaitDayStart(q.from).getTime();
-    const end = kuwaitDayStart(q.to).getTime() + DAY;
-    const done = all.filter(
-      (t) =>
-        t.status === 'completed' &&
-        t.completedAt &&
-        t.completedAt.getTime() >= start &&
-        t.completedAt.getTime() < end,
-    );
-    const actual = done.length
-      ? await tx
-          .select({ taskId: timeEntries.taskId, hours: timeEntries.hours })
-          .from(timeEntries)
-          .where(
-            and(
-              inArray(
-                timeEntries.taskId,
-                done.map((t) => t.id),
-              ),
-              eq(timeEntries.status, 'approved'),
-            ),
-          )
-      : [];
+    const start = kuwaitDayStart(q.from);
+    const end = new Date(kuwaitDayStart(q.to).getTime() + DAY);
     const today = kuwaitToday();
+    // Completed within the period (Kuwait days); counted per project in the database.
+    const done = sql`(${tasks.status} = 'completed' and ${tasks.completedAt} >= ${start} and ${tasks.completedAt} < ${end})`;
+    const stats = await tx
+      .select({
+        projectId: tasks.projectId,
+        completed: sql<number>`(count(*) filter (where ${done}))::int`,
+        // Tasks without a due date count as on time.
+        onTime: sql<number>`(count(*) filter (where ${done} and (${tasks.dueDate} is null or (${tasks.completedAt} at time zone 'Asia/Kuwait')::date <= ${tasks.dueDate})))::int`,
+        openOverdue: sql<number>`(count(*) filter (where ${tasks.status} not in ('completed', 'cancelled') and ${tasks.dueDate} < ${today}))::int`,
+        estimated: sql<string>`coalesce(sum(${tasks.estimatedHours}) filter (where ${done}), 0)::text`,
+      })
+      .from(tasks)
+      .where(this.narrowedTo(tasks.projectId, ids, q, null))
+      .groupBy(tasks.projectId);
+    const actual = await tx
+      .select({ projectId: tasks.projectId, hours: sql<string>`sum(${timeEntries.hours})::text` })
+      .from(timeEntries)
+      .innerJoin(
+        tasks,
+        and(eq(tasks.tenantId, timeEntries.tenantId), eq(tasks.id, timeEntries.taskId)),
+      )
+      .where(
+        and(
+          eq(timeEntries.status, 'approved'),
+          this.narrowedTo(tasks.projectId, ids, q, null),
+          done,
+        ),
+      )
+      .groupBy(tasks.projectId);
+    const byProject = new Map(stats.map((s) => [s.projectId, s]));
+    const actualBy = new Map(actual.map((a) => [a.projectId, a.hours]));
     return list
       .map(({ project: p }) => {
-        const mine = done.filter((t) => t.projectId === p.id);
-        // Tasks without a due date count as on time.
-        const onTime = mine.filter(
-          (t) => !t.dueDate || (t.completedAt && kuwaitDate(t.completedAt) <= t.dueDate),
-        ).length;
-        const openOverdue = all.filter(
-          (t) =>
-            t.projectId === p.id &&
-            !['completed', 'cancelled'].includes(t.status) &&
-            t.dueDate !== null &&
-            t.dueDate < today,
-        ).length;
-        const ids = new Set(mine.map((t) => t.id));
+        const s = byProject.get(p.id);
+        const completed = s?.completed ?? 0;
+        const onTime = s?.onTime ?? 0;
         return {
           number: p.number,
           project: this.name(q, p.nameEn, p.nameAr),
-          completed: String(mine.length),
+          completed: String(completed),
           onTime: String(onTime),
-          late: String(mine.length - onTime),
-          openOverdue: String(openOverdue),
-          estimatedHours: formatHours(
-            mine.reduce((t, x) => t + (x.estimatedHours ? hundredths(x.estimatedHours) : 0n), 0n),
-          ),
-          actualHours: formatHours(
-            actual.filter((a) => ids.has(a.taskId)).reduce((t, a) => t + hundredths(a.hours), 0n),
-          ),
+          late: String(completed - onTime),
+          openOverdue: String(s?.openOverdue ?? 0),
+          estimatedHours: formatHours(hundredths(s?.estimated ?? '0')),
+          actualHours: formatHours(hundredths(actualBy.get(p.id) ?? '0')),
         };
       })
       .filter((r) => r.completed !== '0' || r.openOverdue !== '0');
   }
-
   private async timesheetsReport(tx: TenantTransaction, q: Query, scope: Scope): Promise<Row[]> {
     const list = await this.projectRows(tx, q, scope);
     const ids = list.map((r) => r.project.id);
     if (ids.length === 0) return [];
-    const entries = await tx
-      .select()
+    const hours = (where: SQL) =>
+      sql<string>`coalesce(sum(${timeEntries.hours}) filter (where ${where}), 0)::text`;
+    // One row per person and project, summed in the database.
+    const sums = await tx
+      .select({
+        membershipId: timeEntries.membershipId,
+        projectId: timeEntries.projectId,
+        submitted: hours(sql`${timeEntries.status} = 'submitted'`),
+        approved: hours(sql`${timeEntries.status} = 'approved'`),
+        rejected: hours(sql`${timeEntries.status} = 'rejected'`),
+        billable: hours(sql`${timeEntries.status} = 'approved' and ${timeEntries.billable}`),
+      })
       .from(timeEntries)
       .where(
         and(
-          inArray(timeEntries.projectId, ids),
+          this.narrowedTo(timeEntries.projectId, ids, q, scope),
           ne(timeEntries.status, 'draft'),
           gte(timeEntries.workDate, q.from),
           lte(timeEntries.workDate, q.to),
         ),
-      );
+      )
+      .groupBy(timeEntries.membershipId, timeEntries.projectId);
     const names = await this.namesOf(
       tx,
-      entries.map((e) => e.membershipId),
+      sums.map((r) => r.membershipId),
     );
     const projectName = new Map(
       list.map(({ project: p }) => [p.id, `${p.number} ${this.name(q, p.nameEn, p.nameAr)}`]),
     );
-    const groups = new Map<
-      string,
-      { person: string; project: string; h: Record<string, bigint> }
-    >();
-    for (const e of entries) {
-      const key = `${e.membershipId}:${e.projectId}`;
-      const g = groups.get(key) ?? {
-        person: names.get(e.membershipId) ?? '',
-        project: projectName.get(e.projectId) ?? '',
-        h: { submitted: 0n, approved: 0n, rejected: 0n, billable: 0n },
-      };
-      const hours = hundredths(e.hours);
-      g.h[e.status] = (g.h[e.status] ?? 0n) + hours;
-      if (e.status === 'approved' && e.billable) g.h.billable = (g.h.billable ?? 0n) + hours;
-      groups.set(key, g);
-    }
-    return [...groups.values()]
+    return sums
+      .map((r) => ({
+        person: names.get(r.membershipId) ?? '',
+        project: projectName.get(r.projectId) ?? '',
+        r,
+      }))
       .sort(
         (a, b) => a.person.localeCompare(b.person, q.locale) || a.project.localeCompare(b.project),
       )
-      .map((g) => ({
-        person: g.person,
-        project: g.project,
-        submittedHours: formatHours(g.h.submitted ?? 0n),
-        approvedHours: formatHours(g.h.approved ?? 0n),
-        rejectedHours: formatHours(g.h.rejected ?? 0n),
-        billableHours: formatHours(g.h.billable ?? 0n),
+      .map(({ person, project, r }) => ({
+        person,
+        project,
+        submittedHours: formatHours(hundredths(r.submitted)),
+        approvedHours: formatHours(hundredths(r.approved)),
+        rejectedHours: formatHours(hundredths(r.rejected)),
+        billableHours: formatHours(hundredths(r.billable)),
       }));
   }
-
   private async attendanceReport(tx: TenantTransaction, q: Query, scope: Scope): Promise<Row[]> {
     const staff = await this.people(tx, q, scope);
     const rows: Row[] = [];

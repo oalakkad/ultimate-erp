@@ -260,6 +260,13 @@
       "when": 1793442269724,
       "tag": "0036_expenses_security",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793474995181,
+      "tag": "0037_perf_indexes",
+      "breakpoints": true
     }
   ]
 }

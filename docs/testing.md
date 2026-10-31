@@ -26,6 +26,7 @@ Fixtures: test data is created by each test (factories in `test/fixtures/`), nev
 | `pnpm check` | Format check, lint, typecheck, tests (what CI's `check` job runs) |
 | `pnpm security` | Vulnerability audit, licence check, secret scan (what CI's `security` job runs) |
 | `pnpm backup` / `pnpm backup:verify` / `pnpm backup:restore` | Manual backup and restore drills on the dev stack ([operations.md](operations.md) §4) |
+| `pnpm perf` | Performance test at the architecture volume (~15 min, Docker): seeds 2 million time entries, measures p95 per screen ([performance.md](performance.md)) |
 | `pnpm deploy:verify` | Builds the images and verifies the production compose file end to end behind HTTPS: headers, the EN journey, client IPs, backup ([operations.md](operations.md) §5; CI `deploy` job) |
 | `pnpm e2e` | Builds, then runs Playwright browser tests (gallery, accessibility, RTL). Screenshots: `apps/web/e2e/screenshots/` |
 | `pnpm e2e:journey` | Full first-day journey in EN and AR against the running dev stack — start `pnpm dev` first. Reads real emails from Mailpit, deletes them afterwards (CI `journey` job) |

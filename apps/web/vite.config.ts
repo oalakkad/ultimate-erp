@@ -7,6 +7,11 @@ import { defineConfig } from 'vite';
 // from it — exactly like production behind a reverse proxy — and session cookies stay host-only.
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    // Each screen is its own chunk (router.tsx, lazyRouteComponent). The largest shared chunk holds
+    // both language catalogues and the API schemas: ~503 kB, 145 kB gzip (Phase 15c). Warn beyond that.
+    chunkSizeWarningLimit: 600,
+  },
   server: {
     port: 5173,
     strictPort: true,

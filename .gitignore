@@ -22,3 +22,6 @@ playwright-report/
 
 # Local backups (pnpm backup) - encrypted, but never committed
 backups/
+
+# Output of pnpm perf (results are recorded in docs/performance.md)
+apps/api/test/perf/last-run.md

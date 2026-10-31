@@ -38,7 +38,8 @@
     "backup:prune": "pnpm ops:build && node --env-file-if-exists=.env apps/api/dist/ops/cli.js prune",
     "e2e": "turbo run build && pnpm --filter @ultimate-erp/web e2e",
     "e2e:journey": "turbo run build && pnpm --filter @ultimate-erp/web e2e:journey",
-    "deploy:verify": "node scripts/deploy-verify.mjs"
+    "deploy:verify": "node scripts/deploy-verify.mjs",
+    "perf": "turbo run build --filter=@ultimate-erp/api... --output-logs=errors-only && pnpm --filter @ultimate-erp/api exec vitest run --config vitest.perf.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

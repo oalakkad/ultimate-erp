@@ -6,6 +6,18 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-31 — Session 8 (continued): Phase 15c (performance) built + committed
+
+### Hand-over 15c (A–H)
+- **A Built:** `pnpm perf` — seeds one company at the architecture target (500 people, 5,000 projects, 2,000,000 time entries, 10,000 invoices, 200,000 audit events) through real constraints, runs the built API + worker as separate processes, and measures p95 for 27 scenarios (owner, employee, reports, writes) with a closed-loop load generator; slowest statements from `pg_stat_statements`. Results and targets in `docs/performance.md`.
+- **Fixed by measurement:** tasks report 64 s → ~1.5 s, utilization 18.7 s (failing) → ~0.8 s, timesheets 6.2 s (failing) → ~1.7 s, projects 7.8 s → ~1.3 s (all: sums in SQL instead of Node), receivables aging 1.8 s → 178 ms and dashboard 1.4 s → 482 ms (balances in SQL, partial index `0037` for submitted time used via a literal), `anyUuid()` single-array parameter for long ID lists, company-wide reports skip ID lists. Web: route-level code splitting, main JS 1.23 MB → 283 kB (first load 234 kB gzip).
+- **B Files:** api `test/perf/` (volume-seed, load, perf.perf), `vitest.perf.config.ts`, `platform/database/sql-helpers.ts`, reports / billing / dashboard / time services; db `schema/time.ts`, migration `0037_perf_indexes.sql`, `testing/index.ts` (server settings); web `app/router.tsx`, `vite.config.ts`; docs performance (new), hardening, testing, README, checklist, roadmap, project-status.
+- **E Tests:** `pnpm check` **425** passed; `pnpm security` clean; billing/reports/time/access suites re-run after each change; last `pnpm perf`: all lists, employee screens and writes within target (47–270 ms), dashboard 482 ms, reports 0.06–1.74 s — targets recorded as decisions (screens 300 ms, dashboard 500 ms, full-year reports 2 s, writes 500 ms). The laptop's load makes runs vary up to 2×.
+- **G Open:** pre-computed daily totals if customers need sub-second yearly reports; PostgreSQL tuning on real hardware.
+- **Repo state:** committed ("Phase 15c"). Not pushed.
+- **H Next:** 15d — security review, accessibility sweep, monitoring (OpenTelemetry), incident runbook, readiness report. Then Phase 16 (React Native, estimated 5–8 hours).
+
+---
 ## 2026-10-31 — Session 8 (continued): Phase 15b (production configuration & deployment validation) built + committed
 
 ### Hand-over 15b (A–H)

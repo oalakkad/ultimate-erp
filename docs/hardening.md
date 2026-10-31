@@ -22,7 +22,7 @@ Show with evidence, not claims, that the system can be installed, run, backed up
 - Security headers and rate-limit review against the running containers (CSP, HSTS, frame-ancestors, cookies `Secure`/`HttpOnly`/`SameSite`, limits on auth, exports, uploads, announcements). Findings fixed or recorded.
 - `THIRD_PARTY_NOTICES` generated from production dependencies + font OFL texts (compliance.md obligation).
 
-### 15c — Performance
+### 15c — Performance — ✅ done 2026-10-31 (`performance.md`)
 - Volume seeder at the architecture §7b target: ~500 employees, ~5,000 projects, ~2 million time entries in one company (plus a second company to keep RLS honest).
 - Load test with a Node script (autocannon, MIT — no new licence questions): sign-in, dashboard, task list, timesheet week, reports, invoice list, at realistic concurrency. Targets recorded in `docs/testing.md`; p95 per endpoint reported.
 - `EXPLAIN (ANALYZE, BUFFERS)` on the slowest queries; index or query fixes only where measured.
@@ -40,7 +40,7 @@ Show with evidence, not claims, that the system can be installed, run, backed up
 ## 3. Decisions (recommended option taken, owner can reverse — recorded in project-status.md)
 1. **Backups:** logical `pg_dump` + bucket mirror built into the product (works for both profiles); for SaaS production additionally use the managed database's point-in-time recovery. *Alternative:* pgBackRest/WAL archiving now — more moving parts before there is a first customer.
 2. **Default targets:** RPO 24 h on-prem (nightly) / ≤ 5 min SaaS (managed PITR); RTO 4 h; retention 30 daily + 12 monthly. To confirm with the first customer's contract.
-3. **Load tool:** autocannon from a Node script rather than k6 (AGPL binary, separate install).
+3. **Load tool:** a small closed-loop generator on Node's own HTTP client (`apps/api/test/perf/load.ts`) — changed from autocannon at build time: no new dependency to audit.
 4. **Real cloud deployment is out of scope until the owner supplies an account, domain and SMTP provider** (nonstop-mode stop condition: credentials/payment). Phase 15 proves deployment on the production compose locally and in CI.
 5. **External penetration test** is recommended before the first paying customer; Phase 15 does an internal review, not a substitute.
 
