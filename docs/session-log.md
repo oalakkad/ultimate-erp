@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-31 — Session 7 (continued): Phase 14 (Reports, audit search & analytics) built + committed
+
+### Hand-over 14 (A–H)
+- **A Built:** 13 reports (clients, projects & budgets, profitability, utilization, task performance, timesheets, attendance, leave, payroll, invoices, payments, receivables aging, revenue by month) with written definitions, period/client/project filters, totals, Arabic names, CSV export; audit log search by area/action, actor, target, request reference and dates, with an Audit log screen and CSV export. See `docs/modules/reports.md` §11.
+- **B Files:** contracts `reports.ts` (new), `access.ts` (audit events carry `actorName`); api `modules/reports/` (service with the catalogue `REPORTS` and one computation per report, controller), `modules/access/audit-events.service.ts` (filters, names, export) and controller routes, app module, `test/reports.spec.ts`; web `routes/reports.tsx` (catalogue + generic report page), `routes/audit.tsx`, router, navigation group "Insights", palette; i18n EN/AR (report names, summaries, definitions, columns, values, audit areas); journey Phase 14 steps.
+- **C Architecture:** catalogue entry (permissions, optional scope, filters, columns, totals) → `reach` decides company / scoped / none → computation inside the company's own transaction (forced RLS) over the module tables → strings for money and hours (exact fils / hundredths) → web formats per column type in the reader's language. Attendance reuses the attendance module's day rules (`daysOf`).
+- **D Security:** every report re-checks permission on the server; scoped reports limit rows to the team (`teamScopeOf`) or managed projects; RLS keeps other companies out; CSV cells are formula-safe; exports audited (`reports.report.exported`, `audit.exported`); payroll export needs `exports.confidential`; audit filters validated (action prefix letters only, LIKE wildcards escaped).
+- **E Tests:** `pnpm check` **385** passed (api 261, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e` 6 passed; `pnpm e2e:journey` 2 passed (5.3 min) after targeting the report link by its summary (the sidebar also has "Clients"); `pnpm security` clean (same moderate advisory).
+- **F Verify:** project-status "How to verify Phase 14".
+- **G Open:** saved / scheduled / emailed reports, charts on more reports, staff cost in profitability once payroll rules are verified.
+- **Repo state:** committed ("Phase 14"); `pnpm dev` running. Not pushed.
+- **H Next:** Phase 15 Hardening & release prep.
+
+---
+
 ## 2026-10-31 — Session 7 (continued): design v0.3 — motion and an "AI-look" audit
 
 - **Owner request:** more animation and polish (reference: getlayers.ai templates), then: "be an auditor — does this design scream AI or look professional?"

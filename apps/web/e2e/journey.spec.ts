@@ -714,6 +714,27 @@ for (const locale of ['en', 'ar'] as const) {
       ).toBeVisible();
       await expectAccessible(page, 'expense claim (reimbursed)');
 
+      // --- Phase 14: the Owner runs the clients report and searches the audit log -------------
+      await page.goto(`http://${slug}.localhost:5173/reports`);
+      await expect(
+        page.getByRole('heading', { name: t('ui.reports.groups.finance') }),
+      ).toBeVisible();
+      await expectAccessible(page, 'reports');
+      await page.getByRole('link', { name: new RegExp(t('ui.reports.summaries.clients')) }).click();
+      await expect(page.getByText(t('ui.reports.definitions.clients'))).toBeVisible();
+      // The client invoiced in Phase 12 appears with its name in the reader's language.
+      await expect(page.getByRole('cell', { name: clientName })).toBeVisible();
+      await expectAccessible(page, 'clients report');
+      await expect(page.getByRole('link', { name: t('ui.reports.exportCsv') })).toHaveAttribute(
+        'href',
+        /\/api\/v1\/reports\/clients\/export\.csv\?/,
+      );
+      await page.goto(`http://${slug}.localhost:5173/audit`);
+      await page.getByLabel(t('ui.audit.area')).click();
+      await page.getByRole('option', { name: t('ui.audit.areas.billing') }).click();
+      await expect(page.getByText('billing.invoice.issued')).toBeVisible();
+      await expectAccessible(page, 'audit log');
+
       // --- Phase 13: the Owner publishes an announcement; the colleague reads it ----------------
       await page.getByRole('link', { name: t('ui.shell.announcements') }).click();
       await expect(page.getByText(t('ui.announcements.empty'))).toBeVisible();

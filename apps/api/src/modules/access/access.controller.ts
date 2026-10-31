@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -14,7 +15,7 @@ import {
 } from '@nestjs/common';
 import {
   accessMeResponseSchema,
-  auditListQuerySchema,
+  auditSearchQuerySchema,
   auditListResponseSchema,
   memberListResponseSchema,
   membershipIdParamSchema,
@@ -22,7 +23,7 @@ import {
   setRolesRequestSchema,
 } from '@ultimate-erp/contracts';
 import { type Request } from 'express';
-import { type z } from 'zod';
+import { z } from 'zod';
 import { ApiContract } from '../../platform/openapi/api-contract.js';
 import { NoStoreInterceptor } from '../../platform/http/no-store.interceptor.js';
 import { ZodValidationPipe } from '../../platform/validation/zod-validation.pipe.js';
@@ -115,18 +116,40 @@ export class AccessController {
 
   @Get('audit-events')
   @ApiContract({
-    summary: 'Audit trail, newest first',
+    summary: 'Audit trail, newest first, with filters',
     auth: 'member',
     permission: 'audit.event.read',
     companyHost: true,
-    query: auditListQuerySchema,
+    query: auditSearchQuerySchema,
     response: auditListResponseSchema,
   })
   @RequirePermission('audit.event.read')
   listAuditEvents(
     @CurrentAccess() access: AccessContext,
-    @Query(new ZodValidationPipe(auditListQuerySchema)) query: z.infer<typeof auditListQuerySchema>,
+    @Query(new ZodValidationPipe(auditSearchQuerySchema))
+    query: z.output<typeof auditSearchQuerySchema>,
   ) {
-    return this.auditEvents.list(access, query.limit, query.cursor);
+    return this.auditEvents.list(access, query);
+  }
+
+  @Get('audit-events/export.csv')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="audit-log.csv"')
+  @ApiContract({
+    summary: 'Export the filtered audit trail as CSV (audited)',
+    auth: 'member',
+    permission: 'audit.event.read',
+    companyHost: true,
+    query: auditSearchQuerySchema,
+    response: z.string(),
+  })
+  @RequirePermission('audit.event.read')
+  exportAuditEvents(
+    @Req() req: Request,
+    @CurrentAccess() access: AccessContext,
+    @Query(new ZodValidationPipe(auditSearchQuerySchema))
+    query: z.output<typeof auditSearchQuerySchema>,
+  ) {
+    return this.auditEvents.exportCsv(req, access, query);
   }
 }

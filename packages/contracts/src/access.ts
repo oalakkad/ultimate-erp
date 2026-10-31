@@ -121,6 +121,7 @@ export const auditEventSchema = z
     id: z.uuid(),
     occurredAt: z.iso.datetime(),
     actorUserId: z.uuid().nullable(),
+    actorName: z.string().nullable(),
     action: z.string(),
     targetType: z.string().nullable(),
     targetId: z.uuid().nullable(),

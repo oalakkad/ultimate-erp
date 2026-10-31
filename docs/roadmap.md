@@ -19,7 +19,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | 12 | Invoicing & payments | Done 2026-10-30 |
 | 12b | Expenses (claims, approvals, re-billing, project cost) — default decision 2026-10-24, scope confirmed at phase start | Done 2026-10-31 |
 | 13 | Notifications & announcements (complete) | Done 2026-10-31 |
-| 14 | Reports, audit search, analytics | — |
+| 14 | Reports, audit search, analytics | Done 2026-10-31 |
 | 15 | Hardening & release prep | — |
 | 16 | React Native app | — |
 | ? | GRC delivery tooling (risk register, controls, audit programs, findings) | **Decision pending** |

@@ -218,6 +218,10 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET | `/api/v1/announcements` | Member | Announcements addressed to me (publishers: all, with delivery counts) | 13 |
 | POST | `/api/v1/announcements/preview` | `announcements.publish` | `{ roles }` → `{ recipients }` | 13 |
 | POST | `/api/v1/announcements` | `announcements.publish` | Publish; `confirmRecipients` must equal the current count (409 otherwise); 10 per day | 13 |
-| GET | `/api/v1/audit-events?limit=&cursor=` | `audit.event.read` | Newest first; `nextCursor` | 1.3b |
+| GET | `/api/v1/audit-events?limit=&cursor=&action=&actorUserId=&targetType=&targetId=&requestId=&from=&to=` | `audit.event.read` | Newest first; `nextCursor`; filters since 14 (action is a prefix) | 1.3b / 14 |
+| GET | `/api/v1/audit-events/export.csv?…filters` | `audit.event.read` | Up to 5 000 events as CSV; the export is audited | 14 |
+| GET | `/api/v1/reports` | Member | Reports I may run `{ items: [{ key, filters, scoped }] }` | 14 |
+| GET | `/api/v1/reports/:key?from&to&clientId&projectId&locale` | per report (reports.md §3) | `{ columns, rows, totals, truncated, scoped }`; period ≤ 366 days | 14 |
+| GET | `/api/v1/reports/:key/export.csv?…` | per report (+ `exports.confidential` for payroll) | CSV with totals line; audited | 14 |
 | GET | `/api/v1/docs/openapi.json` | Public, **dev/test only** | Generated OpenAPI 3.1 document | 1.3b |
 | GET | `/api/v1/tenant` | Public, tenant host | Public profile of the company owning the host: `{ slug, name: { en, ar }, defaultLocale }` (`tenantPublicProfileSchema`). Unknown/unverified/suspended host ⇒ 404. Database unavailable ⇒ 503. | 1.2 |

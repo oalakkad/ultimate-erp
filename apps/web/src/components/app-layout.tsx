@@ -35,6 +35,8 @@ import {
   Fingerprint,
   Megaphone,
   HandCoins,
+  ChartColumn,
+  ScrollText,
   Wallet,
   ReceiptText,
   FileText as InvoiceIcon,
@@ -125,6 +127,20 @@ export function AppLayout() {
   const canPayslips = canAny(access.data, 'payroll.payslip.read');
   const canInvoices = canAny(access.data, 'billing.invoice.read');
   const canExpenses = canAny(access.data, 'expenses.claim.create');
+  // Navigation hint only — the server decides which reports and rows each person gets.
+  const canReports =
+    [
+      'clients.client.read',
+      'billing.invoice.read',
+      'projects.project.read',
+      'tasks.task.read',
+      'payroll.run.prepare',
+      'payroll.run.approve',
+    ].some((p) => can(access.data, p)) ||
+    ['people.employee.read', 'attendance.read', 'leave.request.read', 'time.entry.read'].some((p) =>
+      (access.data?.permissions[p] ?? []).some((s) => s !== 'own'),
+    );
+  const canAudit = can(access.data, 'audit.event.read');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -259,6 +275,26 @@ export function AppLayout() {
         go('/announcements');
       },
     });
+    if (canReports) {
+      list.push({
+        id: 'page:reports',
+        group: 'pages',
+        label: t('ui.shell.reports'),
+        run: () => {
+          go('/reports');
+        },
+      });
+    }
+    if (canAudit) {
+      list.push({
+        id: 'page:audit',
+        group: 'pages',
+        label: t('ui.shell.auditLog'),
+        run: () => {
+          go('/audit');
+        },
+      });
+    }
     if (canExpenses) {
       list.push({
         id: 'page:expenses',
@@ -495,6 +531,8 @@ export function AppLayout() {
     canPayslips,
     canInvoices,
     canExpenses,
+    canReports,
+    canAudit,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -708,6 +746,26 @@ export function AppLayout() {
               icon={<ReceiptText aria-hidden />}
               label={t('ui.shell.payslips')}
               current={path === '/payroll/payslips'}
+            />
+          )}
+        </NavGroup>
+      )}
+      {(canReports || canAudit) && (
+        <NavGroup title={t('ui.shell.groupInsights')}>
+          {canReports && (
+            <NavItem
+              {...link('/reports')}
+              icon={<ChartColumn aria-hidden />}
+              label={t('ui.shell.reports')}
+              current={path.startsWith('/reports')}
+            />
+          )}
+          {canAudit && (
+            <NavItem
+              {...link('/audit')}
+              icon={<ScrollText aria-hidden />}
+              label={t('ui.shell.auditLog')}
+              current={path === '/audit'}
             />
           )}
         </NavGroup>
