@@ -166,6 +166,8 @@ describe('every tenant-owned table is protected (catalog guard for future tables
                     where a.attrelid = c.oid and a.attname = 'tenant_id' and not a.attisdropped)
     `);
     expect(rows.map((r) => r.table).sort()).toEqual([
+      'announcement_emails',
+      'announcements',
       'attendance_code_uses',
       'attendance_corrections',
       'attendance_events',
@@ -198,6 +200,7 @@ describe('every tenant-owned table is protected (catalog guard for future tables
       'leave_types',
       'membership_roles',
       'memberships',
+      'notification_preferences',
       'notifications',
       'number_sequences',
       'payments',

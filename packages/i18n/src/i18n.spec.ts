@@ -21,6 +21,10 @@ const SAME_IN_BOTH = new Set([
   'ui.app.name',
   'ui.common.english',
   'ui.common.arabic',
+  // Placeholder-only subjects: the company name and the already translated message or title.
+  'email.notification.subject',
+  'email.announcement.subject',
+  'ui.announcements.by',
 ]);
 
 describe('catalogs', () => {

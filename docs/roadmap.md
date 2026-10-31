@@ -18,7 +18,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | 11 | Payroll (after jurisdiction rules verified) | Done 2026-10-30 as test-only until rules are verified |
 | 12 | Invoicing & payments | Done 2026-10-30 |
 | 12b | Expenses (claims, approvals, re-billing, project cost) — default decision 2026-10-24, scope confirmed at phase start | — |
-| 13 | Notifications & announcements (complete) | — |
+| 13 | Notifications & announcements (complete) | Done 2026-10-31 |
 | 14 | Reports, audit search, analytics | — |
 | 15 | Hardening & release prep | — |
 | 16 | React Native app | — |

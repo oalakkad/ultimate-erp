@@ -6,7 +6,9 @@ import {
   Module,
   Param,
   Post,
+  Put,
   Query,
+  Body,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -14,6 +16,8 @@ import {
   notificationIdParamSchema,
   notificationListQuerySchema,
   notificationListResponseSchema,
+  notificationPreferencesResponseSchema,
+  notificationPreferencesUpdateSchema,
   okResponseSchema,
   unreadCountResponseSchema,
 } from '@ultimate-erp/contracts';
@@ -48,6 +52,33 @@ export class NotificationsController {
     query: z.infer<typeof notificationListQuerySchema>,
   ) {
     return this.notifications.list(access, query.limit, query.cursor);
+  }
+
+  @Get('preferences')
+  @ApiContract({
+    summary: 'My notification choices per type (in the app, email copy)',
+    auth: 'member',
+    companyHost: true,
+    response: notificationPreferencesResponseSchema,
+  })
+  preferences(@CurrentAccess() access: AccessContext) {
+    return this.notifications.preferences(access);
+  }
+
+  @Put('preferences')
+  @ApiContract({
+    summary: 'Change my notification choices (mandatory types stay in the app)',
+    auth: 'member',
+    companyHost: true,
+    body: notificationPreferencesUpdateSchema,
+    response: notificationPreferencesResponseSchema,
+  })
+  setPreferences(
+    @CurrentAccess() access: AccessContext,
+    @Body(new ZodValidationPipe(notificationPreferencesUpdateSchema))
+    body: z.output<typeof notificationPreferencesUpdateSchema>,
+  ) {
+    return this.notifications.setPreferences(access, body.items);
   }
 
   @Get('unread-count')

@@ -5,6 +5,7 @@ import { FileScanHandler, type FileScanJob } from './modules/files/files.service
 import { TasksDailyHandler } from './modules/tasks/tasks.service.js';
 import { BillingDailyHandler } from './modules/billing/billing.service.js';
 import { NotifierModule } from './platform/notifications/notifier.js';
+import { UserDirectoryModule } from './modules/identity/user-directory.js';
 import { AuditModule } from './platform/audit/audit.module.js';
 import { type AppConfig } from './platform/config/config.js';
 import { ConfigModule } from './platform/config/config.module.js';
@@ -65,6 +66,7 @@ export class WorkerModule {
         JobsModule.forRoot('worker'),
         MailModule,
         AuditModule,
+        UserDirectoryModule,
         NotifierModule,
       ],
       providers: [

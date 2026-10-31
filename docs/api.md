@@ -208,6 +208,10 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET | `/api/v1/notifications/unread-count` | Member | `{ count }` | 1.5a |
 | POST | `/api/v1/notifications/:id/read` | Member | Mark one of mine read (anyone else's ⇒ 404) | 1.5a |
 | POST | `/api/v1/notifications/read-all` | Member | Mark all of mine read | 1.5a |
+| GET/PUT | `/api/v1/notifications/preferences` | Member | My choices per type `{ items: [{ type, inApp, email, mandatory }] }`; mandatory types stay on in the app | 13 |
+| GET | `/api/v1/announcements` | Member | Announcements addressed to me (publishers: all, with delivery counts) | 13 |
+| POST | `/api/v1/announcements/preview` | `announcements.publish` | `{ roles }` → `{ recipients }` | 13 |
+| POST | `/api/v1/announcements` | `announcements.publish` | Publish; `confirmRecipients` must equal the current count (409 otherwise); 10 per day | 13 |
 | GET | `/api/v1/audit-events?limit=&cursor=` | `audit.event.read` | Newest first; `nextCursor` | 1.3b |
 | GET | `/api/v1/docs/openapi.json` | Public, **dev/test only** | Generated OpenAPI 3.1 document | 1.3b |
 | GET | `/api/v1/tenant` | Public, tenant host | Public profile of the company owning the host: `{ slug, name: { en, ar }, defaultLocale }` (`tenantPublicProfileSchema`). Unknown/unverified/suspended host ⇒ 404. Database unavailable ⇒ 503. | 1.2 |

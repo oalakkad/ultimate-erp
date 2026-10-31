@@ -76,6 +76,7 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | billing.payment.record | company | company | — | — | — | — |
 | audit.event.read | company | company | — | — | — | — |
 | exports.confidential | company* | company* | — | — | — | — |
+| announcements.publish | company | company | — | — | — | — |
 | system.health.read | — | — | — | — | — | platform |
 
 `*` = granted in template; sensitive (requires two-factor). `—` = not granted.

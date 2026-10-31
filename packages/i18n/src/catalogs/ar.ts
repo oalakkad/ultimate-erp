@@ -56,5 +56,13 @@ export const ar: Catalog = {
       subject: 'تم إيقاف المصادقة الثنائية',
       body: 'مرحبًا {name}،\n\nتم إيقاف المصادقة الثنائية لحسابك. إذا لم تكن أنت من قام بذلك، فغيّر كلمة المرور فورًا.',
     },
+    notification: {
+      subject: '{company}: {message}',
+      body: 'مرحبًا {name}،\n\n{message}\n\nافتحه في {company}:\n\n{url}\n\nتصلك هذه الرسالة لأنك اخترت نسخًا بالبريد لهذا النوع من الإشعارات. يمكنك تغيير ذلك من حسابي.',
+    },
+    announcement: {
+      subject: '{company}: {title}',
+      body: 'مرحبًا {name}،\n\n{title}\n\n{text}\n\n— {company}\n\n{url}',
+    },
   },
 };

@@ -24,6 +24,9 @@ export const NOTIFICATION_TYPES = [
   'payroll.submitted',
   'payroll.payslip_ready',
   'billing.overdue',
+  'billing.issued',
+  'projects.budget_threshold',
+  'announcements.published',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -55,3 +58,32 @@ export const notificationListResponseSchema = z
   .strict();
 export const unreadCountResponseSchema = z.object({ count: z.number().int().min(0) }).strict();
 export const notificationIdParamSchema = z.object({ id: z.uuid() }).strict();
+
+/** Types that always appear in the app (people may still add an email copy). */
+export const MANDATORY_IN_APP: readonly NotificationType[] = [
+  'access.roles_changed',
+  'announcements.published',
+];
+
+export const notificationPreferenceSchema = z
+  .object({
+    type: z.enum(NOTIFICATION_TYPES),
+    inApp: z.boolean(),
+    email: z.boolean(),
+    mandatory: z.boolean(),
+  })
+  .strict();
+export const notificationPreferencesResponseSchema = z
+  .object({ items: z.array(notificationPreferenceSchema) })
+  .strict();
+export const notificationPreferencesUpdateSchema = z
+  .object({
+    items: z
+      .array(
+        z
+          .object({ type: z.enum(NOTIFICATION_TYPES), inApp: z.boolean(), email: z.boolean() })
+          .strict(),
+      )
+      .max(NOTIFICATION_TYPES.length),
+  })
+  .strict();

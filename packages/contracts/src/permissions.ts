@@ -50,6 +50,7 @@ export const PERMISSIONS = [
   'billing.payment.record',
   'audit.event.read',
   'exports.confidential',
+  'announcements.publish',
   'system.health.read',
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
@@ -127,6 +128,7 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
     'time.entry.create': own,
     'leave.request.create': own,
     'attendance.check': own,
+    'announcements.publish': company,
     'billing.invoice.read': company,
     'payroll.payslip.read': own,
     'attendance.read': company,
@@ -173,6 +175,7 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
     'time.entry.create': own,
     'leave.request.create': own,
     'attendance.check': own,
+    'announcements.publish': company,
     'billing.invoice.read': company,
     'attendance.read': company,
     'attendance.correction.approve': company,
@@ -277,6 +280,7 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
     'time.entry.create': own,
     'leave.request.create': own,
     'attendance.check': own,
+    'announcements.publish': company,
     'attendance.read': company,
     'attendance.correction.approve': company,
     'attendance.manage': company,

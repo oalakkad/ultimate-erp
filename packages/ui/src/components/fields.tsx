@@ -115,9 +115,11 @@ export interface CheckboxProps {
   defaultChecked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   disabled?: boolean;
+  /** Keep the label for screen readers only (e.g. in a table whose header says it). */
+  hideLabel?: boolean;
 }
 
-export function Checkbox({ label, onCheckedChange, ...props }: CheckboxProps) {
+export function Checkbox({ label, onCheckedChange, hideLabel = false, ...props }: CheckboxProps) {
   const id = useId();
   return (
     <div className="flex items-center gap-2.5">
@@ -134,7 +136,7 @@ export function Checkbox({ label, onCheckedChange, ...props }: CheckboxProps) {
           <Check aria-hidden className="size-3.5 stroke-3" />
         </RadixCheckbox.Indicator>
       </RadixCheckbox.Root>
-      <label htmlFor={id} className="text-[13.5px] text-ink">
+      <label htmlFor={id} className={hideLabel ? 'sr-only' : 'text-[13.5px] text-ink'}>
         {label}
       </label>
     </div>

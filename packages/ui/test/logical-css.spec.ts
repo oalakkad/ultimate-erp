@@ -7,9 +7,12 @@ import { describe, expect, it } from 'vitest';
 
 const ROOTS = ['../src', '../../../apps/web/src'].map((p) => new URL(p, import.meta.url).pathname);
 
-/** Tailwind utilities with a physical direction (logical equivalents: ms/me, ps/pe, start/end…). */
+/**
+ * Tailwind utilities with a physical direction (logical equivalents: ms/me, ps/pe, start/end…).
+ * Bare "left"/"right" are not utilities (e.g. the employee status 'left'); only `left-…`/`right-…`.
+ */
 const PHYSICAL_UTILITY =
-  /^(?:[\w-]+:)*-?(?:ml|mr|pl|pr|left|right|border-l|border-r|rounded-l|rounded-r|rounded-tl|rounded-tr|rounded-bl|rounded-br|scroll-ml|scroll-mr|scroll-pl|scroll-pr|text-left|text-right|float-left|float-right|clear-left|clear-right)(?:-|$)/;
+  /^(?:[\w-]+:)*-?(?:(?:left|right)-|(?:ml|mr|pl|pr|border-l|border-r|rounded-l|rounded-r|rounded-tl|rounded-tr|rounded-bl|rounded-br|scroll-ml|scroll-mr|scroll-pl|scroll-pr|text-left|text-right|float-left|float-right|clear-left|clear-right)(?:-|$))/;
 
 /** Physical CSS properties and values. */
 const PHYSICAL_CSS =

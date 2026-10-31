@@ -51,7 +51,7 @@ test.beforeAll(async () => {
 
 for (const locale of ['en', 'ar'] as const) {
   test(`first-day journey — ${locale}`, async ({ browser }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(240_000);
     const t = (key: MessageKey, params?: MessageParams) => translate(locale, key, params);
     const run = `${locale}${Date.now().toString(36)}`;
     const slug = `e2e-${run}`;
@@ -645,6 +645,39 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(invoicePrint.getByText('INV-0001').first()).toBeVisible();
       await expectAccessible(invoicePrint, 'invoice print');
       await invoicePrint.close();
+
+      // --- Phase 13: the Owner publishes an announcement; the colleague reads it ----------------
+      await page.getByRole('link', { name: t('ui.shell.announcements') }).click();
+      await expect(page.getByText(t('ui.announcements.empty'))).toBeVisible();
+      await page.getByLabel(t('ui.announcements.titleEn')).fill('Office closed Thursday');
+      await page.getByLabel(t('ui.announcements.titleAr')).fill('المكتب مغلق يوم الخميس');
+      await page.getByLabel(t('ui.announcements.bodyEn')).fill('For National Day.');
+      await page.getByLabel(t('ui.announcements.bodyAr')).fill('بمناسبة العيد الوطني.');
+      await page.getByRole('button', { name: t('ui.announcements.checkRecipients') }).click();
+      await expect(page.getByText(t('ui.announcements.willReach', { count: 2 }))).toBeVisible();
+      await expectAccessible(page, 'new announcement');
+      await page.getByRole('button', { name: t('ui.announcements.publish', { count: 2 }) }).click();
+      await expect(
+        page.getByRole('heading', {
+          name: locale === 'ar' ? 'المكتب مغلق يوم الخميس' : 'Office closed Thursday',
+        }),
+      ).toBeVisible();
+
+      await guest.goto(`http://${slug}.localhost:5173/announcements`);
+      await expect(
+        guest.getByRole('heading', {
+          name: locale === 'ar' ? 'المكتب مغلق يوم الخميس' : 'Office closed Thursday',
+        }),
+      ).toBeVisible();
+      await expectAccessible(guest, 'announcements');
+      await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
+      await expect(page.getByText(t('ui.notifications.preferencesTitle'))).toBeVisible();
+      await page
+        .getByRole('checkbox', {
+          name: `${t('ui.notifications.colEmail')}: ${t('ui.notifications.typeLabel.tasks_assigned')}`,
+        })
+        .click();
+      await expect(page.getByText(t('ui.notifications.saved'), { exact: true })).toBeVisible();
 
       // --- Owner changes their password from My account --------------------------------------
       await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();

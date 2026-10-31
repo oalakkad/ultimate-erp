@@ -33,6 +33,7 @@ import {
   Contact,
   Plane,
   Fingerprint,
+  Megaphone,
   Wallet,
   ReceiptText,
   FileText as InvoiceIcon,
@@ -248,6 +249,14 @@ export function AppLayout() {
         },
       });
     }
+    list.push({
+      id: 'page:announcements',
+      group: 'pages',
+      label: t('ui.shell.announcements'),
+      run: () => {
+        go('/announcements');
+      },
+    });
     if (canInvoices) {
       list.push({
         id: 'page:invoices',
@@ -649,6 +658,12 @@ export function AppLayout() {
           current={path === '/payroll/payslips'}
         />
       )}
+      <NavItem
+        {...link('/announcements')}
+        icon={<Megaphone aria-hidden />}
+        label={t('ui.shell.announcements')}
+        current={path === '/announcements'}
+      />
       {canReadMembers && (
         <NavItem
           {...link('/members')}

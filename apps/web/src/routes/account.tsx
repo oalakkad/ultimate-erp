@@ -24,6 +24,7 @@ import { useEffect, useState } from 'react';
 import { useI18n } from '../app/i18n.js';
 import { LanguageSwitch } from '../app/switches.js';
 import { FormError } from '../components/auth-layout.js';
+import { NotificationSettingsCard } from '../components/notification-settings.js';
 import { AppPageHeader } from '../components/page-header.js';
 import { api } from '../lib/api.js';
 import { errorReference, errorText } from '../lib/errors.js';
@@ -39,6 +40,7 @@ export function AccountPage() {
     <div className="grid gap-4">
       <AppPageHeader title={t('ui.account.title')} />
       <ProfileCard name={me.data.user.name} email={me.data.user.email} />
+      <NotificationSettingsCard />
       <TwoFactorCard
         enabled={me.data.user.twoFactorEnabled}
         required={access.data?.twoFactorRequired ?? false}

@@ -11,6 +11,7 @@ import { LeaveModule } from './modules/leave/leave.controller.js';
 import { AttendanceModule } from './modules/attendance/attendance.controller.js';
 import { PayrollModule } from './modules/payroll/payroll.controller.js';
 import { BillingModule } from './modules/billing/billing.controller.js';
+import { AnnouncementsModule } from './modules/announcements/announcements.controller.js';
 import { DashboardModule } from './modules/dashboard/dashboard.controller.js';
 import { FilesModule } from './modules/files/files.controller.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
@@ -24,6 +25,7 @@ import { GlobalExceptionFilter } from './platform/errors/global-exception.filter
 import { HealthModule } from './platform/health/health.module.js';
 import { JobsModule } from './platform/jobs/jobs.module.js';
 import { NotifierModule } from './platform/notifications/notifier.js';
+import { UserDirectoryModule } from './modules/identity/user-directory.js';
 import { LoggingModule } from './platform/logging/logging.module.js';
 import { MailModule } from './platform/mail/mail.module.js';
 import { OpenApiModule } from './platform/openapi/openapi.module.js';
@@ -41,6 +43,7 @@ export class AppModule {
         JobsModule.forRoot('producer'),
         MailModule,
         AuditModule,
+        UserDirectoryModule,
         NotifierModule,
         RateLimitModule,
         HealthModule,
@@ -61,6 +64,7 @@ export class AppModule {
         AttendanceModule,
         PayrollModule,
         BillingModule,
+        AnnouncementsModule,
         OpenApiModule,
       ],
       providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],

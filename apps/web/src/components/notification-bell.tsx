@@ -21,7 +21,7 @@ const LIST_KEY = ['notifications', 'list'] as const;
 
 /** The sentence for one notification, in the reader's language. */
 function useNotificationText() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   return (item: Notification) => {
     switch (item.type) {
       case 'access.member_joined':
@@ -45,6 +45,20 @@ function useNotificationText() {
           endDate: item.params.endDate ?? '',
         });
       }
+      case 'billing.issued':
+        return t('ui.notifications.types.billing_issued', {
+          number: item.params.number ?? '',
+          total: item.params.total ?? '',
+        });
+      case 'projects.budget_threshold':
+        return t('ui.notifications.types.projects_budget_threshold', {
+          number: item.params.number ?? '',
+          percent: item.params.percent ?? '',
+        });
+      case 'announcements.published':
+        return t('ui.notifications.types.announcements_published', {
+          title: (locale === 'ar' ? item.params.titleAr : item.params.title) ?? '',
+        });
       case 'billing.overdue':
         return t('ui.notifications.types.billing_overdue', {
           number: item.params.number ?? '',

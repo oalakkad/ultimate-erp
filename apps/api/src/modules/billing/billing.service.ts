@@ -104,6 +104,7 @@ export class BillingService {
     private readonly database: TenantDatabase,
     private readonly audit: AuditLog,
     private readonly identity: IdentityService,
+    private readonly notifier: Notifier,
   ) {}
 
   // --- access & settings ---------------------------------------------------------------------
@@ -459,6 +460,24 @@ export class BillingService {
         number,
         total: row.total,
       });
+      // The project's manager learns that their work was invoiced.
+      if (row.projectId) {
+        const [manager] = await tx
+          .select({ userId: memberships.userId })
+          .from(projects)
+          .innerJoin(memberships, eq(memberships.id, projects.managerMembershipId))
+          .where(eq(projects.id, row.projectId));
+        if (manager && manager.userId !== access.userId) {
+          await this.notifier.notify(tx, req, {
+            tenantId: access.tenantId,
+            type: 'billing.issued',
+            recipients: [manager.userId],
+            params: { number, total: row.total },
+            link: `/invoices/${id}`,
+            actor: { userId: access.userId, membershipId: access.membershipId },
+          });
+        }
+      }
       return this.toInvoice(tx, access, row);
     });
   }

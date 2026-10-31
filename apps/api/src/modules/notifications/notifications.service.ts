@@ -1,10 +1,11 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import {
+  MANDATORY_IN_APP,
   type Notification,
   NOTIFICATION_TYPES,
   type NotificationType,
 } from '@ultimate-erp/contracts';
-import { notifications } from '@ultimate-erp/db';
+import { notificationPreferences, notifications } from '@ultimate-erp/db';
 import { and, count, desc, eq, isNull, lt } from 'drizzle-orm';
 import { z } from 'zod';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
@@ -95,5 +96,56 @@ export class NotificationsService {
         .set({ readAt: new Date() })
         .where(and(eq(notifications.userId, access.userId), isNull(notifications.readAt))),
     );
+  }
+
+  /** Every type with my choice (defaults: in the app, no email). */
+  async preferences(access: AccessContext) {
+    const rows = await this.database.withTenant(access.tenantId, (tx) =>
+      tx
+        .select()
+        .from(notificationPreferences)
+        .where(eq(notificationPreferences.membershipId, access.membershipId)),
+    );
+    const mine = new Map(rows.map((r) => [r.type, r]));
+    return {
+      items: NOTIFICATION_TYPES.map((type) => {
+        const mandatory = MANDATORY_IN_APP.includes(type);
+        return {
+          type,
+          inApp: mandatory || (mine.get(type)?.inApp ?? true),
+          email: mine.get(type)?.email ?? false,
+          mandatory,
+        };
+      }),
+    };
+  }
+
+  async setPreferences(
+    access: AccessContext,
+    items: { type: NotificationType; inApp: boolean; email: boolean }[],
+  ) {
+    await this.database.withTenant(access.tenantId, async (tx) => {
+      for (const item of items) {
+        const inApp = MANDATORY_IN_APP.includes(item.type) ? true : item.inApp;
+        await tx
+          .insert(notificationPreferences)
+          .values({
+            tenantId: access.tenantId,
+            membershipId: access.membershipId,
+            type: item.type,
+            inApp,
+            email: item.email,
+          })
+          .onConflictDoUpdate({
+            target: [
+              notificationPreferences.tenantId,
+              notificationPreferences.membershipId,
+              notificationPreferences.type,
+            ],
+            set: { inApp, email: item.email, updatedAt: new Date() },
+          });
+      }
+    });
+    return this.preferences(access);
   }
 }

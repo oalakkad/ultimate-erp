@@ -57,7 +57,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | 15 | Attendance is recorded and validated | 10 |
 | 16 | Authorized user prepares and approves payroll (different people) | 11 |
 | 17 | Authorized user creates an invoice and records a payment | 12 |
-| 18 | Notifications are delivered to the correct recipients | ✅ infra + first types 1.5a (`access.spec.ts`, `journey.spec.ts`); 6+ (each module), 13 |
+| 18 | Notifications are delivered to the correct recipients | ✅ infra + first types 1.5a (`access.spec.ts`, `journey.spec.ts`); each module 4–12; preferences, announcements, role targeting 13 (`announcements.spec.ts`, journey) |
 | 19 | Reports reflect the underlying business records | 14 |
 | 20 | Unauthorized users are blocked from restricted operations | 1.3 onward, every phase |
 
@@ -93,6 +93,7 @@ These are the 20 workflows from the product brief. Each becomes a Playwright tes
 | Milestone | Tests | Result (last run) |
 |---|---|---|
 | 1.1 | 5 contracts + 32 API (config, log redaction, error mapping, HTTP behaviour, real-Postgres health) | 37 passed |
+| 13 | + notifications & announcements API (5) incl. preferences with mandatory types, email copies in the reader's language, recipient-count confirmation, daily limit, role targeting, cross-company isolation, budget thresholds, invoice-issued notice; journey: Owner publishes an announcement, colleague reads it, Owner changes a preference; axe on 3 more screens | 378 unit/integration (api 254, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |
 | 12 | + billing API (7) incl. fil maths, database-enforced corrections, billing time once, taxes, scope, reminders, aging, revenue; journey: Owner invoices the approved time, issues INV-0001, records a partial payment, opens the print view; axe on 5 more screens | 373 unit/integration (api 249, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |
 | 11 | + payroll engine unit (6) and API (4) incl. separation of duties, unpayable test runs (API + DB), payslip privacy, rule history; journey: Owner records a salary, calculates and submits a test run, colleague sees no payslip; axe on 4 more screens | 366 unit/integration (api 242, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |
 | 10 | + attendance API (5) incl. replayed / forged / expired / cross-company codes, shift maths, corrections with DB self-decision guard; journey: Owner sets up a site, opens the kiosk, colleague scans and is "in"; axe on 5 more screens; steadier dev-API wait | 356 unit/integration (api 232, db 39, contracts 36, web 23, ui 16, i18n 10) + 8 browser |

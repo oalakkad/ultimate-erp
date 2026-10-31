@@ -232,6 +232,20 @@
       "when": 1793371286199,
       "tag": "0032_billing_security",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793372848674,
+      "tag": "0033_announcements_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793372850570,
+      "tag": "0034_announcements_security",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/re
 import { UiProvider } from '@ultimate-erp/ui';
 import { AppLayout } from '../components/app-layout.js';
 import { AccountPage } from '../routes/account.js';
+import { AnnouncementsPage } from '../routes/announcements.js';
 import { CheckEmailPage, VerifyEmailPage } from '../routes/auth/email-pages.js';
 import { ForgotPasswordPage, ResetPasswordPage } from '../routes/auth/password-pages.js';
 import { SignInPage } from '../routes/auth/sign-in.js';
@@ -302,6 +303,11 @@ const invoicePrintRoute = createRoute({
   path: '/invoices/$invoiceId/print',
   component: InvoicePrintPage,
 });
+const announcementsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/announcements',
+  component: AnnouncementsPage,
+});
 const accountRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/account',
@@ -353,6 +359,7 @@ export const router = createRouter({
       invoicesRoute,
       newInvoiceRoute,
       invoiceRoute,
+      announcementsRoute,
       accountRoute,
     ]),
   ]),

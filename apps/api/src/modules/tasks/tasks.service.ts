@@ -17,6 +17,7 @@ import {
   auditEvents,
   clients,
   files,
+  membershipRoles,
   memberships,
   projectMembers,
   projects,
@@ -519,6 +520,42 @@ export class TasksService {
         reason: override.overrideReason,
         budget: formatHours(budget),
         allocated: formatHours(total),
+      });
+    }
+    // Crossing 80 % or 100 % of the budget alerts the project manager and Owner/CEO.
+    const previousTotal = elsewhere + sumHours(current);
+    const crossed =
+      budget > 0n
+        ? [100n, 80n].find(
+            (pct) => previousTotal * 100n < budget * pct && total * 100n >= budget * pct,
+          )
+        : undefined;
+    if (crossed !== undefined) {
+      const leaders = await tx
+        .selectDistinct({ userId: memberships.userId })
+        .from(memberships)
+        .innerJoin(membershipRoles, eq(membershipRoles.membershipId, memberships.id))
+        .where(
+          and(eq(memberships.status, 'active'), inArray(membershipRoles.role, ['owner', 'ceo'])),
+        );
+      const [manager] = await tx
+        .select({ userId: memberships.userId })
+        .from(memberships)
+        .where(eq(memberships.id, project.managerMembershipId));
+      await this.notifier.notify(tx, req, {
+        tenantId: task.tenantId,
+        type: 'projects.budget_threshold',
+        recipients: [...leaders.map((l) => l.userId), ...(manager ? [manager.userId] : [])].filter(
+          (u) => u !== access.userId,
+        ),
+        params: {
+          number: project.number,
+          name: project.nameEn,
+          nameAr: project.nameAr,
+          percent: String(crossed),
+        },
+        link: `/projects/${project.id}`,
+        actor: { userId: access.userId, membershipId: access.membershipId },
       });
     }
     if (added.length > 0) {

@@ -52,5 +52,13 @@ export const en = {
       subject: 'Two-factor authentication turned off',
       body: 'Hello {name},\n\nTwo-factor authentication was turned off for your account. If this was not you, change your password immediately.',
     },
+    notification: {
+      subject: '{company}: {message}',
+      body: 'Hello {name},\n\n{message}\n\nOpen it in {company}:\n\n{url}\n\nYou receive this email because you chose email copies for this kind of notification. You can change that in My account.',
+    },
+    announcement: {
+      subject: '{company}: {title}',
+      body: 'Hello {name},\n\n{title}\n\n{text}\n\n— {company}\n\n{url}',
+    },
   },
 } as const;

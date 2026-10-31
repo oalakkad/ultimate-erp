@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-31 — Session 6 (continued): Phase 13 (Notifications & announcements) built + committed
+
+### Hand-over 13 (A–H)
+- **A Built:** notification preferences per person and type (in-app on/off, email copy on/off; roles changed and announcements always in the app), email copies in each recipient's language through the outbox, new notices (invoice issued → project manager, budget hours crossing 80 %/100 % → manager, Owner, CEO), company announcements (bilingual, everyone or chosen roles, optional email, exact recipient-count confirmation, 10 per day, delivery counts, audit). See `docs/modules/notifications.md` §11.
+- **B Files:** contracts `announcements.ts` (new), `notifications.ts` (+3 types, `MANDATORY_IN_APP`, preference schemas), permissions (+`announcements.publish`, matrix in `permissions.md`); db `schema/announcements.ts`, migrations 0033/0034, isolation list; api `platform/notifications/notifier.ts` (preferences + email copies), `modules/identity/user-directory.ts` (contacts + locale), `modules/announcements/`, notifications preferences endpoints, tasks (threshold alerts), billing (issued notice), `test/announcements.spec.ts`, `test/access.spec.ts` (audit details now include the email count); web `routes/announcements.tsx`, `components/notification-settings.tsx` (on My account), bell texts, router, nav, palette; ui Checkbox `hideLabel`; ui test `logical-css.spec.ts` (bare `left`/`right` — the employee status — is no longer mistaken for a CSS utility); i18n EN/AR (email templates, types, preferences, announcements); journey Phase 13 steps (timeout 240 s).
+- **C Architecture:** every module calls the one Notifier → it reads the recipients' preferences → in-app rows for those who want them (mandatory types always) + email copies queued in the same transaction for verified addresses → the worker sends and records status. Announcements: preview count → publish with the same count → announcement row + notifications in batches of 200 + recorded emails + audit, all in one transaction.
+- **D Security:** forced RLS on the 3 new tables; announcements insert/select only for the app role; recipients chosen by the server from the company's members; publishing needs `announcements.publish`; protection against mass delivery (count confirmation, daily limit); links are company paths and the target page re-checks access.
+- **E Tests:** `pnpm check` **378** passed (api 254, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e` 6 passed; `pnpm e2e:journey` 2 passed (EN + AR, 2.3 min each); `pnpm security` clean (one moderate advisory below the high threshold, as before). Notes: Docker Desktop had stopped (dev stack exited, test containers failed) and was restarted; after the restart, one real failure (the access test expected the old audit details, now updated), then one full run had a single failing API test that did not come back in the later runs (not identified, possibly timing) — watch for it.
+- **F Verify:** project-status "How to verify Phase 13".
+- **G Open:** SMS and push channels (push with Phase 16), scheduled announcements, digest emails; the intermittent API failure above.
+- **Repo state:** committed ("Phase 13"); dev DB migrated to 0034. Not pushed. The computer was shut down overnight (exit code 1073807364 = console closed), which stopped Docker Desktop and `pnpm dev`; start Docker Desktop, then `pnpm dev`, before browser tests.
+- **H Next:** Phase 12b Expenses (spec `docs/modules/expenses.md` first), then Phase 14.
+
+---
+
 ## 2026-10-30 — Session 6 (continued): Phase 12 (Invoicing & payments) built + committed
 
 ### Hand-over 12 (A–H)

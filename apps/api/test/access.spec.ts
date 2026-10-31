@@ -750,7 +750,11 @@ describe('audit log', () => {
       'access.invitation.created',
       'access.company.created',
     ]);
-    expect(all.items[0]?.details).toEqual({ type: 'access.roles_changed', recipients: 1 });
+    expect(all.items[0]?.details).toEqual({
+      type: 'access.roles_changed',
+      recipients: 1,
+      emails: 0,
+    });
     expect(all.items[1]?.details).toEqual({ before: ['employee'], after: ['manager'] });
     expect(all.items[1]?.requestId).toBeTruthy();
 
