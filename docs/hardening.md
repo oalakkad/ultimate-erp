@@ -15,7 +15,7 @@ Show with evidence, not claims, that the system can be installed, run, backed up
 - Fix the on-prem install gap: `compose.prod.example.yaml` says roles "must exist first" but nothing creates them. Add a one-shot `bootstrap` service (admin URL used once, never by the running app).
 - Runbook `docs/operations.md`: backup schedule, retention, restore steps per profile (SaaS managed DB, on-prem), the encryption-key warning (losing `DATA_ENCRYPTION_KEY` = losing encrypted fields).
 
-### 15b — Production configuration and deployment validation
+### 15b — Production configuration and deployment validation — ✅ done 2026-10-31 (`operations.md` §5, `security.md` §2c)
 - Production config guard: in `NODE_ENV=production` the API/worker refuse to start with dev defaults or example secrets, short/equal secrets, `http://` public URLs, API docs enabled, Mailpit/localhost SMTP, missing ClamAV, or a superuser DB role. One plain sentence per problem.
 - **Deployment smoke test** (`pnpm deploy:verify`): build both images, bring up the prod compose with generated throw-away secrets, wait for health, then run a short browser smoke (sign up → company → client → invoice) against the containers, then tear down. Run in CI (`images` job).
 - Staging profile documented (synthetic data only, architecture §7a); `.env` templates for `saas` and `onprem`.

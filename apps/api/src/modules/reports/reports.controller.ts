@@ -28,6 +28,7 @@ import { AccessModule } from '../access/access.module.js';
 import { AttendanceModule } from '../attendance/attendance.controller.js';
 import { IdentityModule } from '../identity/identity.module.js';
 import { ReportsService } from './reports.service.js';
+import { Limit, ROUTE_LIMITS } from '../../platform/rate-limit/route-limit.js';
 
 // The reader's language decides names (client, project, leave type) in rows and exports.
 const runQuerySchema = reportQuerySchema.and(
@@ -57,6 +58,7 @@ export class ReportsController {
     return this.reports.catalog(access);
   }
 
+  @Limit(ROUTE_LIMITS.report)
   @Get(':key')
   @ApiContract({
     summary: 'Run a report (columns, rows, totals) — permission checked per report',
@@ -74,6 +76,7 @@ export class ReportsController {
     return this.reports.run(access, params.key, query);
   }
 
+  @Limit(ROUTE_LIMITS.export)
   @Get(':key/export.csv')
   @Header('Content-Type', 'text/csv; charset=utf-8')
   @ApiContract({

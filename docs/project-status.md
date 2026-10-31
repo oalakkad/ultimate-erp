@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance), 11 (Payroll, test-only until rules are verified) and 12 (Invoicing) built and committed 2026-10-30. Phase 13 (Notifications & announcements), Phase 12b (Expenses), design v0.3 and Phase 14 (Reports & audit search) built and committed 2026-10-31. Phase 15 (Hardening & release prep, plan `hardening.md`): **15a (backup, restore, clean install) built and committed 2026-10-31. Next: 15b (production configuration & deployment validation).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance), 11 (Payroll, test-only until rules are verified) and 12 (Invoicing) built and committed 2026-10-30. Phase 13 (Notifications & announcements), Phase 12b (Expenses), design v0.3 and Phase 14 (Reports & audit search) built and committed 2026-10-31. Phase 15 (Hardening & release prep, plan `hardening.md`): **15a (backup, restore, clean install) and 15b (production configuration & deployment validation) built and committed 2026-10-31. Next: 15c (performance).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -104,6 +104,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Load testing with autocannon (MIT) from a Node script, not k6.
 - No real cloud deployment until the owner provides an account, domain and SMTP provider; deployment is proven on the production compose locally and in CI.
 - An external penetration test is recommended before the first paying customer.
+
+## Decisions 2026-10-31 (Phase 15b, Claude in nonstop mode — reviewable)
+- Production refuses to start on unsafe settings (list in `operations.md` §5) and on a database login that could bypass row-level security. Empty variables count as unset; `NAME_FILE` reads a secret from a file.
+- Client addresses follow `TRUST_PROXY_HOPS` proxies (on-prem compose default 2: web container + your HTTPS proxy); the company is always taken from `Host` (Express "trust proxy" stays off; nginx removes `X-Forwarded-Host`).
+- Per-person limits: 30 CSV exports per hour, 100 uploads per hour, 120 report runs per 10 minutes (429 with Retry-After).
+- HSTS with `includeSubDomains` (companies are subdomains), without `preload` (a domain decision for the owner).
+- The deployment test (`pnpm deploy:verify`) runs in CI on every push with the English journey; the Arabic journey stays in the dev `journey` job. Through the dev server, journey assertions may wait 15 s; against the production build they keep the strict 5 s.
 
 ## Decisions 2026-10-31 (Phase 15a, Claude in nonstop mode — reviewable)
 - Backups contain the database and every stored file that a file record points to (unreferenced objects are unreachable leftovers and are skipped); infected files were deleted at scan time and are not expected.
@@ -219,6 +226,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 4 — Contracts & engagement letters** (2026-10-30; spec `modules/contracts.md`): bilingual templates, CT-/EL- numbering, versions, draft → review → approved → sent → signed copy → active → expired/terminated with separation of duties, renewal reminders and expiry (daily 08:00 Kuwait), print view for PDF, client tab, dashboard card. Tests: 308 unit/integration + 8 browser.
 
+## How to verify Phase 15b
+1. `pnpm deploy:verify` (needs Docker; ~5 min with image builds): every line "ok", "Deployment verification passed". It builds both images, starts the production compose file behind HTTPS with fresh secrets, checks headers, runs the full browser journey, checks client addresses and a backup, then removes everything.
+2. Try the guard: `docker run --rm -e NODE_ENV=production -e DATABASE_URL=postgres://erp_app:x@db/erp -e AUTH_SECRET=local-dev-only-auth-secret-change-me-0123456789 -e DATA_ENCRYPTION_KEY=local-dev-only-data-key-change-me-0123456789 -e APP_PUBLIC_URL=http://localhost:3000 ultimate-erp-api` lists every problem (no values shown) and exits.
+3. Open `THIRD_PARTY_NOTICES.txt` in the repository: the licences of all 319 shipped components and fonts. The deployed app serves it at `/third-party-notices.txt` (the deploy test checks this).
+4. Read `docs/operations.md` §5 (HTTPS proxy, `TRUST_PROXY_HOPS`, upgrades) and `docs/security.md` §2c (what was found and fixed).
+
 ## How to verify Phase 15a
 1. `pnpm backup` — prints the counts and `Backup complete: …\backups\uerp-<time>`. Open `manifest.json` in that folder: row counts per table, file list, no business data; the `.enc` files are unreadable.
 2. `pnpm backup:verify backups\uerp-<time>` — "is good: N rows, M stored files".
@@ -328,4 +341,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 15b (production configuration guard, deployment smoke test of the production compose with built images, staging profile, headers and rate-limit review, THIRD_PARTY_NOTICES), then 15c and 15d (`hardening.md`), built in nonstop mode. See the newest entry in `session-log.md`.
+Phase 15c (performance: volume seed at the architecture target, load test, query fixes where measured, route-level code splitting), then 15d (`hardening.md`), built in nonstop mode. See the newest entry in `session-log.md`.

@@ -1,6 +1,6 @@
 # Operations runbook
 
-How to run Ultimate ERP safely in production: backups, restores, keys. Written for the person on call, in the order you need it. Phase 15a; later sections are added by 15b–15d.
+How to run Ultimate ERP safely in production: backups, restores, keys, deployment. Written for the person on call, in the order you need it. Phase 15a (§1–4) and 15b (§5); later sections are added by 15c–15d.
 
 ## 1. What must be protected
 
@@ -91,3 +91,36 @@ A restore goes **only into an empty database and an empty file bucket** — it n
   3. Note the time taken and the counts printed; compare with the target (4 hours).
   4. Remove the drill copy: `docker exec ultimate-erp-postgres-1 psql -U erp_dev -d erp -c "drop database erp_drill"` (and the `erp-drill` bucket in the storage console, http://localhost:9001).
 - Last manual drill: 2026-10-31 on development data — 86 tables, 9,570 rows and 133 files restored, counts matched; a second restore into the same database was refused.
+
+## 5. Deployment and configuration
+
+### Profiles
+| Environment | How | Data |
+|---|---|---|
+| Development | `pnpm dev` (Docker services + API, worker, web dev server) | Fictional, local |
+| Test | Testcontainers (each suite starts its own PostgreSQL, storage, Mailpit) | Created by each test |
+| Staging | The production images and compose file with their own secrets and domain (e.g. `staging.erp.yourfirm.com`) | **Synthetic only** — never a copy of production data |
+| Production | `infra/compose/compose.prod.example.yaml` + `prod.env` (from `prod.env.example`), or the same images on a container platform | Real |
+
+### Production guard
+With `NODE_ENV=production` the API and worker **refuse to start** (one line per problem, never the value) when: logs are pretty-printed or the profile is `dev`; public addresses (`APP_PUBLIC_URL`, `WEB_PUBLIC_URL`, `S3_PUBLIC_ENDPOINT`, CORS origins, breach-check API) are not https or point to localhost; `PLATFORM_BASE_DOMAIN` is localhost; the mail server or sender is localhost; `AUTH_SECRET` / `DATA_ENCRYPTION_KEY` look like examples (`change-me`, `replace-with…`, `local-dev…`), have too few different characters, or are equal; the database password is short or a placeholder; file storage is missing, its keys are placeholders, or there is no https download address. They also stop at start-up if the database login could bypass row-level security (superuser / BYPASSRLS / not `erp_app`). Role creation (`bootstrap`) refuses passwords still containing the template's placeholder.
+
+Settings: an empty variable counts as unset; `NAME_FILE=/run/secrets/name` reads `NAME` from a file (Docker / Kubernetes secrets).
+
+### Your HTTPS proxy
+Put HTTPS in front of the `web` service (port 8080):
+- Certificates and DNS for the main address **and** `*.<PLATFORM_BASE_DOMAIN>` (each company is a subdomain).
+- Keep the original `Host` header, append the client to `X-Forwarded-For`, set `X-Forwarded-Proto: https`; allow uploads of 26 MB.
+- Forward the files host (`S3_PUBLIC_ENDPOINT`, e.g. `files.erp.yourfirm.com`) to the `object-storage` service on port 9000, keeping `Host` (download links are signed for it).
+- `TRUST_PROXY_HOPS` = number of proxies appending `X-Forwarded-For` in front of the API: the web container (1) + your HTTPS proxy (2). Wrong values put everyone into one rate-limit bucket or let people forge their address. Check after go-live: the audit log shows people's real addresses. Only the address follows the proxies — the company is always taken from `Host`, and the web container removes any `X-Forwarded-Host`.
+
+### Upgrading
+1. Make and verify a backup (§2).
+2. Pull or build the new images, then `docker compose --env-file prod.env up -d`: `bootstrap` and `migrate` run first, then the new API, worker and web start.
+3. Sign in and open a few screens. Database changes are backward-compatible (ADR-0007), so going back means starting the previous images; if a release notes say a change cannot be undone, the way back is the backup from step 1.
+
+### Deployment verification (`pnpm deploy:verify`)
+Builds both images and starts the real production compose file with freshly generated secrets, behind a test-only HTTPS proxy (`infra/compose/compose.verify.yaml`, throwaway certificates for `*.verify.test`) and a test mail server. It then checks the security headers of the app, its files and the API; that the third-party notices are served; that an unknown company address answers 404; runs the **whole first-day browser journey** (sign-up, two-factor, invitations, clients, a virus-scanned upload and its signed download, contracts, projects, tasks, time, leave, attendance, payroll, invoices, expenses, reports, audit, announcements); checks that the audit log records the browser's address and not a proxy's; and makes and verifies a backup with the server image's own tools. Everything is removed afterwards (`--keep` leaves it running, `--skip-build` reuses images). CI runs it on every push (`deploy` job). Last run 2026-10-31: passed in 2.4 minutes.
+
+### Licences
+`THIRD_PARTY_NOTICES.txt` (all production dependencies and the fonts, with their licence texts) is generated by `pnpm notices`, checked by `pnpm security`, served at `/third-party-notices.txt` and included in the server image.

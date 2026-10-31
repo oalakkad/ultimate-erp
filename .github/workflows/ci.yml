@@ -79,14 +79,25 @@ jobs:
       - if: failure()
         run: cat api.log worker.log
 
-  # Container images for SaaS / on-prem (infra/docker). Built to prove they still build.
-  images:
+  # The production setup end to end (docs/operations.md section 5): builds both images, starts
+  # infra/compose/compose.prod.example.yaml with generated secrets behind HTTPS, checks the
+  # security headers, runs the browser journey, checks client IPs through the proxies, and makes
+  # and verifies a backup inside the server image.
+  deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-      - run: docker build -f infra/docker/api.Dockerfile -t ultimate-erp-api:ci .
-      - run: docker build -f infra/docker/web.Dockerfile -t ultimate-erp-web:ci .
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @ultimate-erp/web exec playwright install --with-deps chromium
+      # The journey reads the shared translations from the built packages.
+      - run: pnpm build
+      - run: pnpm deploy:verify
 
   # Release-blocking supply-chain gates (security.md R10/R11, compliance.md §3).
   security:

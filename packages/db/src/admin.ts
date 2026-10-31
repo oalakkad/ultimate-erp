@@ -26,6 +26,11 @@ function credentials(url: string, expectedUser: string) {
   if (password.length < 12) {
     throw new Error(`Password for "${expectedUser}" must be at least 12 characters.`);
   }
+  if (/replace-?with|change-?me/i.test(password)) {
+    throw new Error(
+      `Password for "${expectedUser}" is still the placeholder from prod.env.example.`,
+    );
+  }
   return { user, password, database: parsed.pathname.slice(1) };
 }
 

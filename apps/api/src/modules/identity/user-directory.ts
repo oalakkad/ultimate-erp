@@ -1,6 +1,7 @@
 import { Global, Inject, Injectable, Module } from '@nestjs/common';
 import { type Database, users } from '@ultimate-erp/db';
 import { inArray } from 'drizzle-orm';
+import { ambientTransaction } from '../../platform/database/ambient-transaction.js';
 import { DB } from '../../platform/database/database.tokens.js';
 
 export interface UserContact {
@@ -22,7 +23,9 @@ export class UserDirectory {
 
   async contacts(userIds: readonly string[]): Promise<UserContact[]> {
     if (userIds.length === 0) return [];
-    return this.db
+    // Inside the caller's company transaction when there is one (no second pooled connection).
+    const db = (ambientTransaction() as Database | undefined) ?? this.db;
+    return db
       .select({
         id: users.id,
         name: users.name,

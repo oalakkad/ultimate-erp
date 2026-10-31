@@ -26,6 +26,7 @@ import { AccessGuard } from '../access/access.guard.js';
 import { AccessModule } from '../access/access.module.js';
 import { IdentityModule } from '../identity/identity.module.js';
 import { FilesService, type UploadedFile } from './files.service.js';
+import { Limit, ROUTE_LIMITS } from '../../platform/rate-limit/route-limit.js';
 
 /** Upload and download files in this company (docs/modules/files-monitoring.md §2). */
 @Controller('files')
@@ -34,6 +35,7 @@ import { FilesService, type UploadedFile } from './files.service.js';
 export class FilesController {
   constructor(private readonly files: FilesService) {}
 
+  @Limit(ROUTE_LIMITS.upload)
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   @ApiContract({

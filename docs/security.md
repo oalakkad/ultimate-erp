@@ -26,7 +26,7 @@ Status: **Draft — Phase 0.** Targets OWASP ASVS 5.0 Level 2 for the whole app,
 
 - HTTPS only; HSTS; security headers (CSP, X-Content-Type-Options, Referrer-Policy, frame-ancestors none).
 - Strict CORS: only the tenant web origins.
-- Rate limits: login, OTP verify, password reset, invitation accept, exports.
+- Rate limits: login, OTP verify, password reset, invitation accept, exports, uploads, report runs (15b).
 - Uniform error responses with codes; no stack traces outside dev.
 - Correlation ID on every request and log line.
 - Audit log append-only (app role has INSERT/SELECT only; no UPDATE/DELETE grant).
@@ -47,6 +47,20 @@ Status: **Draft — Phase 0.** Targets OWASP ASVS 5.0 Level 2 for the whole app,
 | Exports and reports | Run through the RLS connection with the requester's permissions; confidential exports require `exports.confidential`, MFA-fresh session, and are audited with row counts. | 14 |
 | Secrets management | Dev: `.env` (git-ignored). SaaS: platform secret manager injected as env vars. On-prem: customer-managed env/secret files (`*_FILE` variants). Never in images, logs or the database in plain text. | 1.1 / 15 |
 
+## 2c. Phase 15b review: production configuration, proxies, headers, limits (2026-10-31)
+Found by running the production compose file end to end (`pnpm deploy:verify`) and by review; all fixed and covered by tests.
+
+| Finding | Risk | Fix | Evidence |
+|---|---|---|---|
+| Behind the web container's nginx every request had nginx's address | All users in one rate-limit bucket (one attacker throttles everyone; the sign-up limit applies to the whole install); audit log without real addresses | `TRUST_PROXY_HOPS`: the client address is read that many hops from the right of `X-Forwarded-For`; Express "trust proxy" stays off, so `X-Forwarded-Host` can never choose the company; nginx removes it | `client-ip.spec.ts`, `hardening.spec.ts`, deploy test (audit shows the browser's address, not the proxies') |
+| nginx forwarded `Host` without the port | On any non-standard https port every form submission refused as cross-site | nginx forwards `$http_host` | deploy test (journey on port 8443) |
+| Security headers missing on the app's pages | nginx drops server-level headers in a location with its own: pages had no Referrer-Policy / Permissions-Policy, no HSTS anywhere | One header file included in every location; added HSTS (incl. subdomains), X-Frame-Options, COOP, CORP | deploy test header checks |
+| A second pooled connection taken inside a company transaction (account names) | Under concurrent use the pool runs dry: requests stall 2 s and fail with 500 | Read-only identity lookups use the open transaction's connection (`ambient-transaction.ts`); a probe run of the whole API suite found no other nested connection use | `hardening.spec.ts` (20 parallel requests on a 2-connection pool: all 200; 500s without the fix) |
+| Example on-prem setup could not start | `SENTRY_DSN: ${SENTRY_DSN:-}` gave an empty, invalid URL | Empty variables count as unset | `config.spec.ts`, deploy test |
+| Unsafe production settings accepted | Example secrets, localhost addresses, http, missing file storage, placeholder passwords | Production guard (operations.md §5); fail-fast database-role check at start-up | `config.spec.ts` |
+| No limits on exports, uploads, report runs | Bulk data exfiltration speed, storage / scanner / database load | Per-member limits: 30 exports/h, 100 uploads/h, 120 report runs/10 min (`route-limit.ts`), 429 + Retry-After | `hardening.spec.ts` |
+| `NAME_FILE` secrets promised (§2a) but not implemented | Secrets only via plain environment variables | `withFileValues` in the API and backup tool | `config.spec.ts` |
+| Docker build context included local `backups/` | Real (encrypted) data inside build layers | `.dockerignore` | — |
 ## 2b. Accepted risks (reviewed)
 | Finding | Why accepted | Revisit |
 |---|---|---|

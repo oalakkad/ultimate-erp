@@ -1,0 +1,20 @@
+# TEST-ONLY HTTPS proxy for `pnpm deploy:verify`: throwaway certificates from Caddy's own local
+# authority, accepted only by the test browser. Never use it for a real installation.
+{
+	admin off
+	auto_https disable_redirects
+	local_certs
+	skip_install_trust
+}
+
+https://verify.test:8443, https://*.verify.test:8443 {
+	tls internal
+	# Signed download links point here (S3_PUBLIC_ENDPOINT); the Host is kept for the signature.
+	@files host files.verify.test
+	handle @files {
+		reverse_proxy object-storage:9000
+	}
+	handle {
+		reverse_proxy web:8080
+	}
+}

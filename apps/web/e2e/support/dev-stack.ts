@@ -11,7 +11,25 @@ try {
   // CI passes the same variables through the environment instead of a .env file.
 }
 
-const MAILPIT = `http://127.0.0.1:${process.env.MAILPIT_UI_PORT ?? '8025'}/api/v1`;
+/**
+ * Where the journey runs. Default: the dev stack (`pnpm dev`). `pnpm deploy:verify` points it at
+ * the production containers instead (E2E_WEB_URL, E2E_MAILPIT_URL; docs/operations.md §5).
+ */
+export const WEB_URL = process.env.E2E_WEB_URL ?? 'http://localhost:5173';
+export const DEPLOYED = process.env.E2E_WEB_URL !== undefined;
+const MAILPIT =
+  process.env.E2E_MAILPIT_URL ?? `http://127.0.0.1:${process.env.MAILPIT_UI_PORT ?? '8025'}/api/v1`;
+
+/** A company's address, e.g. http://acme.localhost:5173 or https://acme.verify.test:8443. */
+export function companyHost(slug: string): string {
+  const url = new URL(WEB_URL);
+  return `${slug}.${url.host}`;
+}
+
+/** A page of a company, e.g. companyUrl('acme', '/tasks'). */
+export function companyUrl(slug: string, path = '/'): string {
+  return `${new URL(WEB_URL).protocol}//${companyHost(slug)}${path}`;
+}
 
 /**
  * Empties the sign-up / sign-in rate-limit counters so repeated local runs are not blocked.

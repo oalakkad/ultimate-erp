@@ -1,8 +1,12 @@
+import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import { type Browser, expect, type Page, test } from '@playwright/test';
 import { type Locale, type MessageKey, type MessageParams, translate } from '@ultimate-erp/i18n';
 import {
+  companyHost,
+  companyUrl,
   deleteEmailsTo,
+  DEPLOYED,
   linkFromEmail,
   resetDevRateLimits,
   totpNow,
@@ -59,13 +63,16 @@ async function newPage(browser: Browser, locale: Locale) {
 
 test.beforeAll(async () => {
   test.setTimeout(90_000);
+  // A fresh deployment (pnpm deploy:verify) is checked and has no old counters to clear.
+  if (DEPLOYED) return;
   await waitForSteadyApi();
   await resetDevRateLimits();
 });
 
 for (const locale of ['en', 'ar'] as const) {
   test(`first-day journey — ${locale}`, async ({ browser }) => {
-    test.setTimeout(360_000);
+    // ~2 min against the production build; up to ~5 min through the dev server.
+    test.setTimeout(480_000);
     const t = (key: MessageKey, params?: MessageParams) => translate(locale, key, params);
     const run = `${locale}${Date.now().toString(36)}`;
     const slug = `e2e-${run}`;
@@ -112,7 +119,7 @@ for (const locale of ['en', 'ar'] as const) {
       await page.getByRole('button', { name: t('ui.companies.createSubmit') }).click();
 
       // Hand-off lands on the company's own address; Owner is a sensitive role → two-factor first.
-      await page.waitForURL(`http://${slug}.localhost:5173/account`);
+      await page.waitForURL(companyUrl(slug, '/account'));
       await expect(
         page.getByRole('alert').filter({ hasText: t('ui.account.mfaRequired') }),
       ).toBeVisible();
@@ -185,7 +192,7 @@ for (const locale of ['en', 'ar'] as const) {
 
       // --- Invitee: open the email link, create an account, sign in, accept ------------------
       const inviteLink = await linkFromEmail(invitee.email, '/invitations/accept?token=');
-      expect(new URL(inviteLink).host).toBe(`${slug}.localhost:5173`);
+      expect(new URL(inviteLink).host).toBe(companyHost(slug));
       const guest = await newPage(browser, locale);
       await guest.goto(inviteLink);
       await expect(guest.getByRole('heading', { name: t('ui.invitation.title') })).toBeVisible();
@@ -292,6 +299,14 @@ for (const locale of ['en', 'ar'] as const) {
         timeout: 60_000,
       });
       await expectAccessible(page, 'client documents');
+      // Downloading follows a short-lived signed link to the file storage (S3_PUBLIC_ENDPOINT
+      // in production) and arrives as an attachment with its name and bytes intact.
+      const downloading = page.waitForEvent('download');
+      await page.getByRole('button', { name: t('ui.clients.documents.download') }).click();
+      const downloaded = await downloading;
+      expect(downloaded.suggestedFilename()).toBe('engagement-letter.pdf');
+      const saved = await downloaded.path();
+      expect(readFileSync(saved).toString('latin1')).toContain('%PDF-1.4');
 
       await page.getByRole('tab', { name: t('ui.clients.tabs.activity') }).click();
       await expect(
@@ -369,7 +384,7 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(guest.getByText(t('ui.contracts.done.submit'), { exact: true })).toBeVisible();
 
       // The Owner is notified, approves, records sending, the signed copy, and activates.
-      await page.goto(`http://${slug}.localhost:5173/contracts`);
+      await page.goto(companyUrl(slug, '/contracts'));
       await page.getByRole('link', { name: letterTitle }).click();
       await page.getByRole('button', { name: t('ui.contracts.actions.approve') }).click();
       await expect(page.getByText(t('ui.contracts.done.approve'), { exact: true })).toBeVisible();
@@ -433,13 +448,13 @@ for (const locale of ['en', 'ar'] as const) {
       await expectAccessible(guest, 'project (active)');
 
       // The Owner, on the team, sees it on the dashboard and in the client's Projects tab.
-      await page.goto(`http://${slug}.localhost:5173/`);
+      await page.goto(companyUrl(slug, '/'));
       await expect(
         page
           .getByRole('region', { name: t('ui.dashboard.keyNumbers') })
           .getByText(t('ui.dashboard.activeProjects'), { exact: true }),
       ).toBeVisible();
-      await page.goto(`http://${slug}.localhost:5173/projects`);
+      await page.goto(companyUrl(slug, '/projects'));
       await expect(page.getByRole('link', { name: projectName })).toBeVisible();
       await expectAccessible(page, 'projects list');
 
@@ -460,7 +475,7 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(guest.getByRole('heading', { name: 'Inventory count' })).toBeVisible();
       await expectAccessible(guest, 'task');
 
-      await page.goto(`http://${slug}.localhost:5173/tasks`);
+      await page.goto(companyUrl(slug, '/tasks'));
       await page.getByRole('link', { name: 'Inventory count' }).click();
       await page.getByRole('button', { name: t('ui.tasks.moveTo.in_progress') }).click();
       await expect(
@@ -470,7 +485,7 @@ for (const locale of ['en', 'ar'] as const) {
       await page.getByRole('button', { name: t('ui.tasks.postComment') }).click();
       await expect(page.getByText('Started with warehouse 1')).toBeVisible();
       await expectAccessible(page, 'task (in progress)');
-      await page.goto(`http://${slug}.localhost:5173/tasks`);
+      await page.goto(companyUrl(slug, '/tasks'));
       await page.getByRole('tab', { name: t('ui.tasks.viewBoard') }).click();
       await expect(
         page
@@ -494,7 +509,7 @@ for (const locale of ['en', 'ar'] as const) {
       await page.getByRole('button', { name: t('ui.time.submitWeek') }).click();
       await expect(page.getByText(t('ui.time.status.submitted')).first()).toBeVisible();
 
-      await guest.goto(`http://${slug}.localhost:5173/time/approvals`);
+      await guest.goto(companyUrl(slug, '/time/approvals'));
       await guest.getByRole('checkbox', { name: t('ui.time.selectAll') }).click();
       await expectAccessible(guest, 'time approvals');
       await guest.getByRole('button', { name: t('ui.time.approveSelected', { count: 1 }) }).click();
@@ -520,7 +535,7 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(page.getByText(t('ui.people.privateHint'))).toBeVisible();
       await expectAccessible(page, 'employee (private)');
 
-      await page.goto(`http://${slug}.localhost:5173/organisation`);
+      await page.goto(companyUrl(slug, '/organisation'));
       await page.getByLabel(t('ui.people.nameEn'), { exact: true }).fill('Audit');
       await page.getByLabel(t('ui.people.nameAr'), { exact: true }).fill('التدقيق');
       await page.getByRole('button', { name: t('ui.people.addDepartment') }).click();
@@ -557,7 +572,7 @@ for (const locale of ['en', 'ar'] as const) {
       await guest.getByRole('button', { name: t('ui.leave.submit') }).click();
       await expect(guest.getByText(t('ui.leave.status.pending')).first()).toBeVisible();
 
-      await page.goto(`http://${slug}.localhost:5173/leave`);
+      await page.goto(companyUrl(slug, '/leave'));
       await page.getByRole('tab', { name: t('ui.leave.tabs.approvals') }).click();
       await expectAccessible(page, 'leave approvals');
       await page.getByRole('button', { name: t('ui.leave.actions.approve') }).click();
@@ -580,7 +595,7 @@ for (const locale of ['en', 'ar'] as const) {
       await expectAccessible(page, 'attendance setup');
       const kioskPath = (await kioskLink.getAttribute('href')) ?? '';
       const kiosk = await page.context().newPage();
-      await kiosk.goto(`http://${slug}.localhost:5173${kioskPath}`);
+      await kiosk.goto(companyUrl(slug, kioskPath));
       await expect(kiosk.getByRole('img', { name: t('ui.attendance.qrLabel') })).toBeVisible();
       await expectAccessible(kiosk, 'attendance kiosk');
       // What the phone camera would read from the QR: the scan link with the current code.
@@ -591,9 +606,7 @@ for (const locale of ['en', 'ar'] as const) {
       }, siteId);
       await kiosk.close();
 
-      await guest.goto(
-        `http://${slug}.localhost:5173/attendance/scan?code=${encodeURIComponent(code)}`,
-      );
+      await guest.goto(companyUrl(slug, `/attendance/scan?code=${encodeURIComponent(code)}`));
       await expectAccessible(guest, 'attendance scan');
       await guest.getByRole('button', { name: t('ui.attendance.confirmScan') }).click();
       await expect(guest.getByRole('status').filter({ hasText: /\d/ })).toBeVisible();
@@ -642,7 +655,7 @@ for (const locale of ['en', 'ar'] as const) {
         0,
       );
 
-      await guest.goto(`http://${slug}.localhost:5173/payroll/payslips`);
+      await guest.goto(companyUrl(slug, '/payroll/payslips'));
       await expect(guest.getByText(t('ui.payroll.noPayslips'))).toBeVisible();
       await expectAccessible(guest, 'my payslips');
 
@@ -675,7 +688,7 @@ for (const locale of ['en', 'ar'] as const) {
       await invoicePrint.close();
 
       // --- Phase 12b: the colleague claims an expense; the Owner approves and reimburses it -------
-      await guest.goto(`http://${slug}.localhost:5173/expenses`);
+      await guest.goto(companyUrl(slug, '/expenses'));
       await expect(guest.getByText(t('ui.expenses.empty'))).toBeVisible();
       await expectAccessible(guest, 'expenses (empty)');
       await guest.getByRole('button', { name: t('ui.expenses.new') }).click();
@@ -694,7 +707,7 @@ for (const locale of ['en', 'ar'] as const) {
         guest.getByText(t('ui.expenses.statusName.submitted'), { exact: true }),
       ).toBeVisible();
 
-      await page.goto(`http://${slug}.localhost:5173/expenses`);
+      await page.goto(companyUrl(slug, '/expenses'));
       await page.getByRole('tab', { name: t('ui.expenses.tabs.approvals') }).click();
       await expectAccessible(page, 'expense approvals');
       await page.getByRole('link', { name: 'EX-0001' }).click();
@@ -715,7 +728,7 @@ for (const locale of ['en', 'ar'] as const) {
       await expectAccessible(page, 'expense claim (reimbursed)');
 
       // --- Phase 14: the Owner runs the clients report and searches the audit log -------------
-      await page.goto(`http://${slug}.localhost:5173/reports`);
+      await page.goto(companyUrl(slug, '/reports'));
       await expect(
         page.getByRole('heading', { name: t('ui.reports.groups.finance') }),
       ).toBeVisible();
@@ -729,7 +742,7 @@ for (const locale of ['en', 'ar'] as const) {
         'href',
         /\/api\/v1\/reports\/clients\/export\.csv\?/,
       );
-      await page.goto(`http://${slug}.localhost:5173/audit`);
+      await page.goto(companyUrl(slug, '/audit'));
       await page.getByLabel(t('ui.audit.area')).click();
       await page.getByRole('option', { name: t('ui.audit.areas.billing') }).click();
       await expect(page.getByText('billing.invoice.issued')).toBeVisible();
@@ -752,7 +765,7 @@ for (const locale of ['en', 'ar'] as const) {
         }),
       ).toBeVisible();
 
-      await guest.goto(`http://${slug}.localhost:5173/announcements`);
+      await guest.goto(companyUrl(slug, '/announcements'));
       await expect(
         guest.getByRole('heading', {
           name: locale === 'ar' ? 'المكتب مغلق يوم الخميس' : 'Office closed Thursday',
@@ -769,7 +782,7 @@ for (const locale of ['en', 'ar'] as const) {
       await expect(page.getByText(t('ui.notifications.saved'), { exact: true })).toBeVisible();
 
       // The dashboard of a firm that has been working: what needs attention, numbers, revenue.
-      await page.goto(`http://${slug}.localhost:5173/`);
+      await page.goto(companyUrl(slug, '/'));
       await expect(
         page.getByRole('heading', { name: t('ui.dashboard.attention.title') }),
       ).toBeVisible({ timeout: 15_000 });
@@ -784,7 +797,7 @@ for (const locale of ['en', 'ar'] as const) {
       });
 
       // --- Owner changes their password from My account --------------------------------------
-      await page.goto(`http://${slug}.localhost:5173/account`);
+      await page.goto(companyUrl(slug, '/account'));
       await expectAccessible(page, 'my account');
       await page.getByLabel(t('ui.account.currentPassword')).fill(owner.password);
       await page

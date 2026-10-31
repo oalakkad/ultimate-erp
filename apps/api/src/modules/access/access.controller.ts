@@ -36,6 +36,7 @@ import {
 import { AccessGuard } from './access.guard.js';
 import { AccessService } from './access.service.js';
 import { AuditEventsService } from './audit-events.service.js';
+import { Limit, ROUTE_LIMITS } from '../../platform/rate-limit/route-limit.js';
 
 /** Company members, roles and audit trail. Every route: member of this company + permission. */
 @Controller()
@@ -132,6 +133,7 @@ export class AccessController {
     return this.auditEvents.list(access, query);
   }
 
+  @Limit(ROUTE_LIMITS.export)
   @Get('audit-events/export.csv')
   @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Content-Disposition', 'attachment; filename="audit-log.csv"')

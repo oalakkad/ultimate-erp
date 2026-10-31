@@ -3,12 +3,15 @@ import { API_PREFIX } from '@ultimate-erp/contracts';
 import { Logger } from 'nestjs-pino';
 import { createApp } from './bootstrap.js';
 import { ConfigError, loadConfig } from './platform/config/config.js';
+import { DatabaseRoleCheck } from './platform/database/database-role-check.js';
 import { initMonitoring } from './platform/monitoring/monitoring.js';
 
 async function main(): Promise<void> {
   const config = loadConfig(process.env);
   initMonitoring(config, 'api');
   const app = await createApp(config);
+  // Production fails fast on an unsafe database role instead of answering every request 503.
+  if (config.NODE_ENV === 'production') await app.get(DatabaseRoleCheck).assertSafe();
   await app.listen(config.API_PORT, config.API_HOST);
   app
     .get(Logger)

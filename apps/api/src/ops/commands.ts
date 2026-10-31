@@ -10,6 +10,7 @@ import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import pg from 'pg';
 import { z } from 'zod';
+import { ConfigError, withFileValues, withoutEmptyValues } from '../platform/config/config.js';
 import { BackupIntegrityError } from './backup-crypto.js';
 import { BackupFormatError } from './backup-manifest.js';
 import { type StorageSettings } from './backup-storage.js';
@@ -162,7 +163,8 @@ function count(value: string | true | undefined, fallback: number, name: string)
 export async function main(argv: readonly string[], rawEnv: NodeJS.ProcessEnv): Promise<void> {
   const log = (line: string) => process.stdout.write(`${line}\n`);
   const args = parseArgs(argv);
-  const parsed = envSchema.safeParse(rawEnv);
+  // Same rules as the API: empty = unset, NAME_FILE reads a secret from a file.
+  const parsed = envSchema.safeParse(withFileValues(withoutEmptyValues(rawEnv)));
   if (!parsed.success) {
     const problems = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`);
     throw new UsageError(`Invalid configuration:\n${problems.join('\n')}`);
@@ -253,6 +255,7 @@ export async function main(argv: readonly string[], rawEnv: NodeJS.ProcessEnv): 
 
 const KNOWN_ERRORS = [
   UsageError,
+  ConfigError,
   BackupError,
   BackupIntegrityError,
   BackupFormatError,

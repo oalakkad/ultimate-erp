@@ -123,9 +123,9 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Clean structure separating entry points, UI, features, domain, services, controllers, DB, validation, auth, jobs, files, config, logging, tests, docs | architecture.md §4 | 🟡 skeleton ✅ 1.1 |
 | ADRs for significant decisions | docs/decisions/ | ✅ |
-| README with setup, env, dev, test, migrations, deployment | README.md, docs/database.md | 🟡 setup/dev/test/migrations ✅; deployment 15 |
+| README with setup, env, dev, test, migrations, deployment | README.md, docs/database.md, docs/operations.md | ✅ setup/dev/test/migrations; deployment, upgrades, backups 15a–15b |
 | `.env.example` placeholders only | .env.example | ✅ 1.1 |
-| Separate dev / test / staging / production config | architecture §7a | 🟡 dev/test ✅; staging ⏳ 15 |
+| Separate dev / test / staging / production config | architecture §7a, operations.md §5 | ✅ dev/test; staging + production profiles, production guard, `prod.env.example`, `NAME_FILE` secrets 15b |
 
 ## §13 Database design
 | Requirement | Where | Status |
@@ -230,7 +230,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Reliable leave & attendance; verified payroll for jurisdiction | ⏳ 9–11 (❓ legal) |
 | Reliable invoices/payments; centralized secure notifications; module dashboards; audit history | ⏳ 12–14 |
 | Automated unit, integration, security, E2E tests | ✅ unit/integration/security; E2E journey 1.4b (grows per phase) |
-| Organized code & docs; reproducible setup & deployment | 🟡 setup ✅; deployment 15 |
+| Organized code & docs; reproducible setup & deployment | ✅ setup; deployment proven end to end by `pnpm deploy:verify` (CI `deploy` job) 15b |
 | Documented security & compliance assessment | 🟡 security.md + compliance.md ongoing |
 | Ready for React Native client | 🟡 shared contracts ✅ |
 | Production readiness shown by evidence | ⏳ 15 |

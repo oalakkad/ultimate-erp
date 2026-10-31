@@ -35,6 +35,8 @@ pnpm install
 | `pnpm db:generate --name=<what>` | Create a migration from schema changes (see [docs/database.md](docs/database.md)) |
 | `pnpm backup` / `pnpm backup:verify <folder>` | Encrypted backup of the development database and files into `backups/`, and its check (see [docs/operations.md](docs/operations.md)) |
 | `pnpm backup:restore <folder> --database <name> --bucket <name>` | Restore drill into a side database and bucket (never over existing data) |
+| `pnpm deploy:verify` | Builds the images and checks the production setup end to end (HTTPS, headers, full browser journey, backup); see [docs/operations.md](docs/operations.md) §5 |
+| `pnpm notices` | Regenerates `THIRD_PARTY_NOTICES.txt` after dependency changes (`pnpm security` checks it) |
 
 Stop `pnpm dev` with `Ctrl+C`. The Docker services keep running until `pnpm services:down`, and restart automatically with Docker Desktop. If a command says it cannot reach the database, start Docker Desktop, then `pnpm services:up`. Your data is kept in Docker volumes; `docker compose -f infra/compose/compose.dev.yaml --env-file .env down -v` deletes it.
 

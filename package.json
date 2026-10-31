@@ -27,7 +27,9 @@
     "licenses:check": "node scripts/check-licenses.mjs",
     "audit:prod": "pnpm audit --prod --audit-level=high",
     "secrets:scan": "node scripts/scan-secrets.mjs",
-    "security": "pnpm audit:prod && pnpm licenses:check && pnpm secrets:scan",
+    "notices": "node scripts/third-party-notices.mjs",
+    "notices:check": "node scripts/third-party-notices.mjs --check",
+    "security": "pnpm audit:prod && pnpm licenses:check && pnpm notices:check && pnpm secrets:scan",
     "http": "node scripts/dev-http.mjs",
     "ops:build": "node scripts/init-env.mjs && turbo run build --filter=@ultimate-erp/api... --output-logs=errors-only",
     "backup": "pnpm ops:build && node --env-file-if-exists=.env apps/api/dist/ops/cli.js backup --dev",
@@ -35,7 +37,8 @@
     "backup:restore": "pnpm ops:build && node --env-file-if-exists=.env apps/api/dist/ops/cli.js restore --dev",
     "backup:prune": "pnpm ops:build && node --env-file-if-exists=.env apps/api/dist/ops/cli.js prune",
     "e2e": "turbo run build && pnpm --filter @ultimate-erp/web e2e",
-    "e2e:journey": "turbo run build && pnpm --filter @ultimate-erp/web e2e:journey"
+    "e2e:journey": "turbo run build && pnpm --filter @ultimate-erp/web e2e:journey",
+    "deploy:verify": "node scripts/deploy-verify.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

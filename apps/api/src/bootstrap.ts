@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module.js';
 import { type AppConfig, webPublicUrl } from './platform/config/config.js';
+import { PROXY_HOPS_SETTING } from './platform/request-context/client-ip.js';
 import { originCheckMiddleware } from './platform/request-context/origin-check.middleware.js';
 import { jsonBodyMiddleware } from './platform/request-context/json-body.middleware.js';
 import { requestIdMiddleware } from './platform/request-context/request-id.middleware.js';
@@ -19,6 +20,8 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
   });
   const logger = app.get(Logger);
   app.useLogger(logger);
+  // Only the client IP follows trusted proxies (client-ip.ts); the company is always the Host.
+  app.set(PROXY_HOPS_SETTING, config.TRUST_PROXY_HOPS);
 
   // Order matters: request ID first so every later step (incl. errors) can reference it.
   app.use(requestIdMiddleware(config.TRUST_INCOMING_REQUEST_ID));

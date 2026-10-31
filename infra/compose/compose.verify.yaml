@@ -1,0 +1,27 @@
+# TEST-ONLY overlay for `pnpm deploy:verify` (docs/operations.md section 5). It runs the real
+# production compose file on one machine by adding what a customer provides themselves: an
+# HTTPS proxy (throwaway local certificates for *.verify.test) and a mail server (Mailpit).
+# Never use it for a real installation.
+services:
+  proxy:
+    image: caddy:2.11.7-alpine
+    ports: ['127.0.0.1:${VERIFY_HTTPS_PORT:-8443}:8443']
+    volumes: ['./verify.Caddyfile:/etc/caddy/Caddyfile:ro']
+    depends_on: [web, object-storage]
+
+  mailpit:
+    image: axllent/mailpit:v1.32.0
+    ports: ['127.0.0.1:${VERIFY_MAILPIT_PORT:-18025}:8025']
+
+  # Only the HTTPS proxy is reachable from this machine.
+  web:
+    ports: !reset []
+
+  # Backups into a named volume (owned by the app user in the image) instead of ./backups.
+  backup:
+    volumes: !override ['verify-backups:/backups']
+  verify:
+    volumes: !override ['verify-backups:/backups:ro']
+
+volumes:
+  verify-backups:

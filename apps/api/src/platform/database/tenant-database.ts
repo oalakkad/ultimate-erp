@@ -9,6 +9,7 @@ import {
 import { sql } from 'drizzle-orm';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { AppError } from '../errors/app-error.js';
+import { runInTransaction } from './ambient-transaction.js';
 import { DatabaseRoleCheck } from './database-role-check.js';
 import { DB } from './database.tokens.js';
 
@@ -26,7 +27,7 @@ export class TenantDatabase {
 
   async withTenant<T>(tenantId: string, fn: (tx: TenantTransaction) => Promise<T>): Promise<T> {
     await this.ensureSafeRole();
-    return withTenant(this.db, tenantId, fn);
+    return withTenant(this.db, tenantId, (tx) => runInTransaction(tx, () => fn(tx)));
   }
 
   /** Tenant ID for a verified host of an active tenant, or null. */

@@ -47,6 +47,7 @@ import { AccessGuard } from '../access/access.guard.js';
 import { AccessModule } from '../access/access.module.js';
 import { IdentityModule } from '../identity/identity.module.js';
 import { ClientsService } from './clients.service.js';
+import { Limit, ROUTE_LIMITS } from '../../platform/rate-limit/route-limit.js';
 
 type Id = { id: string };
 type ChildId = { id: string; childId: string };
@@ -80,6 +81,7 @@ export class ClientsController {
     return this.clients.list(access, query);
   }
 
+  @Limit(ROUTE_LIMITS.export)
   @Get('export.csv')
   @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Content-Disposition', 'attachment; filename="clients.csv"')

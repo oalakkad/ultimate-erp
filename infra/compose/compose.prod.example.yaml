@@ -1,7 +1,7 @@
 # On-premises example (docs/operations.md, docs/modules/files-monitoring.md section 4).
 # NOT used for development.
 #
-# 1. Copy to compose.yaml and create `prod.env` next to it with your own values (never commit it):
+# 1. Copy to compose.yaml and copy prod.env.example to `prod.env` next to it; replace every value:
 #      POSTGRES_PASSWORD, MIGRATOR_PASSWORD, APP_PASSWORD   long random passwords (12+ characters)
 #      AUTH_SECRET                                          64+ random characters
 #      DATA_ENCRYPTION_KEY                                  64+ random characters, different from AUTH_SECRET
@@ -52,6 +52,9 @@ x-app-env: &app-env
   S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
   CLAMAV_HOST: clamav
   SENTRY_DSN: ${SENTRY_DSN:-}
+  # Proxies in front of the API that append X-Forwarded-For: the web container (1) plus your HTTPS
+  # proxy (2). Wrong values put everyone in one rate-limit bucket (docs/operations.md section 5).
+  TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-2}
   PASSWORD_BREACH_CHECK: 'false' # set 'true' if the server may reach the internet
 
 x-backup-env: &backup-env
@@ -92,6 +95,13 @@ services:
     image: clamav/clamav:1.5.4-debian13-slim
     restart: unless-stopped
     volumes: [clamav-data:/var/lib/clamav]
+    # Loads its virus database for 1-2 minutes after start; uploads wait as "pending" until then.
+    healthcheck:
+      test: ['CMD', 'clamdcheck.sh']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
 
   # One-shot: creates/updates the database roles erp_migrator, erp_app, erp_platform. The only
   # service that uses the administrator password; the running app never sees it.

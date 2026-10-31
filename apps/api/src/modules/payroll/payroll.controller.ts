@@ -41,6 +41,7 @@ import { AccessModule } from '../access/access.module.js';
 import { AttendanceModule } from '../attendance/attendance.controller.js';
 import { IdentityModule } from '../identity/identity.module.js';
 import { PayrollService } from './payroll.service.js';
+import { Limit, ROUTE_LIMITS } from '../../platform/rate-limit/route-limit.js';
 
 type Id = { id: string };
 const idPipe = new ZodValidationPipe(payrollIdParamSchema);
@@ -292,6 +293,7 @@ export class PayrollController {
     return this.payroll.transition(req, access, params.id, 'cancel');
   }
 
+  @Limit(ROUTE_LIMITS.export)
   @Get('runs/:id/export.csv')
   @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Content-Disposition', 'attachment; filename="payroll.csv"')

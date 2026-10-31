@@ -23,6 +23,7 @@ import { type Request, type Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { type AppConfig, companyWebOrigin } from '../../platform/config/config.js';
 import { APP_CONFIG } from '../../platform/config/config.module.js';
+import { ambientTransaction } from '../../platform/database/ambient-transaction.js';
 import { DB } from '../../platform/database/database.tokens.js';
 import { TenantDatabase } from '../../platform/database/tenant-database.js';
 import { AppError } from '../../platform/errors/app-error.js';
@@ -275,8 +276,17 @@ export class IdentityService {
   }
 
   /** The account ID for an email address (case-insensitive), or null. */
+  /**
+   * Connection for read-only lookups that modules make while inside their company transaction:
+   * that transaction's own connection (accounts have no row-level security, so the rows are the
+   * same), never a second one from the pool (ambient-transaction.ts).
+   */
+  private reader(): Database {
+    return (ambientTransaction() as Database | undefined) ?? this.db;
+  }
+
   async userIdByEmail(email: string): Promise<string | null> {
-    const [user] = await this.db
+    const [user] = await this.reader()
       .select({ id: users.id })
       .from(users)
       .where(sql`lower(${users.email}) = lower(${email})`);
@@ -286,7 +296,7 @@ export class IdentityService {
   /** Name, email and two-factor status for display in company member lists. */
   async userSummaries(userIds: readonly string[]) {
     if (userIds.length === 0) return [];
-    return this.db
+    return this.reader()
       .select({
         id: users.id,
         name: users.name,

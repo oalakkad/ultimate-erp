@@ -4,7 +4,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/bootstrap.js';
 import { OpenApiService } from '../src/platform/openapi/openapi.service.js';
-import { testConfig } from './support/config.js';
+import { productionTestConfig, testConfig } from './support/config.js';
 
 // API documentation (brief §14): generated from route contracts, complete, dev-only.
 
@@ -50,14 +50,7 @@ describe('OpenAPI document', () => {
   });
 
   it('is not served in production', async () => {
-    const prod = await createApp(
-      testConfig({
-        NODE_ENV: 'production',
-        APP_PROFILE: 'saas',
-        APP_PUBLIC_URL: 'https://erp.example.com',
-        SMTP_HOST: 'smtp.example.com',
-      }),
-    );
+    const prod = await createApp(productionTestConfig());
     await prod.init();
     try {
       const res = await request(prod.getHttpServer()).get('/api/v1/docs/openapi.json');

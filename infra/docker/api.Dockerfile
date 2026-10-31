@@ -21,8 +21,11 @@ ENV NODE_ENV=production \
     API_PORT=3000
 WORKDIR /app
 # PostgreSQL 18 client tools (pg_dump / pg_restore) for the backup tool, docs/operations.md.
-RUN apk add --no-cache postgresql18-client
+RUN apk add --no-cache postgresql18-client \
+  && mkdir -p /backups && chown node:node /backups
 COPY --from=build --chown=node:node /out/api ./
+# Licences of the open-source components (compliance.md section 3).
+COPY THIRD_PARTY_NOTICES.txt ./THIRD_PARTY_NOTICES.txt
 # Never run as root inside the container.
 USER node
 EXPOSE 3000

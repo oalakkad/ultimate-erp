@@ -598,7 +598,7 @@ export function DocumentsTab({
               ref={input}
               type="file"
               className="sr-only"
-              id={`upload-${basePath.replace(/W/g, '-')}`}
+              id={`upload-${basePath.replace(/\W/g, '-')}`}
               aria-label={t('ui.clients.documents.upload')}
               tabIndex={-1}
               accept=".pdf,.png,.jpg,.jpeg,.webp,.docx,.xlsx,.pptx,.csv,.txt"

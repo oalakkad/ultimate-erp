@@ -26,6 +26,7 @@ Fixtures: test data is created by each test (factories in `test/fixtures/`), nev
 | `pnpm check` | Format check, lint, typecheck, tests (what CI's `check` job runs) |
 | `pnpm security` | Vulnerability audit, licence check, secret scan (what CI's `security` job runs) |
 | `pnpm backup` / `pnpm backup:verify` / `pnpm backup:restore` | Manual backup and restore drills on the dev stack ([operations.md](operations.md) §4) |
+| `pnpm deploy:verify` | Builds the images and verifies the production compose file end to end behind HTTPS: headers, the EN journey, client IPs, backup ([operations.md](operations.md) §5; CI `deploy` job) |
 | `pnpm e2e` | Builds, then runs Playwright browser tests (gallery, accessibility, RTL). Screenshots: `apps/web/e2e/screenshots/` |
 | `pnpm e2e:journey` | Full first-day journey in EN and AR against the running dev stack — start `pnpm dev` first. Reads real emails from Mailpit, deletes them afterwards (CI `journey` job) |
 
@@ -35,6 +36,7 @@ Fixtures: test data is created by each test (factories in `test/fixtures/`), nev
 2. **Permission matrix suite** (from Milestone 1.3): generated from `permissions.md`; every permission key × role × scope combination is asserted allowed/denied at the API.
 3. **Security gates**: CI `security` job.
 4. **Restore drill** (Phase 15a): `apps/api/test/backup.spec.ts` — backup of two real companies, restore into a brand-new server and bucket, identical row counts, forced RLS on every company table, B cannot see A, byte-identical files, sign-in on the restored system; refusals for non-empty targets and mismatched keys; damage, wrong key and tampered manifest detected.
+5. **Deployment verification** (Phase 15b): `pnpm deploy:verify` — the real production images and compose file pass the journey behind HTTPS with every security header present.
 
 ## 4. Required end-to-end workflows → phase
 

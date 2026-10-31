@@ -9,3 +9,6 @@
 apps/web/e2e/results
 apps/web/e2e/screenshots
 **/*.log
+# Never bake data or private documents into an image.
+backups
+docs/sales

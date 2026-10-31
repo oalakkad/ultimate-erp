@@ -1,5 +1,5 @@
 import { type DynamicModule, Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AccessModule, SignInPolicyModule } from './modules/access/access.module.js';
 import { ClientsModule } from './modules/clients/clients.controller.js';
 import { ContractsModule } from './modules/contracts/contracts.controller.js';
@@ -24,6 +24,7 @@ import { AuditModule } from './platform/audit/audit.module.js';
 import { ConfigModule } from './platform/config/config.module.js';
 import { DatabaseModule } from './platform/database/database.module.js';
 import { GlobalExceptionFilter } from './platform/errors/global-exception.filter.js';
+import { RouteLimitInterceptor } from './platform/rate-limit/route-limit.js';
 import { HealthModule } from './platform/health/health.module.js';
 import { JobsModule } from './platform/jobs/jobs.module.js';
 import { NotifierModule } from './platform/notifications/notifier.js';
@@ -71,7 +72,10 @@ export class AppModule {
         ReportsModule,
         OpenApiModule,
       ],
-      providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],
+      providers: [
+        { provide: APP_FILTER, useClass: GlobalExceptionFilter },
+        { provide: APP_INTERCEPTOR, useClass: RouteLimitInterceptor },
+      ],
     };
   }
 }
