@@ -49,6 +49,9 @@ export const enUi = {
     projects: 'Projects',
     mainNavigation: 'Main navigation',
     groupMain: 'Main',
+    groupWork: 'Work',
+    groupPeople: 'People',
+    groupFinance: 'Finance',
     dashboard: 'Dashboard',
     settings: 'Settings',
     help: 'Help & support',
@@ -193,6 +196,39 @@ export const enUi = {
     accepted: 'Welcome to {company}!',
   },
   dashboard: {
+    keyNumbers: 'Key numbers',
+    revenueTitle: 'Invoiced and received, {year}',
+    revenueBody: 'So far this year: {invoiced} invoiced, {received} received.',
+    seriesInvoiced: 'Invoiced',
+    seriesReceived: 'Received',
+    bestMonth: 'Best month',
+    attention: {
+      title: 'Needs your attention',
+      clear: 'Nothing needs you right now.',
+      overdueInvoices: '{count, plural, one {# invoice is overdue} other {# invoices are overdue}}',
+      myOverdueTasks:
+        '{count, plural, one {# of your tasks is overdue} other {# of your tasks are overdue}}',
+      overBudget:
+        '{count, plural, one {# project is over its hour budget} other {# projects are over their hour budgets}}',
+      lateToday:
+        '{count, plural, one {# person arrived late today} other {# people arrived late today}}',
+      leaveWaiting:
+        '{count, plural, one {# leave request to decide} other {# leave requests to decide}}',
+      timeWaiting:
+        '{count, plural, one {# time entry to approve} other {# time entries to approve}}',
+      claimsWaiting:
+        '{count, plural, one {# expense claim to approve} other {# expense claims to approve}}',
+      companyOverdue:
+        '{count, plural, one {# task overdue across the firm} other {# tasks overdue across the firm}}',
+      contractsEnding:
+        '{count, plural, one {# contract ends within 60 days} other {# contracts end within 60 days}}',
+      projectsEnding:
+        '{count, plural, one {# project ends within 30 days} other {# projects end within 30 days}}',
+      invitations:
+        '{count, plural, one {# invitation not yet accepted} other {# invitations not yet accepted}}',
+      awayToday:
+        '{count, plural, one {# person is on leave today} other {# people are on leave today}}',
+    },
     expenses: 'Expenses',
     myOpenClaims: 'My open claims',
     claimsWaiting: 'Claims waiting for me',
@@ -215,12 +251,9 @@ export const enUi = {
     myOverdueTasks: 'My overdue tasks',
     companyOverdueTasks: 'Overdue in the company',
     projects: 'Projects',
-    activeProjects: 'Active',
+    activeProjects: 'Active projects',
     endingProjects: 'Ending within 30 days',
     title: 'Dashboard',
-    emptyTitle: 'Your company is ready',
-    emptyBody:
-      'Clients, engagements, timesheets and the other modules appear here as each one is delivered. Start by inviting your colleagues.',
     inviteCta: 'Invite colleagues',
     gettingStarted: 'Getting started',
     progress: '{done} of {total} done',

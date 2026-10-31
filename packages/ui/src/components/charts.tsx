@@ -28,6 +28,11 @@ interface ChartProps {
   formatTick?: (value: number) => string;
   showTableLabel: string;
   showChartLabel: string;
+  /**
+   * Translated name for the highest value of the first series (e.g. "Best month"). When set, a
+   * callout pops in over that point once the chart has drawn — taken from the data, never made up.
+   */
+  highlight?: string;
 }
 
 const W = 640;
@@ -234,6 +239,53 @@ function Tooltip({
   );
 }
 
+/** Pop-in bubble pinned to the peak (decorative: the same value is in the table view). */
+function Callout({
+  x,
+  y,
+  rtl,
+  text,
+  value,
+}: {
+  x: number;
+  y: number;
+  rtl: boolean;
+  text: string;
+  value: string;
+}) {
+  const fromLeft = Math.min(Math.max((x / W) * 100, 14), 86);
+  const fromStart = rtl ? 100 - fromLeft : fromLeft;
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute z-[5]"
+      style={{
+        insetInlineStart: `${fromStart}%`,
+        top: `${(y / H) * 100}%`,
+        transform: `translate(${rtl ? '50%' : '-50%'}, calc(-100% - 12px))`,
+      }}
+    >
+      <div
+        className="ui-callout grid justify-items-center gap-0.5 rounded-ctl border border-line bg-card px-2 py-1 text-[11.5px] leading-tight whitespace-nowrap shadow-pop"
+        style={{ animationDelay: '900ms' }}
+      >
+        <span className="text-ink-3">{text}</span>
+        <b className="text-[12.5px] font-bold tabular-nums">{value}</b>
+      </div>
+    </div>
+  );
+}
+
+/** Index of the largest value of a series (first one on ties), or null when all are 0. */
+function peakOf(data: ChartDatum[], key: string | undefined): number | null {
+  let best: number | null = null;
+  data.forEach((d, i) => {
+    const v = d.values[key ?? ''] ?? 0;
+    if (v > 0 && (best === null || v > (data[best]?.values[key ?? ''] ?? 0))) best = i;
+  });
+  return best;
+}
+
 /** Column path: 4px rounded data-end, square at the baseline. */
 function columnPath(x: number, y: number, w: number, base: number): string {
   const r = Math.min(4, w / 2, Math.max(0, base - y));
@@ -262,6 +314,7 @@ export function BarChart(props: ChartProps) {
     return { x, y: scaleY(value), value };
   };
   const tip = hover && data[hover.d] && shown[hover.s] ? bar(hover.d, hover.s) : null;
+  const peak = props.highlight ? peakOf(data, shown[0]?.key) : null;
 
   return (
     <Frame
@@ -293,7 +346,11 @@ export function BarChart(props: ChartProps) {
                     <path
                       d={columnPath(x, y, barW, base)}
                       fill={color(si)}
-                      style={{ filter: active ? 'brightness(1.12)' : undefined }}
+                      className="ui-bar"
+                      style={{
+                        filter: active ? 'brightness(1.12)' : undefined,
+                        animationDelay: `${di * 70 + si * 30}ms`,
+                      }}
                     />
                     {/* Hit target larger than the mark, keyboard-focusable. */}
                     <rect
@@ -345,6 +402,15 @@ export function BarChart(props: ChartProps) {
             </g>
           ))}
         </svg>
+        {peak !== null && !hover && (
+          <Callout
+            rtl={geometry.rtl}
+            x={bar(peak, 0).x + barW / 2}
+            y={bar(peak, 0).y}
+            text={`${props.highlight ?? ''} · ${data[peak]?.label ?? ''}`}
+            value={format(bar(peak, 0).value)}
+          />
+        )}
         {tip && hover && (
           <Tooltip
             rtl={geometry.rtl}
@@ -407,6 +473,7 @@ export function LineChart(props: ChartProps) {
     shown.length <= 4 &&
     endY.every((y, i) => endY.every((o, j) => i === j || Math.abs(y - o) >= 14));
   const current = index === null ? null : data[index];
+  const peak = props.highlight ? peakOf(data, shown[0]?.key) : null;
 
   return (
     <Frame
@@ -460,6 +527,9 @@ export function LineChart(props: ChartProps) {
                   .map((d, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${scaleY(d.values[s.key] ?? 0)}`)
                   .join('')}
                 fill="none"
+                pathLength={1}
+                className="ui-line"
+                style={{ animationDelay: `${si * 150}ms` }}
                 stroke={color(si)}
                 strokeWidth={2}
                 strokeLinejoin="round"
@@ -471,6 +541,8 @@ export function LineChart(props: ChartProps) {
                   cx={xAt(i)}
                   cy={scaleY(data[i]?.values[s.key] ?? 0)}
                   r={4}
+                  className="ui-fade"
+                  style={{ animationDelay: '1s' }}
                   fill={color(si)}
                   stroke="var(--card)"
                   strokeWidth={2}
@@ -520,6 +592,15 @@ export function LineChart(props: ChartProps) {
             onKeyDown={onKeyDown}
           />
         </svg>
+        {peak !== null && index === null && (
+          <Callout
+            rtl={geometry.rtl}
+            x={xAt(peak)}
+            y={scaleY(data[peak]?.values[shown[0]?.key ?? ''] ?? 0)}
+            text={`${props.highlight ?? ''} · ${data[peak]?.label ?? ''}`}
+            value={format(data[peak]?.values[shown[0]?.key ?? ''] ?? 0)}
+          />
+        )}
         {current && index !== null && (
           <Tooltip
             rtl={geometry.rtl}
@@ -561,7 +642,10 @@ export function Meter({
       aria-valuenow={value}
       className={cn('h-2 w-full overflow-hidden rounded-full bg-lilac', className)}
     >
-      <div className="h-full rounded-full bg-lilac-solid" style={{ inlineSize: `${pct}%` }} />
+      <div
+        className="ui-fill-x h-full rounded-full bg-lilac-solid"
+        style={{ inlineSize: `${pct}%` }}
+      />
     </div>
   );
 }

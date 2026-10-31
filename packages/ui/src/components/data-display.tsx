@@ -20,7 +20,7 @@ export function Card({
   return (
     <section
       className={cn(
-        'grid min-w-0 content-start gap-4 rounded-card border border-line bg-card p-5 shadow-card',
+        'ui-gloss ui-rise grid min-w-0 content-start gap-4 rounded-card border border-line bg-card p-5',
         className,
       )}
       {...props}
@@ -61,7 +61,7 @@ export function Tile({
   icon?: ReactNode;
 }) {
   return (
-    <div className={cn('grid gap-1.5 rounded-tile px-4 py-3.5', TONES[tone])}>
+    <div className={cn('ui-lift ui-rise grid gap-1.5 rounded-tile px-4 py-3.5', TONES[tone])}>
       <div className="flex items-center justify-between text-[13px] font-semibold">
         <span>{label}</span>
         {icon && (
@@ -92,7 +92,7 @@ export function StatCard({
   delta?: { direction: 'up' | 'down'; text: string } | undefined;
 }) {
   return (
-    <div className="grid min-w-[150px] gap-1 rounded-tile border border-line bg-card px-4 py-3">
+    <div className="ui-lift ui-rise grid min-w-[150px] gap-1 rounded-tile border border-line bg-card px-4 py-3">
       <span className="text-xs font-medium text-ink-2">{label}</span>
       <b className="num flex items-center gap-2 text-[22px] font-extrabold tracking-tight">
         {value}

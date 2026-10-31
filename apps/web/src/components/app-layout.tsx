@@ -568,132 +568,151 @@ export function AppLayout() {
   );
 
   const navigation = (
-    <NavGroup title={t('ui.shell.groupMain')}>
-      <NavItem
-        {...link('/')}
-        icon={<LayoutGrid aria-hidden />}
-        label={t('ui.shell.dashboard')}
-        current={path === '/'}
-      />
-      {canReadClients && (
+    <>
+      <NavGroup title={t('ui.shell.groupMain')}>
         <NavItem
-          {...link('/clients')}
-          icon={<Briefcase aria-hidden />}
-          label={t('ui.shell.clients')}
-          current={path.startsWith('/clients')}
+          {...link('/')}
+          icon={<LayoutGrid aria-hidden />}
+          label={t('ui.shell.dashboard')}
+          current={path === '/'}
         />
-      )}
-      {canReadContracts && (
         <NavItem
-          {...link('/contracts')}
-          icon={<FileSignature aria-hidden />}
-          label={t('ui.shell.contracts')}
-          current={path.startsWith('/contracts')}
+          {...link('/announcements')}
+          icon={<Megaphone aria-hidden />}
+          label={t('ui.shell.announcements')}
+          current={path === '/announcements'}
         />
+      </NavGroup>
+      {(canReadClients ||
+        canReadContracts ||
+        canReadProjects ||
+        canReadTasks ||
+        canLogTime ||
+        canApproveTime) && (
+        <NavGroup title={t('ui.shell.groupWork')}>
+          {canReadClients && (
+            <NavItem
+              {...link('/clients')}
+              icon={<Briefcase aria-hidden />}
+              label={t('ui.shell.clients')}
+              current={path.startsWith('/clients')}
+            />
+          )}
+          {canReadContracts && (
+            <NavItem
+              {...link('/contracts')}
+              icon={<FileSignature aria-hidden />}
+              label={t('ui.shell.contracts')}
+              current={path.startsWith('/contracts')}
+            />
+          )}
+          {canReadProjects && (
+            <NavItem
+              {...link('/projects')}
+              icon={<FolderKanban aria-hidden />}
+              label={t('ui.shell.projects')}
+              current={path.startsWith('/projects')}
+            />
+          )}
+          {canReadTasks && (
+            <NavItem
+              {...link('/tasks')}
+              icon={<ListChecks aria-hidden />}
+              label={t('ui.shell.tasks')}
+              current={path.startsWith('/tasks')}
+            />
+          )}
+          {canLogTime && (
+            <NavItem
+              {...link('/time')}
+              icon={<Clock aria-hidden />}
+              label={t('ui.shell.time')}
+              current={path === '/time'}
+            />
+          )}
+          {canApproveTime && (
+            <NavItem
+              {...link('/time/approvals')}
+              icon={<ClipboardCheck aria-hidden />}
+              label={t('ui.shell.timeApprovals')}
+              current={path === '/time/approvals'}
+            />
+          )}
+        </NavGroup>
       )}
-      {canReadProjects && (
-        <NavItem
-          {...link('/projects')}
-          icon={<FolderKanban aria-hidden />}
-          label={t('ui.shell.projects')}
-          current={path.startsWith('/projects')}
-        />
+      {(canReadPeople || canLeave || canAttend || canReadMembers) && (
+        <NavGroup title={t('ui.shell.groupPeople')}>
+          {canReadPeople && (
+            <NavItem
+              {...link('/people')}
+              icon={<Contact aria-hidden />}
+              label={t('ui.shell.people')}
+              current={path.startsWith('/people') || path === '/organisation'}
+            />
+          )}
+          {canLeave && (
+            <NavItem
+              {...link('/leave')}
+              icon={<Plane aria-hidden />}
+              label={t('ui.shell.leave')}
+              current={path === '/leave'}
+            />
+          )}
+          {canAttend && (
+            <NavItem
+              {...link('/attendance')}
+              icon={<Fingerprint aria-hidden />}
+              label={t('ui.shell.attendance')}
+              current={path.startsWith('/attendance')}
+            />
+          )}
+          {canReadMembers && (
+            <NavItem
+              {...link('/members')}
+              icon={<Users aria-hidden />}
+              label={t('ui.shell.members')}
+              current={path === '/members'}
+            />
+          )}
+        </NavGroup>
       )}
-      {canReadTasks && (
-        <NavItem
-          {...link('/tasks')}
-          icon={<ListChecks aria-hidden />}
-          label={t('ui.shell.tasks')}
-          current={path.startsWith('/tasks')}
-        />
+      {(canInvoices || canExpenses || payrollStaff || canPayslips) && (
+        <NavGroup title={t('ui.shell.groupFinance')}>
+          {canInvoices && (
+            <NavItem
+              {...link('/invoices')}
+              icon={<InvoiceIcon aria-hidden />}
+              label={t('ui.shell.invoices')}
+              current={path.startsWith('/invoices')}
+            />
+          )}
+          {canExpenses && (
+            <NavItem
+              {...link('/expenses')}
+              icon={<HandCoins aria-hidden />}
+              label={t('ui.shell.expenses')}
+              current={path.startsWith('/expenses')}
+            />
+          )}
+          {payrollStaff && (
+            <NavItem
+              {...link('/payroll')}
+              icon={<Wallet aria-hidden />}
+              label={t('ui.shell.payroll')}
+              current={path === '/payroll' || path.startsWith('/payroll/runs')}
+            />
+          )}
+          {canPayslips && (
+            <NavItem
+              {...link('/payroll/payslips')}
+              icon={<ReceiptText aria-hidden />}
+              label={t('ui.shell.payslips')}
+              current={path === '/payroll/payslips'}
+            />
+          )}
+        </NavGroup>
       )}
-      {canLogTime && (
-        <NavItem
-          {...link('/time')}
-          icon={<Clock aria-hidden />}
-          label={t('ui.shell.time')}
-          current={path === '/time'}
-        />
-      )}
-      {canApproveTime && (
-        <NavItem
-          {...link('/time/approvals')}
-          icon={<ClipboardCheck aria-hidden />}
-          label={t('ui.shell.timeApprovals')}
-          current={path === '/time/approvals'}
-        />
-      )}
-      {canReadPeople && (
-        <NavItem
-          {...link('/people')}
-          icon={<Contact aria-hidden />}
-          label={t('ui.shell.people')}
-          current={path.startsWith('/people') || path === '/organisation'}
-        />
-      )}
-      {canLeave && (
-        <NavItem
-          {...link('/leave')}
-          icon={<Plane aria-hidden />}
-          label={t('ui.shell.leave')}
-          current={path === '/leave'}
-        />
-      )}
-      {canAttend && (
-        <NavItem
-          {...link('/attendance')}
-          icon={<Fingerprint aria-hidden />}
-          label={t('ui.shell.attendance')}
-          current={path.startsWith('/attendance')}
-        />
-      )}
-      {canInvoices && (
-        <NavItem
-          {...link('/invoices')}
-          icon={<InvoiceIcon aria-hidden />}
-          label={t('ui.shell.invoices')}
-          current={path.startsWith('/invoices')}
-        />
-      )}
-      {canExpenses && (
-        <NavItem
-          {...link('/expenses')}
-          icon={<HandCoins aria-hidden />}
-          label={t('ui.shell.expenses')}
-          current={path.startsWith('/expenses')}
-        />
-      )}
-      {payrollStaff && (
-        <NavItem
-          {...link('/payroll')}
-          icon={<Wallet aria-hidden />}
-          label={t('ui.shell.payroll')}
-          current={path === '/payroll' || path.startsWith('/payroll/runs')}
-        />
-      )}
-      {canPayslips && (
-        <NavItem
-          {...link('/payroll/payslips')}
-          icon={<ReceiptText aria-hidden />}
-          label={t('ui.shell.payslips')}
-          current={path === '/payroll/payslips'}
-        />
-      )}
-      <NavItem
-        {...link('/announcements')}
-        icon={<Megaphone aria-hidden />}
-        label={t('ui.shell.announcements')}
-        current={path === '/announcements'}
-      />
-      {canReadMembers && (
-        <NavItem
-          {...link('/members')}
-          icon={<Users aria-hidden />}
-          label={t('ui.shell.members')}
-          current={path === '/members'}
-        />
-      )}
-    </NavGroup>
+    </>
   );
   const accountLink = (
     <NavItem

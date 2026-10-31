@@ -221,7 +221,7 @@ export function ToastProvider({
             onOpenChange={(open) => {
               if (!open) setToasts((current) => current.filter((t) => t.id !== toast.id));
             }}
-            className="flex items-start gap-2.5 rounded-[14px] bg-ink p-3.5 text-card shadow-pop"
+            className="ui-toast flex items-start gap-2.5 rounded-[14px] bg-ink p-3.5 text-card shadow-pop"
           >
             {toast.tone === 'good' ? (
               <CircleCheck aria-hidden className="mt-0.5 size-[18px] shrink-0 text-mint-solid" />

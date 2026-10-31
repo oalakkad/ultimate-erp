@@ -341,6 +341,7 @@ export function GalleryPage() {
               }))}
               format={(v) => formatMoney(locale, (v * 1000).toFixed(3), 'KWD')}
               formatTick={(v) => formatNumber(locale, v)}
+              highlight={t('ui.dashboard.bestMonth')}
               showTableLabel={t('ui.common.showTable')}
               showChartLabel={t('ui.common.showChart')}
             />

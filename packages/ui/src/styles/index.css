@@ -15,6 +15,7 @@
 @import '@fontsource/amiri/700.css';
 
 @import './tokens.css';
+@import './motion.css';
 
 /* Tailwind must also read the design system's own components for class names. */
 @source '../components';

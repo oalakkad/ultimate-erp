@@ -6,6 +6,17 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-31 — Session 7 (continued): design v0.3 — motion and an "AI-look" audit
+
+- **Owner request:** more animation and polish (reference: getlayers.ai templates), then: "be an auditor — does this design scream AI or look professional?"
+- **Audit verdict (screenshots, both languages):** the old dashboard read as generated (9 identical cards of two pastel tiles mostly showing 0, decorative colour, headers repeating their title, 17 flat nav links, stale copy). The first motion pass I built (aurora gradients, glass, pointer glow, button sweeps, floating sparkle illustrations, pulsing dots) also read as an AI template and was removed before commit.
+- **Built:**  (rise-in once, stagger, chart bars grow / lines draw / meters fill, peak annotation from data via the new  chart prop, toast spring, shimmer skeletons, lift only on links, faint top highlight on cards; all off with reduced motion); still state marks for empty/error/locked; dashboard rebuilt ("Needs your attention" list of non-zero items by severity, 4 key numbers, revenue chart); navigation grouped Main / Work / People / Finance; stale dashboard copy removed; "Active" → "Active projects". Rules in  §5–§6.
+- **Tests:**  381 passed;  6 passed;  2 passed (5.2 min) — the accessibility check now waits for a quiet period with no one-off animation (text fading in is not a contrast failure), journey time limit 6 min, two slow steps (dashboard after a full reload, password change with the outside leaked-password check) given 15 s. New screenshot  shows a working firm's dashboard.  clean (same moderate advisory).
+- **Repo state:** committed ("Design v0.3");  running. Not pushed.
+- **Next:** Phase 14 Reports, audit search, analytics.
+
+---
+
 ## 2026-10-31 — Session 7: Phase 13 committed; Phase 12b (Expenses) built + committed
 
 ### Hand-over 12b (A–H)

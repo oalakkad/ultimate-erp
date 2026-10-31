@@ -51,6 +51,9 @@ export const arUi: Catalog['ui'] = {
     projects: 'المشاريع',
     mainNavigation: 'التنقل الرئيسي',
     groupMain: 'الرئيسية',
+    groupWork: 'العمل',
+    groupPeople: 'الموظفون',
+    groupFinance: 'المالية',
     dashboard: 'لوحة التحكم',
     settings: 'الإعدادات',
     help: 'المساعدة والدعم',
@@ -194,6 +197,40 @@ export const arUi: Catalog['ui'] = {
     accepted: 'مرحبًا بك في {company}!',
   },
   dashboard: {
+    keyNumbers: 'أرقام رئيسية',
+    revenueTitle: 'المفوتر والمحصل، {year}',
+    revenueBody: 'منذ بداية السنة: {invoiced} مفوتر، {received} محصل.',
+    seriesInvoiced: 'المفوتر',
+    seriesReceived: 'المحصل',
+    bestMonth: 'أفضل شهر',
+    attention: {
+      title: 'يحتاج إلى انتباهك',
+      clear: 'لا شيء يحتاجك الآن.',
+      overdueInvoices:
+        '{count, plural, one {فاتورة واحدة متأخرة} two {فاتورتان متأخرتان} few {# فواتير متأخرة} other {# فاتورة متأخرة}}',
+      myOverdueTasks:
+        '{count, plural, one {مهمة واحدة من مهامك متأخرة} two {مهمتان من مهامك متأخرتان} few {# من مهامك متأخرة} other {# من مهامك متأخرة}}',
+      overBudget:
+        '{count, plural, one {مشروع واحد تجاوز ميزانية الساعات} two {مشروعان تجاوزا ميزانية الساعات} few {# مشاريع تجاوزت ميزانية الساعات} other {# مشروعًا تجاوز ميزانية الساعات}}',
+      lateToday:
+        '{count, plural, one {شخص واحد تأخر اليوم} two {شخصان تأخرا اليوم} few {# أشخاص تأخروا اليوم} other {# شخصًا تأخروا اليوم}}',
+      leaveWaiting:
+        '{count, plural, one {طلب إجازة واحد بانتظار قرارك} two {طلبا إجازة بانتظار قرارك} few {# طلبات إجازة بانتظار قرارك} other {# طلب إجازة بانتظار قرارك}}',
+      timeWaiting:
+        '{count, plural, one {قيد وقت واحد للاعتماد} two {قيدا وقت للاعتماد} few {# قيود وقت للاعتماد} other {# قيد وقت للاعتماد}}',
+      claimsWaiting:
+        '{count, plural, one {مطالبة مصروفات واحدة للموافقة} two {مطالبتا مصروفات للموافقة} few {# مطالبات مصروفات للموافقة} other {# مطالبة مصروفات للموافقة}}',
+      companyOverdue:
+        '{count, plural, one {مهمة واحدة متأخرة في الشركة} two {مهمتان متأخرتان في الشركة} few {# مهام متأخرة في الشركة} other {# مهمة متأخرة في الشركة}}',
+      contractsEnding:
+        '{count, plural, one {عقد واحد ينتهي خلال 60 يومًا} two {عقدان ينتهيان خلال 60 يومًا} few {# عقود تنتهي خلال 60 يومًا} other {# عقدًا تنتهي خلال 60 يومًا}}',
+      projectsEnding:
+        '{count, plural, one {مشروع واحد ينتهي خلال 30 يومًا} two {مشروعان ينتهيان خلال 30 يومًا} few {# مشاريع تنتهي خلال 30 يومًا} other {# مشروعًا تنتهي خلال 30 يومًا}}',
+      invitations:
+        '{count, plural, one {دعوة واحدة لم تُقبل بعد} two {دعوتان لم تُقبلا بعد} few {# دعوات لم تُقبل بعد} other {# دعوة لم تُقبل بعد}}',
+      awayToday:
+        '{count, plural, one {شخص واحد في إجازة اليوم} two {شخصان في إجازة اليوم} few {# أشخاص في إجازة اليوم} other {# شخصًا في إجازة اليوم}}',
+    },
     expenses: 'المصروفات',
     myOpenClaims: 'مطالباتي المفتوحة',
     claimsWaiting: 'مطالبات بانتظاري',
@@ -217,12 +254,9 @@ export const arUi: Catalog['ui'] = {
     myOverdueTasks: 'مهامي المتأخرة',
     companyOverdueTasks: 'المتأخرة في الشركة',
     projects: 'المشاريع',
-    activeProjects: 'النشطة',
+    activeProjects: 'المشاريع النشطة',
     endingProjects: 'تنتهي خلال ٣٠ يومًا',
     title: 'لوحة التحكم',
-    emptyTitle: 'شركتك جاهزة',
-    emptyBody:
-      'تظهر هنا العملاء والارتباطات وكشوف الساعات وبقية الوحدات عند تسليم كل منها. ابدأ بدعوة زملائك.',
     inviteCta: 'دعوة الزملاء',
     gettingStarted: 'البدء',
     progress: 'أُنجز {done} من {total}',

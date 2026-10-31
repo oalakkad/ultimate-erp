@@ -1,0 +1,169 @@
+/*
+ * Motion — design-system.md v0.3 (§5). Short, purposeful, once: things arrive, charts draw,
+ * feedback confirms. No looping decoration on work screens (it reads as a template). Content
+ * is fully visible without motion, and `prefers-reduced-motion` turns it all off (index.css). Entrance
+ * keyframes animate *from* the hidden state, so when animations are off the element simply
+ * shows. Gloss lives in background layers under the text, so it never lowers text contrast.
+ */
+
+:root {
+  --dur-fast: 160ms;
+  --dur: 320ms;
+  --dur-slow: 900ms;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --gloss: linear-gradient(180deg, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0) 30%);
+  --gloss-edge: inset 0 1px 0 rgb(255 255 255 / 0.85);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --gloss: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0) 46%);
+    --gloss-edge: inset 0 1px 0 rgb(255 255 255 / 0.07);
+  }
+}
+:root[data-theme='dark'] {
+  --gloss: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0) 46%);
+  --gloss-edge: inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+
+@keyframes ui-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes ui-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.8);
+  }
+}
+@keyframes ui-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes ui-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes ui-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes ui-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ui-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes ui-ring {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-12deg);
+  }
+  60% {
+    transform: rotate(8deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+}
+
+@layer components {
+  /* Entrance: cards and tiles rise in; children of .ui-stagger follow one another. */
+  .ui-rise {
+    animation: ui-rise var(--dur) var(--ease) both;
+  }
+  .ui-stagger > * {
+    animation: ui-rise var(--dur) var(--ease) both;
+  }
+  .ui-stagger > :nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .ui-stagger > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .ui-stagger > :nth-child(4) {
+    animation-delay: 180ms;
+  }
+  .ui-stagger > :nth-child(5) {
+    animation-delay: 240ms;
+  }
+  .ui-stagger > :nth-child(6) {
+    animation-delay: 300ms;
+  }
+  .ui-stagger > :nth-child(n + 7) {
+    animation-delay: 360ms;
+  }
+
+  /* Gloss: a faint top highlight and a crisp top edge, under the content. */
+  .ui-gloss {
+    background-image: var(--gloss);
+    box-shadow: var(--gloss-edge), var(--shadow-card);
+  }
+
+  /* Tiles that are links lift a little on hover/focus (never tiles you cannot click). */
+  .ui-lift {
+    transition:
+      transform var(--dur-fast) var(--ease),
+      box-shadow var(--dur-fast) var(--ease);
+  }
+  :is(a, button):is(:hover, :focus-visible) > .ui-lift {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-pop);
+  }
+
+  /* Skeletons shimmer instead of pulsing. */
+  .ui-shimmer {
+    background: linear-gradient(90deg, var(--line-2) 25%, var(--line) 50%, var(--line-2) 75%);
+    background-size: 200% 100%;
+    animation: ui-shimmer 1.4s linear infinite;
+  }
+
+  /* Chart marks: bars grow from the baseline, lines draw, callouts pop in after them. */
+  .ui-bar {
+    transform-box: fill-box;
+    transform-origin: bottom;
+    animation: ui-grow-y var(--dur-slow) var(--ease) both;
+  }
+  .ui-line {
+    stroke-dasharray: 1;
+    animation: ui-draw 1.2s var(--ease) both;
+  }
+  .ui-fill-x {
+    transform-origin: left;
+    animation: ui-grow-x var(--dur-slow) var(--ease) both;
+  }
+  [dir='rtl'] .ui-fill-x {
+    transform-origin: right;
+  }
+  .ui-fade {
+    animation: ui-fade var(--dur) var(--ease) both;
+  }
+  .ui-callout {
+    animation: ui-pop 520ms var(--spring) both;
+  }
+
+  /* The bell rings when something new arrives. */
+  .ui-ring {
+    transform-origin: 50% 10%;
+    animation: ui-ring 900ms var(--ease) 1;
+  }
+
+  /* Toasts spring in. */
+  .ui-toast {
+    animation: ui-pop 420ms var(--spring) both;
+  }
+}

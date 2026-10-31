@@ -18,10 +18,24 @@ const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 async function expectAccessible(page: Page, screen: string) {
   await page.evaluate(() => document.fonts.ready);
-  // Let colour transitions finish (in-app navigation fades the highlight of the old page);
-  // a cancelled one (its element left the page) is simply ignored.
-  await page.evaluate(() =>
-    Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))),
+  // Let entrances and colour transitions finish — text fading in is not a contrast problem.
+  // Things can start arriving a moment later (a toast after a save), so wait until a short
+  // quiet period passes with no one-off animation running. Looping ones (skeleton shimmer)
+  // never finish and are ignored.
+  await page.waitForFunction(
+    () => {
+      const w = window as unknown as { quietSince?: number | undefined };
+      const busy = document
+        .getAnimations()
+        .some(
+          (a) => a.playState === 'running' && a.effect?.getComputedTiming().iterations !== Infinity,
+        );
+      if (busy) w.quietSince = undefined;
+      else w.quietSince ??= performance.now();
+      return w.quietSince !== undefined && performance.now() - w.quietSince > 250;
+    },
+    undefined,
+    { polling: 50, timeout: 10_000 },
   );
   const results = await new AxeBuilder({ page }).withTags(WCAG).analyze();
   expect(
@@ -51,7 +65,7 @@ test.beforeAll(async () => {
 
 for (const locale of ['en', 'ar'] as const) {
   test(`first-day journey — ${locale}`, async ({ browser }) => {
-    test.setTimeout(240_000);
+    test.setTimeout(360_000);
     const t = (key: MessageKey, params?: MessageParams) => translate(locale, key, params);
     const run = `${locale}${Date.now().toString(36)}`;
     const slug = `e2e-${run}`;
@@ -116,7 +130,9 @@ for (const locale of ['en', 'ar'] as const) {
 
       // --- Dashboard → invite a colleague ---------------------------------------------------
       await page.getByRole('link', { name: t('ui.shell.dashboard') }).click();
-      await expect(page.getByText(t('ui.dashboard.emptyTitle'))).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: t('ui.dashboard.attention.title') }),
+      ).toBeVisible();
       await expectAccessible(page, 'dashboard');
 
       // --- Phase 2a shell: command palette (Ctrl K) and the phone layout ---------------------
@@ -128,7 +144,9 @@ for (const locale of ['en', 'ar'] as const) {
       await page.keyboard.press('Enter');
       await expect(page.getByRole('heading', { name: t('ui.members.title') })).toBeVisible();
       await page.getByRole('link', { name: t('ui.shell.home') }).click();
-      await expect(page.getByText(t('ui.dashboard.emptyTitle'))).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: t('ui.dashboard.attention.title') }),
+      ).toBeVisible();
 
       await page.setViewportSize({ width: 390, height: 844 });
       await page.getByRole('button', { name: t('ui.shell.openMenu') }).click();
@@ -145,7 +163,11 @@ for (const locale of ['en', 'ar'] as const) {
           t('ui.dashboard.activityText.access_company_created', { actor: owner.name }),
         ),
       ).toBeVisible();
-      await page.screenshot({ path: `e2e/screenshots/dashboard-${locale}.png`, fullPage: true });
+      await page.screenshot({
+        path: `e2e/screenshots/dashboard-${locale}.png`,
+        fullPage: true,
+        animations: 'disabled',
+      });
       await page.getByRole('link', { name: t('ui.dashboard.actionMembers') }).click();
       await expect(page.getByRole('heading', { name: t('ui.members.title') })).toBeVisible();
       await expect(page.getByRole('cell', { name: owner.email })).toBeVisible();
@@ -196,7 +218,9 @@ for (const locale of ['en', 'ar'] as const) {
       await guest.getByLabel(t('ui.auth.password'), { exact: true }).fill(invitee.password);
       await guest.getByRole('button', { name: t('ui.auth.signInSubmit') }).click();
       await guest.getByRole('button', { name: t('ui.invitation.accept') }).click();
-      await expect(guest.getByText(t('ui.dashboard.emptyTitle'))).toBeVisible();
+      await expect(
+        guest.getByRole('heading', { name: t('ui.dashboard.attention.title') }),
+      ).toBeVisible();
       // An Employee cannot see the member list, so the sidebar does not offer it.
       await expect(guest.getByRole('link', { name: t('ui.shell.members') })).toHaveCount(0);
       await expectAccessible(guest, 'dashboard (employee)');
@@ -410,7 +434,11 @@ for (const locale of ['en', 'ar'] as const) {
 
       // The Owner, on the team, sees it on the dashboard and in the client's Projects tab.
       await page.goto(`http://${slug}.localhost:5173/`);
-      await expect(page.getByRole('heading', { name: t('ui.dashboard.projects') })).toBeVisible();
+      await expect(
+        page
+          .getByRole('region', { name: t('ui.dashboard.keyNumbers') })
+          .getByText(t('ui.dashboard.activeProjects'), { exact: true }),
+      ).toBeVisible();
       await page.goto(`http://${slug}.localhost:5173/projects`);
       await expect(page.getByRole('link', { name: projectName })).toBeVisible();
       await expectAccessible(page, 'projects list');
@@ -719,15 +747,33 @@ for (const locale of ['en', 'ar'] as const) {
         .click();
       await expect(page.getByText(t('ui.notifications.saved'), { exact: true })).toBeVisible();
 
+      // The dashboard of a firm that has been working: what needs attention, numbers, revenue.
+      await page.goto(`http://${slug}.localhost:5173/`);
+      await expect(
+        page.getByRole('heading', { name: t('ui.dashboard.attention.title') }),
+      ).toBeVisible({ timeout: 15_000 });
+      await expect(
+        page.getByText(t('ui.dashboard.revenueTitle', { year: String(new Date().getFullYear()) })),
+      ).toBeVisible();
+      await expectAccessible(page, 'dashboard (working firm)');
+      await page.screenshot({
+        path: `e2e/screenshots/dashboard-busy-${locale}.png`,
+        fullPage: true,
+        animations: 'disabled',
+      });
+
       // --- Owner changes their password from My account --------------------------------------
-      await page.getByRole('link', { name: t('ui.shell.myAccount') }).click();
+      await page.goto(`http://${slug}.localhost:5173/account`);
       await expectAccessible(page, 'my account');
       await page.getByLabel(t('ui.account.currentPassword')).fill(owner.password);
       await page
         .getByLabel(t('ui.account.newPassword'), { exact: true })
         .fill(`${owner.password} v2`);
       await page.getByRole('button', { name: t('ui.account.changePassword') }).click();
-      await expect(page.getByText(t('ui.account.passwordChanged'), { exact: true })).toBeVisible();
+      // The leaked-password check calls an outside service (up to 3 s) before hashing.
+      await expect(page.getByText(t('ui.account.passwordChanged'), { exact: true })).toBeVisible({
+        timeout: 15_000,
+      });
     } finally {
       await deleteEmailsTo(owner.email, invitee.email);
     }

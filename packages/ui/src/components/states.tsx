@@ -5,7 +5,7 @@ import { Button } from './button.js';
 
 /** Placeholder shapes while content loads (preferred over spinners for layout stability). */
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden className={cn('animate-pulse rounded-ctl bg-line-2', className)} />;
+  return <div aria-hidden className={cn('ui-shimmer rounded-ctl', className)} />;
 }
 
 /** A labelled loading region: screen readers hear the label, sighted users see skeletons. */
@@ -16,6 +16,26 @@ export function LoadingState({ label, lines = 3 }: { label: string; lines?: numb
       {Array.from({ length: lines }, (_, i) => (
         <Skeleton key={i} className={cn('h-4', i === lines - 1 ? 'w-3/5' : 'w-full')} />
       ))}
+    </div>
+  );
+}
+
+/**
+ * The state's mark (design-system.md §5): its icon on a tinted tile, with one sheet of paper
+ * set behind it. Still and quiet on purpose; hidden from assistive technology.
+ */
+function StateMark({ icon, tone }: { icon: ReactNode; tone: string }) {
+  return (
+    <div aria-hidden className="relative mb-1 size-14">
+      <span className="absolute inset-0 translate-x-1.5 -translate-y-1 rotate-6 rounded-[14px] border border-line bg-card shadow-card rtl:-translate-x-1.5 rtl:-rotate-6" />
+      <span
+        className={cn(
+          'ui-gloss absolute inset-0 grid place-items-center rounded-[14px] [&_svg]:size-6',
+          tone,
+        )}
+      >
+        {icon}
+      </span>
     </div>
   );
 }
@@ -34,13 +54,8 @@ function StateFrame({
   children?: ReactNode;
 }) {
   return (
-    <div className="grid justify-items-center gap-2 px-4 py-6 text-center">
-      <span
-        aria-hidden
-        className={cn('grid size-11 place-items-center rounded-[14px] [&_svg]:size-5', tone)}
-      >
-        {icon}
-      </span>
+    <div className="ui-rise grid justify-items-center gap-2 px-4 py-6 text-center">
+      <StateMark icon={icon} tone={tone} />
       <b className="text-[14px] font-bold text-ink">{title}</b>
       <p className="max-w-80 text-[13px] text-ink-2">{body}</p>
       {children}

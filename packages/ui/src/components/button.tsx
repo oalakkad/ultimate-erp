@@ -6,7 +6,8 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const VARIANTS: Record<Variant, string> = {
   // One plum primary action per area (design-system.md §4).
-  primary: 'bg-plum text-on-plum hover:bg-plum-hover',
+  primary:
+    'bg-plum text-on-plum shadow-[inset_0_1px_0_rgb(255_255_255/0.14),0_1px_2px_rgb(23_20_27/0.2)] hover:bg-plum-hover',
   secondary: 'bg-card text-ink shadow-[inset_0_0_0_1px_var(--line-2)] hover:bg-frame',
   ghost: 'bg-transparent text-ink-2 hover:bg-frame hover:text-ink',
   danger: 'bg-blush text-blush-ink hover:bg-blush-solid hover:text-white',

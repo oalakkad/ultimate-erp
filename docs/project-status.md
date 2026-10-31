@@ -98,6 +98,10 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Overtime hours are an explicit input; end-of-service, WPS files and PIFSS reports wait for verified rules.
 - Every role that can be an employee sees its own approved payslips.
 
+## Decisions 2026-10-31 (design v0.3 — owner request, reviewable)
+- Motion that explains, not decorates: arrivals, charts drawing, a data-derived peak annotation, feedback; no looping or decorative effects (gradient meshes, glass, glow, sparkles) — rejected in the design audit as reading "AI-generated". Rules in design-system.md §5–§6.
+- Dashboard reorganised: "Needs your attention" (non-zero items only), 4 key numbers, revenue chart. Navigation grouped Main / Work / People / Finance.
+
 ## Decisions 2026-10-31 (Phase 12b, Claude in nonstop mode — reviewable)
 - Expense claims have lines; numbers `EX-` on first submission; rejected claims can be reopened and keep their number.
 - Approvers: the claimant's line manager / team lead (team scope) or Owner, CEO, Finance; nobody decides or reimburses their own claim (database-enforced).

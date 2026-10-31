@@ -1,6 +1,6 @@
 # Design System
 
-Status: **Direction v0.2 approved by owner (2026-10-24). Implemented in Milestone 1.4a** (`packages/ui`, gallery at http://localhost:5173/gallery).
+Status: **Direction v0.2 approved by owner (2026-10-24); v0.3 motion & audit rules added 2026-10-31 at the owner's request (§5–§6). Implemented in Milestone 1.4a** (`packages/ui`, gallery at http://localhost:5173/gallery).
 Live reference: https://claude.ai/artifact/Ffk4Wtd2i9PGtVEK6FHA8H (private to the owner).
 
 v0.1 ("calm precision", neutral slate + teal) was rejected as too generic. v0.2 follows the owner's reference shots: vibrant, friendly, card-based.
@@ -67,3 +67,33 @@ App frame, sidebar (logo, tenant, profile + check-in/out card, grouped nav with 
 - Destructive or financial actions require a confirmation that states the consequence.
 - Keyboard reachable, visible focus, WCAG 2.2 AA contrast for text in both themes.
 - No stock photos or third-party illustrations without a commercial license on file.
+
+## 5. Motion & finish (v0.3, 2026-10-31)
+
+The owner asked for a livelier, more polished app ("animations, glossy, charts that appear") and, in the same breath, for an audit of whether the result looks AI-generated or professional. v0.3 answers both: **motion that explains, not motion that decorates.**
+
+Kept (in `packages/ui/src/styles/motion.css`):
+- **Arrivals**: cards rise 8px and fade in once (320ms); lists and number rows stagger by 60ms.
+- **Charts draw**: bars grow from the baseline, lines draw left-to-right (right-to-left in Arabic), meters fill; then a small annotation pops in over the peak — "Best month · Oct · KWD 70.000" — computed from the data (`highlight` prop), never invented.
+- **Feedback**: toasts spring in; the primary button presses down; skeletons shimmer; linked tiles lift 2px on hover/focus.
+- **Finish**: cards carry a faint top highlight and a crisp 1px top edge (light from above), not a gradient wash.
+
+Rejected after audit (they read as "AI template", see §6): animated gradient-mesh ("aurora") backgrounds, frosted glass panels, pointer-following glow, light sweeps across buttons, floating illustrations with sparkles, pulsing "live" dots, any looping motion on work screens.
+
+Rules: every animation is short and runs once; content is fully visible without it (keyframes animate *from* hidden); `prefers-reduced-motion` turns it all off; money values never count up or move; hover effects only on things you can click.
+
+## 6. Design audit — avoiding the "AI-generated" look (2026-10-31)
+
+Signals that make an interface read as generated, and what we do instead:
+
+| Tell | Instead |
+|---|---|
+| Many identical cards, each with the same two coloured tiles, most showing 0 | One "Needs your attention" list with only non-zero items; at most 4 key numbers in a full row |
+| Colour used for decoration (every tile a different pastel) | Colour carries meaning: blush = overdue/late, butter = waiting on you, lilac = information; numbers stay neutral |
+| Card header link repeating the card title ("Projects … Projects") | The whole row or number is the link |
+| Gradient blobs, glass, glow, sparkles, pulsing dots | Flat surfaces, one light source, real data annotations |
+| Flat list of 17 navigation links | Grouped navigation: Main, Work, People, Finance |
+| Vague labels ("Active", "Your company is ready") and stale copy | Specific labels ("Active projects"), sentences that state a fact ("2 invoices are overdue") |
+| Charts with no story | Title states the period; description states the totals; one annotation marks the peak |
+
+Every new screen is checked against this table before hand-over.
