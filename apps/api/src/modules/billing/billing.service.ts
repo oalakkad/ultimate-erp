@@ -11,6 +11,9 @@ import {
   companySettings,
   contracts,
   creditNotes,
+  expenseClaims,
+  expenseLines,
+  invoiceExpenseLines,
   invoiceLines,
   invoices,
   invoiceTimeEntries,
@@ -343,11 +346,20 @@ export class BillingService {
     });
   }
 
-  /** Draft from approved, billable, not-yet-invoiced time of a project. */
+  /**
+   * Draft from approved, billable, not-yet-invoiced time of a project — and, if asked, its approved
+   * billable expenses in the period, re-billed at cost (docs/modules/expenses.md §2).
+   */
   async fromTime(
     req: Request,
     access: AccessContext,
-    input: { projectId: string; from: string; to: string; hourlyRate: string },
+    input: {
+      projectId: string;
+      from: string;
+      to: string;
+      hourlyRate: string;
+      includeExpenses?: boolean | undefined;
+    },
   ) {
     if (!this.can(access, 'billing.invoice.issue')) throw forbidden();
     return this.database.withTenant(access.tenantId, async (tx) => {
@@ -370,7 +382,29 @@ export class BillingService {
         )
         .orderBy(asc(tasks.number), asc(timeEntries.membershipId))
         .for('update', { of: timeEntries });
-      if (entries.length === 0) throw invalid('projectId', 'no_billable_time');
+      const rebilled = tx
+        .select({ id: invoiceExpenseLines.expenseLineId })
+        .from(invoiceExpenseLines);
+      const expenses = input.includeExpenses
+        ? await tx
+            .select({ line: expenseLines, claim: expenseClaims })
+            .from(expenseLines)
+            .innerJoin(expenseClaims, eq(expenseClaims.id, expenseLines.claimId))
+            .where(
+              and(
+                eq(expenseLines.projectId, project.id),
+                eq(expenseLines.billable, true),
+                inArray(expenseClaims.status, ['approved', 'reimbursed']),
+                gte(expenseLines.spentOn, input.from),
+                lte(expenseLines.spentOn, input.to),
+                notInArray(expenseLines.id, rebilled),
+              ),
+            )
+            .orderBy(asc(expenseLines.spentOn), asc(expenseClaims.number))
+            .for('update', { of: expenseLines })
+        : [];
+      if (entries.length === 0 && expenses.length === 0)
+        throw invalid('projectId', 'no_billable_time');
       const names = await this.namesOf(
         entries.map((e) => e.entry.membershipId),
         tx,
@@ -401,21 +435,42 @@ export class BillingService {
         })
         .returning();
       if (!row) throw new Error('invoice insert returned nothing');
-      const lines = [...groups.values()].map((g) => ({
-        description: g.label.slice(0, 500),
-        quantity: `${g.hundredths / 100n}.${String(g.hundredths % 100n).padStart(2, '0')}`,
-        unitPrice: input.hourlyRate,
-      }));
-      const saved = await this.writeLines(tx, access, row, lines);
-      await tx.insert(invoiceTimeEntries).values(
-        entries.map((e) => ({
-          tenantId: access.tenantId,
-          invoiceId: row.id,
-          timeEntryId: e.entry.id,
+      const lines = [
+        ...[...groups.values()].map((g) => ({
+          description: g.label.slice(0, 500),
+          quantity: `${g.hundredths / 100n}.${String(g.hundredths % 100n).padStart(2, '0')}`,
+          unitPrice: input.hourlyRate,
         })),
-      );
+        ...expenses.map(({ line, claim }) => ({
+          description: `${claim.number ?? ''} ${line.spentOn} ${line.description}`
+            .trim()
+            .slice(0, 500),
+          quantity: '1',
+          unitPrice: line.amount,
+        })),
+      ];
+      const saved = await this.writeLines(tx, access, row, lines);
+      if (entries.length > 0) {
+        await tx.insert(invoiceTimeEntries).values(
+          entries.map((e) => ({
+            tenantId: access.tenantId,
+            invoiceId: row.id,
+            timeEntryId: e.entry.id,
+          })),
+        );
+      }
+      if (expenses.length > 0) {
+        await tx.insert(invoiceExpenseLines).values(
+          expenses.map((e) => ({
+            tenantId: access.tenantId,
+            invoiceId: row.id,
+            expenseLineId: e.line.id,
+          })),
+        );
+      }
       await this.record(tx, req, access, 'invoice', row.id, 'billing.invoice.drafted_from_time', {
         entries: entries.length,
+        expenses: expenses.length,
       });
       return this.toInvoice(tx, access, saved);
     });
@@ -508,8 +563,9 @@ export class BillingService {
         .where(eq(invoices.id, id))
         .returning();
       if (!row) throw notFound();
-      // Voiding releases the billed time so it can be invoiced again.
+      // Voiding releases the billed time and expenses so they can be invoiced again.
       await tx.delete(invoiceTimeEntries).where(eq(invoiceTimeEntries.invoiceId, id));
+      await tx.delete(invoiceExpenseLines).where(eq(invoiceExpenseLines.invoiceId, id));
       await this.record(tx, req, access, 'invoice', id, 'billing.invoice.voided', { reason });
       return this.toInvoice(tx, access, row);
     });
@@ -954,6 +1010,10 @@ export class BillingService {
       .select({ id: invoiceTimeEntries.timeEntryId })
       .from(invoiceTimeEntries)
       .where(eq(invoiceTimeEntries.invoiceId, invoice.id));
+    const rebilled = await tx
+      .select({ id: invoiceExpenseLines.expenseLineId })
+      .from(invoiceExpenseLines)
+      .where(eq(invoiceExpenseLines.invoiceId, invoice.id));
     const balance = (await this.balances(tx, [invoice.id])).get(invoice.id);
     const summary = this.toSummary(invoice, client, balance, kuwaitToday());
     const issue = this.can(access, 'billing.invoice.issue');
@@ -989,6 +1049,7 @@ export class BillingService {
         tax: l.tax,
       })),
       timeEntries: linked.length,
+      expenseLines: rebilled.length,
       payments: pays.map((p) => ({
         id: p.id,
         amount: p.amount,

@@ -34,6 +34,7 @@ import {
   Plane,
   Fingerprint,
   Megaphone,
+  HandCoins,
   Wallet,
   ReceiptText,
   FileText as InvoiceIcon,
@@ -123,6 +124,7 @@ export function AppLayout() {
     can(access.data, 'payroll.payslip.read');
   const canPayslips = canAny(access.data, 'payroll.payslip.read');
   const canInvoices = canAny(access.data, 'billing.invoice.read');
+  const canExpenses = canAny(access.data, 'expenses.claim.create');
   // Recent clients for the palette (its text filter then narrows them).
   const recentClients = useQuery({
     queryKey: ['clients', 'palette'],
@@ -257,6 +259,16 @@ export function AppLayout() {
         go('/announcements');
       },
     });
+    if (canExpenses) {
+      list.push({
+        id: 'page:expenses',
+        group: 'pages',
+        label: t('ui.shell.expenses'),
+        run: () => {
+          go('/expenses');
+        },
+      });
+    }
     if (canInvoices) {
       list.push({
         id: 'page:invoices',
@@ -482,6 +494,7 @@ export function AppLayout() {
     payrollStaff,
     canPayslips,
     canInvoices,
+    canExpenses,
   ]);
 
   const failed = tenant.error ?? me.error ?? access.error;
@@ -640,6 +653,14 @@ export function AppLayout() {
           icon={<InvoiceIcon aria-hidden />}
           label={t('ui.shell.invoices')}
           current={path.startsWith('/invoices')}
+        />
+      )}
+      {canExpenses && (
+        <NavItem
+          {...link('/expenses')}
+          icon={<HandCoins aria-hidden />}
+          label={t('ui.shell.expenses')}
+          current={path.startsWith('/expenses')}
         />
       )}
       {payrollStaff && (

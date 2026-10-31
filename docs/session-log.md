@@ -6,6 +6,21 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-31 — Session 7: Phase 13 committed; Phase 12b (Expenses) built + committed
+
+### Hand-over 12b (A–H)
+- **A Built:** expense claims with lines (date, category, description, amount, project, bill-to-client, receipt), categories and receipt threshold as company settings, draft → submitted (EX- number) → approved / sent back → reimbursed, reopen after send-back, recorded reimbursement, project expense cost, re-billing of billable expenses on invoices (once, at cost; void releases), notifications, dashboard Expenses card. See `docs/modules/expenses.md` §11.
+- **B Files:** contracts `expenses.ts` (new), permissions (+5 `expenses.*`, matrix in `permissions.md`), notifications (+3 types), dashboard (`expenses`), billing (`includeExpenses`, `expenseLines`); db `schema/expenses.ts`, migrations 0035/0036 (`app.expense_claims_guard`, `app.expense_lines_draft_only`, `app.invoice_expense_lines_approved_only`, `app.invoice_draft_only` extended), isolation list; api `modules/expenses/` (service, controller + project route), billing from-time/void/toInvoice, dashboard, app module, `test/expenses.spec.ts`, `test/access.spec.ts` (employee dashboard now has expenses); web `routes/expenses/` (expenses, claim), project Expenses card, dashboard card, invoice "also re-bill expenses", bell, sidebar, palette, router; i18n EN/AR; journey Phase 12b steps.
+- **C Architecture:** claimant → claim → lines (→ project, → receipt file) → approver (line manager / team lead via `teamScopeOf`, or company approvers) → reimbursement. Approved billable lines → `invoice_expense_lines` (unique) → invoice draft lines at cost. Project cost reads approved/reimbursed lines of the project.
+- **D Security:** forced RLS on 3 tables; lines editable only while the claim is a draft, claims leave only by allowed transitions, totals fixed after submission, drafts only deletable, no self-decision or self-reimbursement (check constraints), only approved billable lines can be invoiced (triggers); receipts must be my own uploads, not infected; receipt downloads audited; 404 for claims outside my scope.
+- **E Tests:** `pnpm check` **381** passed (api 257, db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm e2e` 6 passed; `pnpm e2e:journey` 2 passed (EN 2.6 min, AR 2.4 min) after making three status checks exact (the toast repeated the word); `pnpm security` clean (one moderate advisory below the threshold, as before). Receipt files in the API test are inserted directly as clean file rows (fixture; the real upload + virus scan path is covered by `files.spec.ts`).
+- **F Verify:** project-status "How to verify Phase 12b".
+- **G Open:** mileage/per-diem rules, foreign-currency receipts, re-billing mark-up, reimbursement through payroll, corporate cards.
+- **Repo state:** committed ("Phase 12b"); `pnpm dev` running in the background; dev DB migrated to 0036. Not pushed.
+- **H Next:** Phase 14 Reports, audit search, analytics (spec `docs/modules/reports.md` first).
+
+---
+
 ## 2026-10-31 — Session 6 (continued): Phase 13 (Notifications & announcements) built + committed
 
 ### Hand-over 13 (A–H)

@@ -59,6 +59,24 @@ function useNotificationText() {
         return t('ui.notifications.types.announcements_published', {
           title: (locale === 'ar' ? item.params.titleAr : item.params.title) ?? '',
         });
+      case 'expenses.submitted':
+        return t('ui.notifications.types.expenses_submitted', {
+          name: item.params.name ?? '',
+          number: item.params.number ?? '',
+          total: item.params.total ?? '',
+        });
+      case 'expenses.decided':
+        return t(
+          item.params.status === 'approved'
+            ? 'ui.notifications.types.expenses_approved'
+            : 'ui.notifications.types.expenses_rejected',
+          { number: item.params.number ?? '' },
+        );
+      case 'expenses.reimbursed':
+        return t('ui.notifications.types.expenses_reimbursed', {
+          number: item.params.number ?? '',
+          total: item.params.total ?? '',
+        });
       case 'billing.overdue':
         return t('ui.notifications.types.billing_overdue', {
           number: item.params.number ?? '',

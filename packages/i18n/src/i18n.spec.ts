@@ -25,6 +25,7 @@ const SAME_IN_BOTH = new Set([
   'email.notification.subject',
   'email.announcement.subject',
   'ui.announcements.by',
+  'ui.expenses.decisionBy',
 ]);
 
 describe('catalogs', () => {

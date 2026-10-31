@@ -16,3 +16,4 @@ export * from './attendance.js';
 export * from './payroll.js';
 export * from './billing.js';
 export * from './announcements.js';
+export * from './expenses.js';

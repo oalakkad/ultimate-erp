@@ -646,6 +646,46 @@ for (const locale of ['en', 'ar'] as const) {
       await expectAccessible(invoicePrint, 'invoice print');
       await invoicePrint.close();
 
+      // --- Phase 12b: the colleague claims an expense; the Owner approves and reimburses it -------
+      await guest.goto(`http://${slug}.localhost:5173/expenses`);
+      await expect(guest.getByText(t('ui.expenses.empty'))).toBeVisible();
+      await expectAccessible(guest, 'expenses (empty)');
+      await guest.getByRole('button', { name: t('ui.expenses.new') }).click();
+      await expect(guest.getByLabel(t('ui.expenses.claimTitle'))).toBeVisible();
+      await guest.getByLabel(t('ui.expenses.claimTitle')).fill('Client visit');
+      await guest.getByLabel(t('ui.expenses.line.category')).click();
+      await guest
+        .getByRole('option', { name: locale === 'ar' ? 'مواصلات' : 'Local transport' })
+        .click();
+      await guest.getByLabel(t('ui.expenses.line.description')).fill('Taxi to the warehouse');
+      await guest.getByLabel(t('ui.expenses.line.amount')).fill('3.500');
+      await expectAccessible(guest, 'expense claim (draft)');
+      await guest.getByRole('button', { name: t('ui.expenses.submit') }).click();
+      await expect(guest.getByRole('heading', { name: 'EX-0001 · Client visit' })).toBeVisible();
+      await expect(
+        guest.getByText(t('ui.expenses.statusName.submitted'), { exact: true }),
+      ).toBeVisible();
+
+      await page.goto(`http://${slug}.localhost:5173/expenses`);
+      await page.getByRole('tab', { name: t('ui.expenses.tabs.approvals') }).click();
+      await expectAccessible(page, 'expense approvals');
+      await page.getByRole('link', { name: 'EX-0001' }).click();
+      await page.getByRole('button', { name: t('ui.expenses.approve') }).click();
+      await expect(
+        page.getByText(t('ui.expenses.statusName.approved'), { exact: true }),
+      ).toBeVisible();
+      await page.getByRole('button', { name: t('ui.expenses.reimburse') }).click();
+      const reimburseDialog = page.getByRole('dialog');
+      await reimburseDialog.getByLabel(t('ui.expenses.reference')).fill('TRX-1');
+      await expectAccessible(page, 'record reimbursement');
+      await reimburseDialog
+        .getByRole('button', { name: t('ui.expenses.dialog.reimburse') })
+        .click();
+      await expect(
+        page.getByText(t('ui.expenses.statusName.reimbursed'), { exact: true }),
+      ).toBeVisible();
+      await expectAccessible(page, 'expense claim (reimbursed)');
+
       // --- Phase 13: the Owner publishes an announcement; the colleague reads it ----------------
       await page.getByRole('link', { name: t('ui.shell.announcements') }).click();
       await expect(page.getByText(t('ui.announcements.empty'))).toBeVisible();

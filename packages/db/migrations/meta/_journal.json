@@ -246,6 +246,20 @@
       "when": 1793372850570,
       "tag": "0034_announcements_security",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793442259042,
+      "tag": "0035_expenses_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793442269724,
+      "tag": "0036_expenses_security",
+      "breakpoints": true
     }
   ]
 }

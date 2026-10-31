@@ -12,6 +12,7 @@ import { formatMoney } from '@ultimate-erp/i18n';
 import {
   Button,
   Card,
+  Checkbox,
   Dialog,
   ErrorState,
   LoadingState,
@@ -160,6 +161,7 @@ export function NewInvoicePage() {
     from: daysAgo(30),
     to: kuwaitToday(),
     rate: '',
+    expenses: true,
   });
   const clients = useQuery({
     queryKey: ['clients', 'picker'],
@@ -193,7 +195,13 @@ export function NewInvoicePage() {
     mutationFn: () =>
       api('/invoices/from-time', {
         method: 'POST',
-        body: { projectId, from: time.from, to: time.to, hourlyRate: time.rate.trim() },
+        body: {
+          projectId,
+          from: time.from,
+          to: time.to,
+          hourlyRate: time.rate.trim(),
+          includeExpenses: time.expenses,
+        },
         schema: invoiceSchema,
       }),
     onSuccess: done,
@@ -272,6 +280,13 @@ export function NewInvoicePage() {
               {t('ui.billing.draftFromTime')}
             </Button>
           </form>
+          <Checkbox
+            label={t('ui.billing.includeExpenses')}
+            checked={time.expenses}
+            onCheckedChange={(on) => {
+              setTime({ ...time, expenses: on });
+            }}
+          />
           <FormError error={fromTime.error} />
         </Card>
       )}
@@ -458,6 +473,11 @@ export function InvoicePage() {
             {i.timeEntries > 0 && (
               <small className="text-ink-3">
                 {t('ui.billing.fromEntries', { count: i.timeEntries })}
+              </small>
+            )}
+            {i.expenseLines > 0 && (
+              <small className="text-ink-3">
+                {t('ui.billing.fromExpenses', { count: i.expenseLines })}
               </small>
             )}
             {i.notes && <p className="whitespace-pre-line text-[13.5px] text-ink-2">{i.notes}</p>}

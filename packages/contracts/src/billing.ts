@@ -68,7 +68,14 @@ export const updateInvoiceRequestSchema = z
   .extend({ version: z.number().int().positive() })
   .strict();
 export const invoiceFromTimeRequestSchema = z
-  .object({ projectId: z.uuid(), from: isoDate, to: isoDate, hourlyRate: moneySchema })
+  .object({
+    projectId: z.uuid(),
+    from: isoDate,
+    to: isoDate,
+    hourlyRate: moneySchema,
+    /** Also re-bill approved billable expenses of the project in the period, at cost. */
+    includeExpenses: z.boolean().optional(),
+  })
   .strict()
   .refine((v) => v.to >= v.from, { path: ['to'], message: 'before_from' });
 export const issueInvoiceRequestSchema = z
@@ -135,6 +142,7 @@ export const invoiceSchema = invoiceSummarySchema
     voidReason: z.string().nullable(),
     lines: z.array(invoiceLineSchema),
     timeEntries: z.number().int(),
+    expenseLines: z.number().int(),
     payments: z.array(
       z
         .object({

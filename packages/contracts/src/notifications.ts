@@ -27,6 +27,9 @@ export const NOTIFICATION_TYPES = [
   'billing.issued',
   'projects.budget_threshold',
   'announcements.published',
+  'expenses.submitted',
+  'expenses.decided',
+  'expenses.reimbursed',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

@@ -29,6 +29,7 @@ import {
 } from '@ultimate-erp/ui';
 import { useState } from 'react';
 import { useI18n } from '../../app/i18n.js';
+import { ProjectExpensesCard } from '../expenses/expenses.js';
 import { FormError } from '../../components/auth-layout.js';
 import { AppPageHeader } from '../../components/page-header.js';
 import { api, isApiError } from '../../lib/api.js';
@@ -99,6 +100,9 @@ export function ProjectDetailPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="grid content-start gap-4 lg:col-span-2">
           <HoursCard project={p} />
+          {(canManage || can(access.data, 'expenses.claim.read')) && (
+            <ProjectExpensesCard projectId={p.id} />
+          )}
           <Tabs
             label={t('ui.projects.title')}
             items={[

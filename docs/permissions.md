@@ -74,6 +74,11 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | billing.invoice.read | company | company | project | — | — | — |
 | billing.invoice.issue | company | company | — | — | — | — |
 | billing.payment.record | company | company | — | — | — | — |
+| expenses.claim.create | own | own | own | own | own | — |
+| expenses.claim.read | company | company | team | team | — | — |
+| expenses.claim.approve | company | company | team | team | — | — |
+| expenses.claim.reimburse | company | company | — | — | — | — |
+| expenses.settings.manage (categories, receipt threshold) | company | company | — | — | — | — |
 | audit.event.read | company | company | — | — | — | — |
 | exports.confidential | company* | company* | — | — | — | — |
 | announcements.publish | company | company | — | — | — | — |

@@ -14,6 +14,7 @@ import {
   Plane,
   Fingerprint,
   Banknote,
+  HandCoins,
   ClipboardCheck,
   AlarmClock,
   Circle,
@@ -78,6 +79,7 @@ export function DashboardPage() {
       leave,
       attendance,
       billing,
+      expenses,
       activity,
     } = summary.data;
     const steps = setup
@@ -153,6 +155,46 @@ export function DashboardPage() {
               </div>
             </Card>
           )}
+
+          {expenses &&
+          (expenses.mineOpen > 0 || expenses.waitingForMe || expenses.toReimburse?.count) ? (
+            <Card
+              title={t('ui.dashboard.expenses')}
+              action={
+                <Link
+                  to="/expenses"
+                  className="text-[13px] font-semibold text-plum hover:underline"
+                >
+                  {t('ui.shell.expenses')}
+                </Link>
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Tile
+                  tone="lilac"
+                  label={t('ui.dashboard.myOpenClaims')}
+                  value={formatNumber(locale, expenses.mineOpen)}
+                  icon={<HandCoins />}
+                />
+                {expenses.waitingForMe !== null && (
+                  <Tile
+                    tone="butter"
+                    label={t('ui.dashboard.claimsWaiting')}
+                    value={formatNumber(locale, expenses.waitingForMe)}
+                    icon={<HandCoins />}
+                  />
+                )}
+                {expenses.toReimburse && (
+                  <Tile
+                    tone="mint"
+                    label={t('ui.dashboard.toReimburse', { count: expenses.toReimburse.count })}
+                    value={formatMoney(locale, expenses.toReimburse.amount, 'KWD')}
+                    icon={<Banknote />}
+                  />
+                )}
+              </div>
+            </Card>
+          ) : null}
 
           {attendance && (
             <Card

@@ -48,6 +48,11 @@ export const PERMISSIONS = [
   'billing.invoice.read',
   'billing.invoice.issue',
   'billing.payment.record',
+  'expenses.claim.create',
+  'expenses.claim.read',
+  'expenses.claim.approve',
+  'expenses.claim.reimburse',
+  'expenses.settings.manage',
   'audit.event.read',
   'exports.confidential',
   'announcements.publish',
@@ -98,6 +103,11 @@ const project = ['project'] as const;
 /** Fixed system roles (custom roles: later milestone). */
 export const ROLE_GRANTS: Record<Role, Grants> = {
   owner: {
+    'expenses.claim.create': own,
+    'expenses.claim.read': company,
+    'expenses.claim.approve': company,
+    'expenses.claim.reimburse': company,
+    'expenses.settings.manage': company,
     'tenancy.settings.update': company,
     'access.members.read': company,
     'access.members.invite': company,
@@ -145,6 +155,11 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
     'exports.confidential': company,
   },
   ceo: {
+    'expenses.claim.create': own,
+    'expenses.claim.read': company,
+    'expenses.claim.approve': company,
+    'expenses.claim.reimburse': company,
+    'expenses.settings.manage': company,
     'tenancy.settings.update': company,
     'access.members.read': company,
     'access.members.invite': company,
@@ -194,6 +209,9 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
     'exports.confidential': company,
   },
   manager: {
+    'expenses.claim.create': own,
+    'expenses.claim.read': team,
+    'expenses.claim.approve': team,
     'access.members.read': company,
     'people.employee.read': team,
     'clients.client.read': company,
@@ -222,6 +240,9 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
     'leave.request.approve': team,
   },
   team_leader: {
+    'expenses.claim.create': own,
+    'expenses.claim.read': team,
+    'expenses.claim.approve': team,
     'people.employee.read': team,
     'clients.client.read': project,
     'contracts.contract.read': project,
@@ -242,6 +263,7 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
     'leave.request.approve': team,
   },
   employee: {
+    'expenses.claim.create': own,
     'people.employee.read': own,
     'clients.client.read': project,
     'contracts.contract.read': project,
@@ -259,6 +281,11 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
   },
   // Not in the permissions.md matrix yet: completed when their modules exist (Phases 8, 11, 12).
   finance: {
+    'expenses.claim.create': own,
+    'expenses.claim.read': company,
+    'expenses.claim.approve': company,
+    'expenses.claim.reimburse': company,
+    'expenses.settings.manage': company,
     'clients.client.read': company,
     'contracts.contract.read': company,
     'projects.project.read': company,
@@ -273,6 +300,7 @@ export const ROLE_GRANTS: Record<Role, Grants> = {
     'billing.payment.record': company,
   },
   hr_payroll: {
+    'expenses.claim.create': own,
     'people.employee.read': company,
     'people.employee.read_restricted': company,
     'people.employee.manage': company,

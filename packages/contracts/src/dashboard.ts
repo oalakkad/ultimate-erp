@@ -111,6 +111,18 @@ export const dashboardSummarySchema = z
       })
       .strict()
       .optional(),
+    /** Expenses: my open claims; claims waiting for my decision; approved, not yet reimbursed. */
+    expenses: z
+      .object({
+        mineOpen: z.number().int().min(0),
+        waitingForMe: z.number().int().min(0).nullable(),
+        toReimburse: z
+          .object({ count: z.number().int().min(0), amount: z.string() })
+          .strict()
+          .nullable(),
+      })
+      .strict()
+      .optional(),
     /** Latest business events (people who can read the audit log). */
     activity: z
       .object({ items: z.array(activityItemSchema) })

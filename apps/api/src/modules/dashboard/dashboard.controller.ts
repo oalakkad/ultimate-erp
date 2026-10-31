@@ -24,6 +24,8 @@ import { kuwaitToday } from '../contracts/contracts.service.js';
 import { AttendanceModule } from '../attendance/attendance.controller.js';
 import { BillingModule } from '../billing/billing.controller.js';
 import { BillingService } from '../billing/billing.service.js';
+import { ExpensesModule } from '../expenses/expenses.controller.js';
+import { ExpensesService } from '../expenses/expenses.service.js';
 import { AttendanceService } from '../attendance/attendance.service.js';
 import { LeaveModule } from '../leave/leave.controller.js';
 import { LeaveService } from '../leave/leave.service.js';
@@ -58,6 +60,7 @@ export class DashboardService {
     private readonly leave: LeaveService,
     private readonly attendance: AttendanceService,
     private readonly billing: BillingService,
+    private readonly expenses: ExpensesService,
   ) {}
 
   async summary(access: AccessContext): Promise<DashboardSummary> {
@@ -206,6 +209,9 @@ export class DashboardService {
       if (may('billing.invoice.read')) {
         out.billing = await this.billing.dashboard(tx);
       }
+      if (hasPermission(access.permissions, 'expenses.claim.create', 'own')) {
+        out.expenses = await this.expenses.dashboard(tx, access);
+      }
       if (hasPermission(access.permissions, 'attendance.read', 'team')) {
         out.attendance = await this.attendance.dashboard(tx, access);
       }
@@ -260,7 +266,14 @@ export class DashboardController {
 }
 
 @Module({
-  imports: [AccessModule, IdentityModule, LeaveModule, AttendanceModule, BillingModule],
+  imports: [
+    AccessModule,
+    IdentityModule,
+    LeaveModule,
+    AttendanceModule,
+    BillingModule,
+    ExpensesModule,
+  ],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

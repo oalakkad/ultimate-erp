@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance), 11 (Payroll, test-only until rules are verified) and 12 (Invoicing) built and committed 2026-10-30. Phase 13 (Notifications & announcements) built and committed 2026-10-31. **Next: Phase 12b (Expenses).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance), 11 (Payroll, test-only until rules are verified) and 12 (Invoicing) built and committed 2026-10-30. Phase 13 (Notifications & announcements) and Phase 12b (Expenses) built and committed 2026-10-31. **Next: Phase 14 (Reports, audit search, analytics).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -98,6 +98,14 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Overtime hours are an explicit input; end-of-service, WPS files and PIFSS reports wait for verified rules.
 - Every role that can be an employee sees its own approved payslips.
 
+## Decisions 2026-10-31 (Phase 12b, Claude in nonstop mode — reviewable)
+- Expense claims have lines; numbers `EX-` on first submission; rejected claims can be reopened and keep their number.
+- Approvers: the claimant's line manager / team lead (team scope) or Owner, CEO, Finance; nobody decides or reimburses their own claim (database-enforced).
+- Reimbursement is recorded by Owner/CEO/Finance (paid outside the system); paying through payroll is a later option.
+- Default categories and a 5.000 KWD receipt threshold are company settings (not legal rules).
+- Billable expenses are re-billed at cost (no mark-up), each line once; voiding the invoice releases them.
+- HR & payroll don't see others' expense claims (finance does).
+
 ## Decisions 2026-10-31 (Phase 13, Claude in nonstop mode — reviewable)
 - Notification preferences default to in-app on, email copy off; security (roles changed) and announcements can't be muted in the app.
 - Announcements are published by Owner, CEO or HR & payroll; the publisher must confirm the exact recipient count from a preview; at most 10 per company per day; published announcements can't be edited or deleted.
@@ -120,7 +128,7 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 6. **Trademark** — search for the product name before launch (see `compliance.md` §3).
 7. **On-prem object storage** — which S3-compatible product to bundle/recommend; decide before first on-prem customer.
 8. **GitHub remote** — needed before the CI workflow can actually run on GitHub.
-9. **Expenses module** — included by default as Phase 12b (owner said "do whatever"); scope confirmed at phase start.
+9. **Expenses module** — built as Phase 12b on 2026-10-31 (scope in `modules/expenses.md`; reviewable).
 
 ## Completed
 - Phase 0 docs: architecture, ADR-0001..0007, domain model, security, permissions, compliance register, design direction, roadmap.
@@ -163,6 +171,8 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 3 — Clients / CRM** (2026-10-30; spec `modules/clients.md`): clients with bilingual names, numbers, duplicate protection, contacts and authorized representatives, communication history, virus-scanned documents, activity timeline, search/filter/sort/paging, CSV export, archive; dashboard card; palette search. Tests: 300 unit/integration + 8 browser.
 
+- **Phase 12b — Expenses** (2026-10-31; spec `modules/expenses.md`): claims with lines and receipts, configurable categories and receipt threshold, approval by line manager / team lead or Owner/CEO/Finance with separation of duties, send back and reopen, recorded reimbursement, project expense cost, re-billing to invoices once at cost, notifications, dashboard card. Tests: 381 unit/integration + 8 browser.
+
 - **Phase 13 — Notifications & announcements** (2026-10-31; spec `modules/notifications.md`): per-person preferences (in-app / email copy; security and announcements mandatory), email copies in the reader's language through the outbox, budget-threshold and invoice-issued notices, bilingual company announcements to everyone or roles with recipient-count confirmation, daily limit, delivery counts and audit. Tests: 378 unit/integration + 8 browser.
 
 - **Phase 12 — Invoicing & payments** (2026-10-30; spec `modules/billing.md`): drafts and issued invoices with lines, discounts, configured taxes, approved time billed once, recorded payments, partial payments, credit notes, void/reversal corrections (database-enforced), overdue reminders, aging, revenue, print view, client tab, dashboard card. Tests: 373 unit/integration + 8 browser.
@@ -182,6 +192,10 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - **Phase 5 — Projects & budgeting** (2026-10-30; spec `modules/projects.md`): projects per client with an optional contract of the same client, P- numbering, manager + team, status machine, budget hours/amount with revision history, hours summary with 80 %/100 % warnings, documents, activity, project-scoped access, client tab, dashboard card. Tests: 320 unit/integration + 8 browser.
 
 - **Phase 4 — Contracts & engagement letters** (2026-10-30; spec `modules/contracts.md`): bilingual templates, CT-/EL- numbering, versions, draft → review → approved → sent → signed copy → active → expired/terminated with separation of duties, renewal reminders and expiry (daily 08:00 Kuwait), print view for PDF, client tab, dashboard card. Tests: 308 unit/integration + 8 browser.
+
+## How to verify Phase 12b
+1. `pnpm check` → api `257` (others as Phase 13); `pnpm e2e:journey` → `2 passed`.
+2. As an employee: Expenses → New claim → add a line (category, description, amount; choose a project and tick "Bill to client" if the client pays; attach the receipt for amounts above 5.000) → Submit for approval (EX-0001). As their manager or the Owner: Expenses → To approve → open it → Approve. As the Owner or Finance: To reimburse → Record reimbursement. The project's page shows the Project expenses card; New invoice → From approved time with "Also re-bill… expenses" adds the expense line once.
 
 ## How to verify Phase 13
 1. `pnpm check` → api `254` (others as Phase 12); `pnpm e2e:journey` → `2 passed`.
@@ -277,4 +291,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 12b (Expenses — claims with receipts, approval, re-billing to clients, project cost), built in nonstop mode: spec `docs/modules/expenses.md` first; then Phase 14 (Reports, audit search, analytics). See the newest entry in `session-log.md`.
+Phase 14 (Reports, audit search, analytics — report catalogue with filters and exports, audit-log search screen, dashboards per module), built in nonstop mode: spec `docs/modules/reports.md` first. See the newest entry in `session-log.md`. See the newest entry in `session-log.md`.

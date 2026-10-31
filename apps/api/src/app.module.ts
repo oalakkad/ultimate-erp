@@ -12,6 +12,7 @@ import { AttendanceModule } from './modules/attendance/attendance.controller.js'
 import { PayrollModule } from './modules/payroll/payroll.controller.js';
 import { BillingModule } from './modules/billing/billing.controller.js';
 import { AnnouncementsModule } from './modules/announcements/announcements.controller.js';
+import { ExpensesModule } from './modules/expenses/expenses.controller.js';
 import { DashboardModule } from './modules/dashboard/dashboard.controller.js';
 import { FilesModule } from './modules/files/files.controller.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
@@ -65,6 +66,7 @@ export class AppModule {
         PayrollModule,
         BillingModule,
         AnnouncementsModule,
+        ExpensesModule,
         OpenApiModule,
       ],
       providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],

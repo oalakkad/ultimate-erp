@@ -199,9 +199,15 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET/PATCH | `/api/v1/billing/settings` | `billing.invoice.read` / `billing.invoice.issue` | Payment terms and taxes (flagged until verified) | 12 |
 | GET/POST | `/api/v1/invoices` (+ `/from-time`) | read (project) / issue | Register; draft by hand or from approved billable time (each entry once) | 12 |
 | GET/PATCH/DELETE | `/api/v1/invoices/:id` | read / issue | One invoice; edit or delete drafts only | 12 |
-| POST | `/api/v1/invoices/:id/{issue,void}`, `/credit-notes` | issue | Number on issue; void without payments; credit notes | 12 |
+| POST | `/api/v1/invoices/:id/{issue,void}`, `/credit-notes` | issue | Number on issue; void without payments; credit notes (`/from-time` takes `includeExpenses` since 12b) | 12 |
 | POST | `/api/v1/invoices/:id/payments`, `/api/v1/payments/:id/reverse` | `billing.payment.record` | Recorded payments; reversal with reason | 12 |
 | GET | `/api/v1/billing/aging`, `/billing/revenue?year=` | read (company) | Receivables by age and client; invoiced vs received by month | 12 |
+| GET/PATCH | `/api/v1/expenses/settings` | claim (read) / `expenses.settings.manage` | Categories and receipt threshold | 12b |
+| GET/POST | `/api/v1/expenses?view=mine\|approvals\|reimburse\|all` | `expenses.claim.create` (own) | Claims by view (scope checked per row); start a draft | 12b |
+| GET/PATCH/DELETE | `/api/v1/expenses/:id` | own / read scope | One claim; edit or delete my draft (lines replaced) | 12b |
+| POST | `/api/v1/expenses/:id/{submit,approve,reject,reopen,reimburse}` | own / approve (team) / reimburse | Workflow; never decide or reimburse my own | 12b |
+| POST | `/api/v1/expenses/:id/lines/:lineId/receipt` | read scope | 5-minute link to a clean receipt (audited) | 12b |
+| GET | `/api/v1/projects/:id/expenses` | company expense readers or the project manager | Approved, billable, invoiced, pending + lines | 12b |
 | GET | `/api/v1/org-chart` | read | Reporting lines of people I may see | 8 |
 | GET | `/api/v1/workload?projectId=` | allocation.manage on the project, or company read | Open tasks / hours / overdue per person | 6 |
 | GET | `/api/v1/notifications?limit=&cursor=` | Member | My notifications here, newest first `{ items, nextCursor }` | 1.5a |

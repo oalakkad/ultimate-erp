@@ -25,6 +25,8 @@ import { KioskPage } from '../routes/attendance/kiosk.js';
 import { ScanPage } from '../routes/attendance/scan.js';
 import { InvoicePage, NewInvoicePage } from '../routes/billing/invoice.js';
 import { InvoicesPage } from '../routes/billing/invoices.js';
+import { ExpenseClaimPage } from '../routes/expenses/claim.js';
+import { ExpensesPage } from '../routes/expenses/expenses.js';
 import { InvoicePrintPage } from '../routes/billing/print.js';
 import { LeavePage } from '../routes/leave/leave.js';
 import { PayrollPage } from '../routes/payroll/payroll.js';
@@ -303,6 +305,16 @@ const invoicePrintRoute = createRoute({
   path: '/invoices/$invoiceId/print',
   component: InvoicePrintPage,
 });
+const expensesRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/expenses',
+  component: ExpensesPage,
+});
+const expenseClaimRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/expenses/$claimId',
+  component: ExpenseClaimPage,
+});
 const announcementsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/announcements',
@@ -359,6 +371,8 @@ export const router = createRouter({
       invoicesRoute,
       newInvoiceRoute,
       invoiceRoute,
+      expensesRoute,
+      expenseClaimRoute,
       announcementsRoute,
       accountRoute,
     ]),
