@@ -4,6 +4,7 @@
 # Run the worker:   docker run ultimate-erp-api node --enable-source-maps dist/worker.js
 # Run migrations:   docker run -e DATABASE_MIGRATOR_URL=... ultimate-erp-api \
 #                     node node_modules/@ultimate-erp/db/dist/cli/migrate.js
+# Backup tool:      docker run ... ultimate-erp-api node dist/ops/cli.js backup   (docs/operations.md)
 
 FROM node:24.22.2-alpine AS build
 WORKDIR /repo
@@ -19,6 +20,8 @@ ENV NODE_ENV=production \
     API_HOST=0.0.0.0 \
     API_PORT=3000
 WORKDIR /app
+# PostgreSQL 18 client tools (pg_dump / pg_restore) for the backup tool, docs/operations.md.
+RUN apk add --no-cache postgresql18-client
 COPY --from=build --chown=node:node /out/api ./
 # Never run as root inside the container.
 USER node

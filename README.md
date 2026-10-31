@@ -33,6 +33,8 @@ pnpm install
 | `pnpm db:seed` | Starts the services, prepares the database, adds the two demo companies (dev only): http://acme.localhost:3000/api/v1/tenant |
 | `pnpm http <METHOD> <url> [key=value ...] [--as <person>]` | Development helper: call the API, including company addresses like `http://acme.localhost:3000` (PowerShell cannot resolve `*.localhost`). Keeps cookies per person in `.dev-cookies/` |
 | `pnpm db:generate --name=<what>` | Create a migration from schema changes (see [docs/database.md](docs/database.md)) |
+| `pnpm backup` / `pnpm backup:verify <folder>` | Encrypted backup of the development database and files into `backups/`, and its check (see [docs/operations.md](docs/operations.md)) |
+| `pnpm backup:restore <folder> --database <name> --bucket <name>` | Restore drill into a side database and bucket (never over existing data) |
 
 Stop `pnpm dev` with `Ctrl+C`. The Docker services keep running until `pnpm services:down`, and restart automatically with Docker Desktop. If a command says it cannot reach the database, start Docker Desktop, then `pnpm services:up`. Your data is kept in Docker volumes; `docker compose -f infra/compose/compose.dev.yaml --env-file .env down -v` deletes it.
 
@@ -64,7 +66,7 @@ docs/               Architecture, decisions, roadmap, status
 ## Documentation
 - [Project status](docs/project-status.md)
 - [Roadmap](docs/roadmap.md) · [Requirements checklist](docs/requirements-checklist.md)
-- [Testing](docs/testing.md) · [API conventions](docs/api.md) · [Database](docs/database.md)
+- [Testing](docs/testing.md) · [API conventions](docs/api.md) · [Database](docs/database.md) · [Operations runbook](docs/operations.md) · [Hardening plan](docs/hardening.md)
 - [Product brief](docs/product-brief.md) · [Session log](docs/session-log.md)
 - [Architecture](docs/architecture.md) and [decisions](docs/decisions/)
 - [Domain model](docs/domain-model.md) · [Security](docs/security.md) · [Permissions](docs/permissions.md) · [Compliance](docs/compliance.md) · [Design system](docs/design-system.md)

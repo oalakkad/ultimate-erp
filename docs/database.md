@@ -30,7 +30,7 @@ The API checks its own role at first use and refuses all data access (503) if it
 | `pnpm db:generate --name=<what>` | Generates a new SQL migration from changes to `packages/db/src/schema/`. |
 | `pnpm --filter @ultimate-erp/db generate:custom -- --name=<what>` | Creates an empty SQL migration for security (RLS, grants, functions). |
 
-Production: a DBA runs the bootstrap statements from `packages/db/src/admin.ts` (`bootstrapDatabase`) once with real secrets; deployments run `db:migrate` as a separate step before starting the new version (ADR-0007).
+Production: the one-shot `bootstrap` service of `infra/compose/compose.prod.example.yaml` (the same `bootstrapDatabase`) creates/updates the roles with the administrator password, which the running app never sees; `migrate` then runs as a separate step before the new version starts (ADR-0007). Backups and restores: [operations.md](operations.md) — made as `erp_migrator` with `pg_dump --enable-row-security` (FORCE RLS applies to the owner too; its `<table>_migrator` policy shows every row), restored only into an empty database.
 
 ## 4. Adding a tenant-owned table — mandatory checklist
 

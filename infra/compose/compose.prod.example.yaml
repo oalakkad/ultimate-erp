@@ -1,25 +1,43 @@
-# On-premises example (docs/modules/files-monitoring.md §4). NOT used for development.
+# On-premises example (docs/operations.md, docs/modules/files-monitoring.md section 4).
+# NOT used for development.
 #
 # 1. Copy to compose.yaml and create `prod.env` next to it with your own values (never commit it):
-#      POSTGRES_PASSWORD, MIGRATOR_PASSWORD, APP_PASSWORD   long random passwords
+#      POSTGRES_PASSWORD, MIGRATOR_PASSWORD, APP_PASSWORD   long random passwords (12+ characters)
 #      AUTH_SECRET                                          64+ random characters
-#      DATA_ENCRYPTION_KEY                                  64+ random characters, different from AUTH_SECRET; back it up
+#      DATA_ENCRYPTION_KEY                                  64+ random characters, different from AUTH_SECRET
+#      BACKUP_ENCRYPTION_KEY                                64+ random characters, different again
 #      APP_PUBLIC_URL / WEB_PUBLIC_URL                      https://erp.yourfirm.com
 #      PLATFORM_BASE_DOMAIN                                 erp.yourfirm.com (companies: <slug>.erp.yourfirm.com)
 #      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, SMTP_SECURE
 #      S3_ACCESS_KEY, S3_SECRET_KEY                         object storage credentials
 #      SENTRY_DSN                                           optional (self-hosted GlitchTip)
+#    Keep a copy of AUTH_SECRET, DATA_ENCRYPTION_KEY and BACKUP_ENCRYPTION_KEY somewhere safe and
+#    separate from the backups: without them a backup cannot be restored or read.
 # 2. docker compose --env-file prod.env up -d
+#    (the one-shot `bootstrap` creates the database roles, `migrate` applies database changes,
+#    then the API, worker and web start)
 # 3. Put HTTPS in front of the `web` service (port 8080) with your reverse proxy / load balancer.
-#
-# Database roles (erp_migrator, erp_app) must exist first — see docs/database.md "Production".
+# 4. Backups (docs/operations.md section 2): create the folder once
+#      mkdir -p backups && sudo chown 1000:1000 backups
+#    then schedule (e.g. nightly with cron):
+#      docker compose --env-file prod.env --profile ops run --rm backup
+#    and copy ./backups to storage in another location.
 
 name: ultimate-erp
 
+x-database-urls: &database-urls
+  DATABASE_URL: postgres://erp_app:${APP_PASSWORD}@postgres:5432/erp
+  DATABASE_MIGRATOR_URL: postgres://erp_migrator:${MIGRATOR_PASSWORD}@postgres:5432/erp
+
+x-storage-env: &storage-env
+  S3_ENDPOINT: http://object-storage:9000
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+
 x-app-env: &app-env
+  <<: [*database-urls, *storage-env]
   NODE_ENV: production
   APP_PROFILE: onprem
-  DATABASE_URL: postgres://erp_app:${APP_PASSWORD}@postgres:5432/erp
   AUTH_SECRET: ${AUTH_SECRET}
   DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
   APP_PUBLIC_URL: ${APP_PUBLIC_URL}
@@ -31,13 +49,18 @@ x-app-env: &app-env
   SMTP_USER: ${SMTP_USER}
   SMTP_PASSWORD: ${SMTP_PASSWORD}
   SMTP_FROM: ${SMTP_FROM}
-  S3_ENDPOINT: http://object-storage:9000
   S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
-  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-  S3_SECRET_KEY: ${S3_SECRET_KEY}
   CLAMAV_HOST: clamav
   SENTRY_DSN: ${SENTRY_DSN:-}
   PASSWORD_BREACH_CHECK: 'false' # set 'true' if the server may reach the internet
+
+x-backup-env: &backup-env
+  <<: [*database-urls, *storage-env]
+  BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+  BACKUP_DIR: /backups
+  # Only fingerprinted, so a restore can warn when the keys of the new server differ.
+  AUTH_SECRET: ${AUTH_SECRET}
+  DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
 
 services:
   postgres:
@@ -60,11 +83,26 @@ services:
       RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY}
       RUSTFS_SECRET_KEY: ${S3_SECRET_KEY}
     volumes: [object-storage-data:/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:9000/health || exit 1']
+      interval: 5s
+      retries: 20
 
   clamav:
     image: clamav/clamav:1.5.4-debian13-slim
     restart: unless-stopped
     volumes: [clamav-data:/var/lib/clamav]
+
+  # One-shot: creates/updates the database roles erp_migrator, erp_app, erp_platform. The only
+  # service that uses the administrator password; the running app never sees it.
+  bootstrap:
+    image: ultimate-erp-api:latest
+    command: ['node', 'node_modules/@ultimate-erp/db/dist/cli/bootstrap.js']
+    environment:
+      <<: *database-urls
+      DATABASE_ADMIN_URL: postgres://erp_admin:${POSTGRES_PASSWORD}@postgres:5432/erp
+    depends_on:
+      postgres: { condition: service_healthy }
 
   migrate:
     image: ultimate-erp-api:latest
@@ -72,7 +110,7 @@ services:
     environment:
       DATABASE_MIGRATOR_URL: postgres://erp_migrator:${MIGRATOR_PASSWORD}@postgres:5432/erp
     depends_on:
-      postgres: { condition: service_healthy }
+      bootstrap: { condition: service_completed_successfully }
 
   api:
     image: ultimate-erp-api:latest
@@ -94,6 +132,40 @@ services:
     restart: unless-stopped
     ports: ['8080:8080']
     depends_on: [api]
+
+  # ---- Operations (run on demand: `--profile ops run --rm <service>`) ------------------------
+  # Encrypted backup of the database and stored files into ./backups, then old ones pruned
+  # (30 latest + 12 monthly). Schedule it nightly.
+  backup:
+    image: ultimate-erp-api:latest
+    profiles: [ops]
+    command: ['sh', '-c', 'node dist/ops/cli.js backup && node dist/ops/cli.js prune']
+    environment: *backup-env
+    volumes: ['./backups:/backups']
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # Checks a backup without restoring it:  run --rm verify /backups/<name>
+  verify:
+    image: ultimate-erp-api:latest
+    profiles: [ops]
+    entrypoint: ['node', 'dist/ops/cli.js', 'verify']
+    environment: *backup-env
+    volumes: ['./backups:/backups:ro']
+
+  # Restores into an EMPTY database and bucket (docs/operations.md section 3):
+  #   run --rm restore /backups/<name>
+  restore:
+    image: ultimate-erp-api:latest
+    profiles: [ops]
+    entrypoint: ['node', 'dist/ops/cli.js', 'restore']
+    environment:
+      <<: *backup-env
+      DATABASE_ADMIN_URL: postgres://erp_admin:${POSTGRES_PASSWORD}@postgres:5432/erp
+    volumes: ['./backups:/backups:ro']
+    depends_on:
+      postgres: { condition: service_healthy }
+      object-storage: { condition: service_healthy }
 
 volumes:
   postgres-data:

@@ -14,4 +14,4 @@
 
 ## Open items
 - On-prem update channel and support access model (customer-controlled, audited) — to design before first on-prem customer.
-- Backup/restore runbook per profile — Phase 15.
+- Backup/restore runbook per profile — done in Phase 15a: `docs/operations.md` §2–4 (on-prem compose services; SaaS = managed point-in-time recovery + the same logical backup).

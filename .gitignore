@@ -19,3 +19,6 @@ test-results/
 apps/web/e2e/results/
 apps/web/e2e/screenshots/
 playwright-report/
+
+# Local backups (pnpm backup) - encrypted, but never committed
+backups/

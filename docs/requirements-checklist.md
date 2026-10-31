@@ -133,7 +133,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Keys, tenant ownership, integrity, unique constraints, indexes, naming | domain-model.md conventions, docs/database.md §4 | ✅ pattern 1.2 |
 | Money precision, date/time handling | ADR-0005 | ✅ decided |
 | Timestamps, soft delete only where justified, history | domain-model §5 | ✅ policy |
-| Migrations, backup & recovery plan | docs/database.md, ADR-0007 | 🟡 migrations ✅ 1.2; backup ⏳ 15 |
+| Migrations, backup & recovery plan | docs/database.md, ADR-0007, docs/operations.md | ✅ migrations 1.2; backup, verify, restore, retention + automated restore drill 15a |
 | Concurrency (locking, optimistic versions) | domain-model §3, api.md §8 | 🟡 designed |
 | Derived totals consistency | domain-model (ledger for leave; computed hours) | 🟡 per module |
 

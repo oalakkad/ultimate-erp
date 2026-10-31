@@ -19,6 +19,8 @@ export interface Person {
   patch(path: string, body: object, host?: string): request.Test;
   put(path: string, body: object, host?: string): request.Test;
   delete(path: string, host?: string): request.Test;
+  /** Uploads `content` as a multipart file field named `file`. */
+  attach(path: string, content: Buffer, name: string, host?: string): request.Test;
 }
 
 /**
@@ -40,6 +42,8 @@ export function people(server: () => Server, mailpit: () => TestMailpit) {
       patch: (path, body, host) => at(agent.patch(path), host).send(body),
       put: (path, body, host) => at(agent.put(path), host).send(body),
       delete: (path, host) => at(agent.delete(path), host),
+      attach: (path, content, name, host) =>
+        at(agent.post(path), host).attach('file', content, name),
     };
   };
 

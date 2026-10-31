@@ -3,7 +3,7 @@
 Last updated: 2026-10-28
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance), 11 (Payroll, test-only until rules are verified) and 12 (Invoicing) built and committed 2026-10-30. Phase 13 (Notifications & announcements), Phase 12b (Expenses), design v0.3 and Phase 14 (Reports & audit search) built and committed 2026-10-31. **Next: Phase 15 (Hardening & release prep).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance), 11 (Payroll, test-only until rules are verified) and 12 (Invoicing) built and committed 2026-10-30. Phase 13 (Notifications & announcements), Phase 12b (Expenses), design v0.3 and Phase 14 (Reports & audit search) built and committed 2026-10-31. Phase 15 (Hardening & release prep, plan `hardening.md`): **15a (backup, restore, clean install) built and committed 2026-10-31. Next: 15b (production configuration & deployment validation).**** All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -97,6 +97,20 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Prepare (HR & payroll or CEO) → approve → mark paid; never the same person who prepared; one live run per month.
 - Overtime hours are an explicit input; end-of-service, WPS files and PIFSS reports wait for verified rules.
 - Every role that can be an employee sees its own approved payslips.
+
+## Decisions 2026-10-31 (Phase 15 plan, Claude in nonstop mode — reviewable; details in `hardening.md` §3)
+- Phase 15 split into 15a backup/restore + clean install, 15b production config + deployment validation, 15c performance, 15d security/isolation/accessibility/monitoring/readiness.
+- Backups: built-in `pg_dump` + file-bucket mirror for both profiles; SaaS production also uses managed point-in-time recovery. Default targets RPO 24 h on-prem / ≤ 5 min SaaS, RTO 4 h, retention 30 daily + 12 monthly (to confirm with the first customer).
+- Load testing with autocannon (MIT) from a Node script, not k6.
+- No real cloud deployment until the owner provides an account, domain and SMTP provider; deployment is proven on the production compose locally and in CI.
+- An external penetration test is recommended before the first paying customer.
+
+## Decisions 2026-10-31 (Phase 15a, Claude in nonstop mode — reviewable)
+- Backups contain the database and every stored file that a file record points to (unreferenced objects are unreachable leftovers and are skipped); infected files were deleted at scan time and are not expected.
+- A restore goes only into an empty database and an empty bucket; it never overwrites. It refuses when `DATA_ENCRYPTION_KEY` / `AUTH_SECRET` differ from the backup's (one-way fingerprints in the manifest) unless `--allow-key-mismatch` is given.
+- Jobs waiting at backup time (e.g. emails) are restored and will run; a few emails may be sent twice. `--sign-out-everyone` ends all sessions for post-incident restores.
+- The manifest stays readable (row counts, checksums, no business data); everything else is encrypted with `BACKUP_ENCRYPTION_KEY` (a third secret, separate from the other two).
+- On-prem: a one-shot `bootstrap` service creates the database roles (fixes the install gap), backups via `docker compose --profile ops run --rm backup`, scheduled by the host (cron).
 
 ## Decisions 2026-10-31 (Phase 14, Claude in nonstop mode — reviewable)
 - Reports are computed on request from the live tables (no separate warehouse); periods up to 366 days; 2 000 rows on screen (export the rest).
@@ -205,6 +219,13 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 4 — Contracts & engagement letters** (2026-10-30; spec `modules/contracts.md`): bilingual templates, CT-/EL- numbering, versions, draft → review → approved → sent → signed copy → active → expired/terminated with separation of duties, renewal reminders and expiry (daily 08:00 Kuwait), print view for PDF, client tab, dashboard card. Tests: 308 unit/integration + 8 browser.
 
+## How to verify Phase 15a
+1. `pnpm backup` — prints the counts and `Backup complete: …\backups\uerp-<time>`. Open `manifest.json` in that folder: row counts per table, file list, no business data; the `.enc` files are unreadable.
+2. `pnpm backup:verify backups\uerp-<time>` — "is good: N rows, M stored files".
+3. Restore drill without touching your data: `pnpm backup:restore backups\uerp-<time> --database erp_drill --bucket erp-drill` — "counts match the backup", "Restore complete". Run it again: refused ("not empty"). Clean up as in `operations.md` §4.
+4. Automated drill: `pnpm --filter @ultimate-erp/api exec vitest run test/backup.spec.ts` (6 tests).
+5. Read `docs/operations.md` §1 (the three secrets) and §3 (restore steps).
+
 ## How to verify Phase 14
 1. `pnpm check` → api `261` (others as before); `pnpm e2e:journey` → `2 passed`.
 2. Insights → Reports → Clients: the definition above the table explains each number; change the dates or pick a client; the Total row adds up; Export CSV downloads the same table. Revenue by month shows the chart. Insights → Audit log → Area "Invoices and payments": every invoice and payment action, newest first, with who did it; type a request reference from an error message to find that exact request.
@@ -307,4 +328,4 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 15 (Hardening & release prep — backups and restore drill, production configuration checks, rate limits and headers review, load test, dependency and security review, operator runbook, owner go-live checklist), built in nonstop mode. See the newest entry in `session-log.md`. See the newest entry in `session-log.md`.
+Phase 15b (production configuration guard, deployment smoke test of the production compose with built images, staging profile, headers and rate-limit review, THIRD_PARTY_NOTICES), then 15c and 15d (`hardening.md`), built in nonstop mode. See the newest entry in `session-log.md`.

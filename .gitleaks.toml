@@ -11,4 +11,7 @@ paths = [
   '''pnpm-lock\.yaml''',
   # Local-only file, git-ignored; values come from .env.example placeholders.
   '''(^|/)\.env$''',
+  # Local backups (pnpm backup), git-ignored; encrypted. manifest.json's keyCheck is a key
+  # verifier, not a secret (docs/operations.md section 2).
+  '''(^|/)backups/''',
 ]

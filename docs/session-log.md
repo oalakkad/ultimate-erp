@@ -6,6 +6,24 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-10-31 — Session 8: Phase 15 plan; Phase 15a (backup, restore, clean install) built + committed
+
+- Session started without the previous conversation; state taken from git and this log. The owner's sales-deck PDFs in `docs/sales/` are **not to be committed** (owner: "dont commit that"); excluded locally in `.git/info/exclude`.
+- Phase 15 plan written: `docs/hardening.md` (15a–15d, decisions §3, owner go-live needs §4); decisions recorded in project-status.
+
+### Hand-over 15a (A–H)
+- **A Built:** encrypted backups of the database and every stored file a record points to (one database snapshot for the dump and the exact row counts), `verify` (sizes, checksums, key, full decryption), `restore` only into an empty database and empty bucket (checks everything first; afterwards proves row counts, forced RLS, safe app role, byte-identical files), retention `prune` (30 latest + 12 monthly), dev scripts, server-image tools, on-prem compose `bootstrap` (fixes the missing role creation) and `backup` / `verify` / `restore` services, runbook `docs/operations.md`.
+- **B Files:** api `src/ops/` (`backup-crypto.ts` file format AES-256-GCM + scrypt, `pg-tools.ts` pg_dump/pg_restore locally or via `docker exec`, `backup-storage.ts`, `database-inventory.ts` catalogue checks + counts + migration level, `backup-manifest.ts` validated manifest, `backup.ts`, `verify.ts`, `restore.ts`, `prune.ts`, `commands.ts`, `cli.ts`, `ops.spec.ts`), `test/backup.spec.ts`, `test/support/people.ts` (`attach` for uploads); db `testing/index.ts` (`startEmptyTestDatabase`, `containerId`); `infra/docker/api.Dockerfile` (+ `postgresql18-client`), `infra/compose/compose.prod.example.yaml`; root `package.json` (`backup`, `backup:verify`, `backup:restore`, `backup:prune`, `ops:build`); `.env.example` (`BACKUP_ENCRYPTION_KEY`, `BACKUP_DIR`), `.gitignore` + `.gitleaks.toml` (`backups/`); docs operations (new), hardening (new), database, testing, compliance, checklist, README, ADR-0007, roadmap, project-status.
+- **C Architecture:** migrator connection → `BEGIN REPEATABLE READ` → `pg_export_snapshot()` → row counts + `pg_dump --snapshot --enable-row-security` (stdout → AES-GCM file) → file records → objects copied and encrypted → `manifest.json` → rename `.partial` to final. Restore: verify → key fingerprints → migration compatibility → empty database + bucket → `bootstrapDatabase` → decrypting stream → `pg_restore --single-transaction --exit-on-error --no-owner` → counts / forced RLS → `runMigrations` (upgrades older backups) → app-role check → objects with checksum check.
+- **D Security:** backup as `erp_migrator`, no superuser; refuses if any RLS table hides rows from it (otherwise rows could be silently missing). Confirmed by experiment that pg_dump without `--enable-row-security` fails on our FORCE-RLS tables. Every file encrypted, logical name bound in (no swapping), tamper and wrong-key detection, manifest file names validated (no path traversal), no plaintext dump ever written to disk, passwords passed to tools through the environment (never in a process list). Restore never overwrites and checks the application keys before writing anything.
+- **E Tests:** `pnpm check` **408** passed (api 284 = 261 + 17 ops unit + 6 restore drill; db 39, contracts 36, web 23, ui 16, i18n 10); `pnpm security` clean (same moderate advisory; gitleaks first flagged the manifest `keyCheck` in the git-ignored `backups/` folder → allow-listed with reason). Manual drill on dev data: 86 tables, 9,570 rows, 133 files backed up, verified, restored into `erp_drill` / `erp-drill` with matching counts; second restore refused; drill database and bucket removed. Browser tests not affected (no UI change).
+- **F Verify:** project-status "How to verify Phase 15a".
+- **G Open:** the server image with `postgresql18-client` is built and exercised in 15b's deployment test (the package was verified on the same `node:24.22.2-alpine` base: pg_dump 18.6); scheduled backups are the host's job (cron); off-site copy is the operator's.
+- **Windows notes:** the Bash tool mangles some heredocs (`\\` → `\`, and long files fail with a quote error) — write long files with PowerShell `[IO.File]::WriteAllText` (UTF-8 without BOM). Renaming a just-written folder can fail with EPERM (antivirus); the backup retries.
+- **Repo state:** committed ("Phase 15a"). Not pushed. Docker dev services running; `pnpm dev` not checked this session. Local `.env` gained `BACKUP_ENCRYPTION_KEY`, `BACKUP_DIR` (appended by init-env). A dev backup sits in `backups/` (git-ignored).
+- **H Next:** 15b — production configuration guard, deployment smoke test with built images on the production compose, staging profile, headers and rate-limit review, THIRD_PARTY_NOTICES.
+
+---
 ## 2026-10-31 — Session 7 (continued): Phase 14 (Reports, audit search & analytics) built + committed
 
 ### Hand-over 14 (A–H)
