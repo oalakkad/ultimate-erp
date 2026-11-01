@@ -4,3 +4,5 @@ coverage
 pnpm-lock.yaml
 # Hand-written docs keep their own formatting.
 *.md
+# Generated QR page for Expo Go (git-ignored)
+apps/mobile/expo-go-qr.html
