@@ -17,10 +17,10 @@ export default defineConfig({
   reporter: [['list']],
   use: { baseURL: deployedUrl ?? 'http://localhost:5173', trace: 'retain-on-failure' },
   projects: [
-    { name: 'ui', testIgnore: /journey/, use: { ...devices['Desktop Chrome'] } },
+    { name: 'ui', testIgnore: /journey|platform/, use: { ...devices['Desktop Chrome'] } },
     {
       name: 'journey',
-      testMatch: /journey\.spec\.ts/,
+      testMatch: /(journey|platform)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
       // The dev server transforms every source module on each full page load and proxies the
       // API through the same process, so screens take seconds to appear. The "deployed" project

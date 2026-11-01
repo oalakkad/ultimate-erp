@@ -250,6 +250,9 @@ describe('every tenant-owned table is protected (catalog guard for future tables
     expect(rows.map((r) => r.table)).toEqual([
       'accounts',
       'email_deliveries',
+      // Phase 17: the platform console's operator list and its own audit (docs/modules/platform.md).
+      'platform_audit_events',
+      'platform_operators',
       'rate_limit_buckets',
       'sessions',
       'tenants',

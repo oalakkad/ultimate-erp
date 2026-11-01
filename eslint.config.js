@@ -67,7 +67,7 @@ export default defineConfig(
     // Business modules reach data only through TenantDatabase.withTenant (ADR-0003), and never
     // touch the global identity tables (docs/modules/identity.md §3).
     files: ['apps/api/src/modules/**/*.ts'],
-    ignores: ['apps/api/src/modules/identity/**'],
+    ignores: ['apps/api/src/modules/identity/**', 'apps/api/src/modules/platform/**'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -93,7 +93,9 @@ export default defineConfig(
   {
     // Reviewed exception: identity owns the global (non-tenant) tables, so it may use the
     // unscoped database handle — but still no raw drivers or admin/test helpers.
-    files: ['apps/api/src/modules/identity/**/*.ts'],
+    // The platform console (Phase 17) is the second reviewed exception: it reads the global
+    // platform tables and calls the SECURITY DEFINER directory functions, never company tables.
+    files: ['apps/api/src/modules/identity/**/*.ts', 'apps/api/src/modules/platform/**/*.ts'],
     rules: { 'no-restricted-imports': ['error', { paths: RAW_DATABASE_IMPORTS }] },
   },
   {

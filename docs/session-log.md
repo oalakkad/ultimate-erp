@@ -6,6 +6,33 @@ Each entry: date · what was done · state of the repo (commits, uncommitted wor
 
 ---
 
+## 2026-11-01 — Session 9 (continued): Phase 17 — Platform console (founder) — built, tests green, docs pending
+
+Owner asked for a founder-level module ("my account as founder, created once, sees all companies") and said "do finish it", then "save the progress, I will leave". State saved here; the module works and is verified; documentation hand-over is the remaining step.
+
+### What was built (Phase 17, commit "Phase 17 (WIP): platform console")
+- **Database** (`packages/db`): schema `platform.ts`; migration `0038_platform_tables` (`platform_operators`, `platform_audit_events` — global tables, reviewed in `isolation.spec.ts`) and `0039_platform_security` (RLS + grants: app may read operators and append audit, never grant; append-only triggers; **SECURITY DEFINER functions** `app.is_platform_operator`, `app.platform_companies`, `app.platform_overview`, `app.platform_set_company_status` — the only cross-company read path, directory facts only, each checks the operator itself).
+- **API** (`apps/api/src/modules/platform/`): `PlatformGuard` (session → main address only → operator → two-factor on; everything else 404/403), `PlatformService` (calls the functions; never opens a company transaction; lint exception alongside identity), routes `GET /platform/me`, `/overview`, `/companies?search&status`, `/companies/:id`, `POST /companies/:id/status {status, reason}`, `GET /audit-events`. `/platform/*` excluded from tenant resolution (main address). **CLI** `founder <email> [--revoke]` (`ops/founder.ts`, migrator role) → root script **`pnpm platform:founder <email>`**; there is deliberately no API to grant it.
+- **Web** (`apps/web/src/routes/platform.tsx`, route `/platform`): overview tiles, searchable company table (owners, people, pending invitations, last activity, created, status), suspend/reactivate dialog with a required reason, founder audit list; link on the Companies page for founders only. EN/AR (`ui.platform.*`).
+- **Also this session (committed earlier):** sign-in redesign (web + app), `pnpm dev:phone` for iPhone testing.
+- **Dev data:** migrations applied to the dev DB; **`omarakkad115@gmail.com` granted the console** — it will say "set up two-factor" until the owner turns two-factor on under My account (by design).
+
+### Verification (really run)
+- `apps/api/test/platform.spec.ts` **2 passed**: non-operator → 404 and `/platform/me` false; anonymous 401; app role cannot insert operators (42501); granted without two-factor → 403 MFA_REQUIRED; company host → 404; directory shows members/pending/owners/last activity and **no business data** (client name absent; founder gets 404 on `/clients` of a company); suspend → company host 404, gone from members' lists; reason required (422); reactivate restores; both actions in the platform audit with reason and actor; audit delete → 42501.
+- `packages/db` 39 passed (new global tables registered). `apps/web/e2e/platform.spec.ts` **EN + AR passed** against the dev stack (founder granted through the real CLI; console opened from the Companies page; suspend/reactivate with reasons; axe clean on the page and the dialog; screenshots `e2e/screenshots/platform-{en,ar}.png`).
+- `pnpm format:check` ✅, `pnpm lint` ✅, `pnpm typecheck` ✅ (10 packages). `pnpm test`: **451 of 452** — the one failure is `tasks.spec.ts` "lets a Manager allocate…" hitting the 30 s per-test limit under full parallel load (same as earlier today; passes alone and in an idle full API run). An attempt to give that test a 90 s budget was **not applied** (owner stopped the edit); decide: raise its timeout or leave as is.
+- Not yet run after this phase: `pnpm security` (no new dependencies, so expected clean), the full `pnpm e2e:journey`.
+
+### Still to do for the Phase 17 hand-over (next session)
+1. Docs: `docs/modules/platform.md` (spec + results), `security.md` §2f (platform access path, R14 update), `permissions.md` (founder is not a company role), `api.md` endpoints, `operations.md` §9 (granting/revoking the founder), `testing.md`, `roadmap.md` (Phase 17), `requirements-checklist.md` (brief §486: deliberately designed, audited platform role), `project-status.md` (decisions: directory only, no support access, CLI-only grant, two-factor mandatory), README (`pnpm platform:founder`).
+2. Decide on the `tasks.spec.ts` timeout; run `pnpm security`; then the final commit "Phase 17".
+3. Owner: turn two-factor on for `omarakkad115@gmail.com` (web → My account) to open the console.
+
+### Repo / machine state
+- Committed as "Phase 17 (WIP): platform console". Not pushed.
+- **`pnpm dev` and Metro are stopped** (stopped for the test run). To test the app on the iPhone again: `pnpm dev`, then in a second terminal `$env:EXPO_PUBLIC_API_URL='http://192-168-8-136.nip.io:5173'; pnpm --filter @ultimate-erp/mobile start` (QR in the terminal; Expo account `omar94alakkad` is logged in on the laptop). `.env` still points at the phone-friendly nip.io address (`pnpm dev:phone --off` to revert).
+
+---
 ## 2026-11-01 — Session 9: Phase 16 (mobile app) built + committed — all phases of the brief done
 
 Owner instruction at the start: "finish all left phases, do all without asking, all at once, I'm leaving home." The only phase left was 16 (React Native app); the open "GRC tooling" item is not a brief phase and is recorded as a decision (deferred until a pilot firm asks). Docker Desktop was off at the start and was started.

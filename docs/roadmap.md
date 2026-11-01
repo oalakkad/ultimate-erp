@@ -22,6 +22,7 @@ Each phase ends with: tests passing, docs updated, demo/manual verification step
 | 14 | Reports, audit search, analytics | Done 2026-10-31 |
 | 15 | Hardening & release prep (plan: `hardening.md`) | Done 2026-10-31 — readiness: `release-readiness.md` |
 | 16 | React Native app (spec: `modules/mobile.md`) | Done 2026-11-01 (Expo app + header session transport; store builds and push are owner steps, `operations.md` §8) |
+| 17 | Platform console — the installation founder sees every company (directory only, no business data), suspends/reactivates with an audited reason; granted by CLI only (owner request 2026-11-01) | Built + verified 2026-11-01; docs hand-over pending |
 | ? | GRC delivery tooling (risk register, controls, audit programs, findings) | Not in the brief's phases; **deferred until a pilot firm asks** (decision 2026-11-01, reviewable in project-status) |
 
 Note: Phase 8 (employees) is a dependency of tasks/timesheets. Phase 1 creates a minimal employee/membership record so Phases 3–7 can assign people; Phase 8 builds the full HR profile on top. Notification infrastructure (in-app + email) is built in Phase 1–2 and *extended* in each module; Phase 13 completes preferences and announcements.

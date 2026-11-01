@@ -14,6 +14,7 @@ import { BillingModule } from './modules/billing/billing.controller.js';
 import { AnnouncementsModule } from './modules/announcements/announcements.controller.js';
 import { ExpensesModule } from './modules/expenses/expenses.controller.js';
 import { ReportsModule } from './modules/reports/reports.controller.js';
+import { PlatformModule } from './modules/platform/platform.controller.js';
 import { DashboardModule } from './modules/dashboard/dashboard.controller.js';
 import { FilesModule } from './modules/files/files.controller.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
@@ -70,6 +71,7 @@ export class AppModule {
         AnnouncementsModule,
         ExpensesModule,
         ReportsModule,
+        PlatformModule,
         OpenApiModule,
       ],
       providers: [

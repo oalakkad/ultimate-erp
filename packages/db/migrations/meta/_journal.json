@@ -267,6 +267,20 @@
       "when": 1793474995181,
       "tag": "0037_perf_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793555228652,
+      "tag": "0038_platform_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793555271125,
+      "tag": "0039_platform_security",
+      "breakpoints": true
     }
   ]
 }

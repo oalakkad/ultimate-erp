@@ -22,6 +22,9 @@ export class TenancyModule implements NestModule {
         { path: 'auth/*path', method: RequestMethod.ALL },
         // Onboarding: the company does not exist yet.
         { path: 'companies', method: RequestMethod.POST },
+        // The founder's console lives on the main address, above every company (Phase 17). Its
+        // guard refuses company addresses itself.
+        { path: 'platform/*path', method: RequestMethod.ALL },
         { path: 'docs/*path', method: RequestMethod.GET },
       )
       .forRoutes({ path: '*path', method: RequestMethod.ALL });

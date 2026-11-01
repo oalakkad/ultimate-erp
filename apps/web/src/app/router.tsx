@@ -80,6 +80,11 @@ const companiesRoute = createRoute({
   path: '/companies',
   component: lazyRouteComponent(() => import('../routes/companies.js'), 'CompaniesPage'),
 });
+const platformRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/platform',
+  component: lazyRouteComponent(() => import('../routes/platform.js'), 'PlatformPage'),
+});
 const handoffRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/handoff',
@@ -331,6 +336,7 @@ export const router = createRouter({
     forgotRoute,
     resetRoute,
     companiesRoute,
+    platformRoute,
     handoffRoute,
     invitationRoute,
     galleryRoute,

@@ -18,6 +18,7 @@ import { BackupError, createBackup } from './backup.js';
 import { PgToolError, type PgToolsTarget } from './pg-tools.js';
 import { DEFAULT_RETENTION, pruneBackups } from './prune.js';
 import { RestoreError, restoreBackup } from './restore.js';
+import { grantFounder } from './founder.js';
 import { BackupKeyError, verifyBackup } from './verify.js';
 
 const postgresUrl = z.url({ protocol: /^postgres(ql)?$/ });
@@ -59,7 +60,7 @@ interface Args {
 }
 
 const VALUE_FLAGS = new Set(['dir', 'database', 'bucket', 'keep-latest', 'keep-monthly']);
-const BOOLEAN_FLAGS = new Set(['dev', 'allow-key-mismatch', 'sign-out-everyone']);
+const BOOLEAN_FLAGS = new Set(['dev', 'allow-key-mismatch', 'sign-out-everyone', 'revoke']);
 
 export function parseArgs(argv: readonly string[]): Args {
   const [command = '', ...rest] = argv;
@@ -246,6 +247,24 @@ export async function main(argv: readonly string[], rawEnv: NodeJS.ProcessEnv): 
         log,
       );
       log(`Kept ${kept} backup(s), deleted ${removed.length}.`);
+      return;
+    }
+    case 'founder': {
+      const email = need(args.positional[0], 'The account email');
+      const outcome = await grantFounder(
+        need(env.DATABASE_MIGRATOR_URL, 'DATABASE_MIGRATOR_URL'),
+        email,
+        args.flags.get('revoke') === true,
+      );
+      const messages = {
+        granted: `${email} can now open the platform console (two-factor must be on to use it).`,
+        already: `${email} already has the platform console.`,
+        revoked: `${email} no longer has the platform console.`,
+        not_operator: `${email} did not have the platform console.`,
+        no_account: `No account uses ${email}. The person must sign up first.`,
+      } as const;
+      log(messages[outcome]);
+      if (outcome === 'no_account') throw new UsageError('Nothing changed.');
       return;
     }
     default:

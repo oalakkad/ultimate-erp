@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Navigate } from '@tanstack/react-router';
+import { Link, Navigate } from '@tanstack/react-router';
 import { createCompanyRequestSchema, createCompanyResponseSchema } from '@ultimate-erp/contracts';
 import {
   Avatar,
@@ -12,7 +12,7 @@ import {
   SelectField,
   TextField,
 } from '@ultimate-erp/ui';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { type z } from 'zod';
 import { useI18n } from '../app/i18n.js';
@@ -21,12 +21,14 @@ import { api } from '../lib/api.js';
 import { openCompany } from '../lib/handoff.js';
 import { errorReference, errorText } from '../lib/errors.js';
 import { useMe, useMyCompanies } from '../lib/session.js';
+import { usePlatformAccess } from './platform.js';
 
 /** Main address after sign-in: pick a company or create one. */
 export function CompaniesPage() {
   const { t, locale } = useI18n();
   const me = useMe();
   const companies = useMyCompanies(Boolean(me.data));
+  const platform = usePlatformAccess(Boolean(me.data));
   const queryClient = useQueryClient();
   const open = useMutation({ mutationFn: openCompany });
 
@@ -99,6 +101,21 @@ export function CompaniesPage() {
         })}
       </ul>
       <FormError error={open.error} />
+      {platform.data?.founder && (
+        <Link
+          to="/platform"
+          className="flex items-center gap-3 rounded-tile bg-plum-soft p-3 text-plum hover:bg-lilac"
+        >
+          <span className="grid size-10 shrink-0 place-items-center rounded-ctl bg-card">
+            <ShieldCheck aria-hidden className="size-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <b className="block">{t('ui.platform.title')}</b>
+            <small className="block text-[12px] opacity-80">{t('ui.platform.linkBody')}</small>
+          </span>
+          <ArrowRight aria-hidden className="mirror size-4" />
+        </Link>
+      )}
 
       <Card title={t('ui.companies.createTitle')} className="bg-frame shadow-none">
         <p className="text-[13px] text-ink-2">{t('ui.companies.createBody')}</p>
