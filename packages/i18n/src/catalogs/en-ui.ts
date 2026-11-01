@@ -125,6 +125,10 @@ export const enUi = {
     passwordsDiffer: 'The passwords do not match.',
   },
   auth: {
+    showcaseTitle: 'Your firm, running in one place.',
+    showcaseBody:
+      'Clients, engagements, hours, leave, payroll and invoices — with the controls an audit firm expects, in English and Arabic.',
+    showcaseModules: 'What is inside',
     email: 'Email',
     password: 'Password',
     newPassword: 'New password',

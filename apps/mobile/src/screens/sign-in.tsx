@@ -10,7 +10,7 @@ import { Button, Field } from '../ui/controls';
 import { FormError } from '../ui/states';
 import { Card, Screen, Stack } from '../ui/surfaces';
 import { Text } from '../ui/text';
-import { space, useTheme } from '../ui/theme';
+import { radius, space, type ToneName, useTheme } from '../ui/theme';
 
 type Props = NativeStackScreenProps<RootParamList, 'SignIn'>;
 
@@ -45,17 +45,46 @@ export function SignInScreen({ navigation }: Props) {
     <Screen>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Stack gap={space.xl}>
-          <View style={styles.brand}>
-            <View style={[styles.logo, { backgroundColor: theme.plum }]}>
-              <Text level="heading" color={theme.onPlum}>
-                U
+          <View style={[styles.showcase, { backgroundColor: theme.plum }]}>
+            <View style={[styles.blob, styles.blobTop, { backgroundColor: theme.lilac.solid }]} />
+            <View style={[styles.blob, styles.blobBottom, { backgroundColor: theme.mint.solid }]} />
+            <View style={styles.logoRow}>
+              <View style={styles.mark}>
+                <View
+                  style={[styles.markSquare, styles.markBack, { backgroundColor: theme.onPlum }]}
+                />
+                <View
+                  style={[
+                    styles.markSquare,
+                    styles.markFront,
+                    { backgroundColor: theme.lilac.solid },
+                  ]}
+                />
+              </View>
+              <Text level="label" color={theme.onPlum}>
+                Ultimate
               </Text>
             </View>
-            <Text level="title" accessibilityRole="header">
-              {t('ui.auth.signInTitle')}
+            <Text level="display" color={theme.onPlum} accessibilityRole="header">
+              {t('ui.auth.showcaseTitle')}
             </Text>
-            <Text tone="ink2">{t('ui.mobile.signInBody')}</Text>
+            <Text level="caption" color={theme.onPlum} style={styles.showcaseBody}>
+              {t('ui.auth.showcaseBody')}
+            </Text>
+            <View style={styles.chips} accessibilityLabel={t('ui.auth.showcaseModules')}>
+              {SHOWCASE.map(({ key, tone }) => (
+                <View key={key} style={[styles.chip, { backgroundColor: theme[tone].bg }]}>
+                  <Text level="caption" color={theme[tone].ink}>
+                    {t(`ui.shell.${key}`)}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
+          <Text level="title" accessibilityRole="header">
+            {t('ui.auth.signInTitle')}
+          </Text>
+          <Text tone="ink2">{t('ui.mobile.signInBody')}</Text>
           <Card>
             <Field
               label={t('ui.auth.email')}
@@ -120,14 +149,35 @@ export function SignInScreen({ navigation }: Props) {
   );
 }
 
+/** The modules named on the welcome panel: real module names, a pastel tone each. */
+const SHOWCASE: {
+  key: 'clients' | 'projects' | 'time' | 'attendance' | 'leave';
+  tone: ToneName;
+}[] = [
+  { key: 'clients', tone: 'sky' },
+  { key: 'projects', tone: 'mint' },
+  { key: 'time', tone: 'butter' },
+  { key: 'attendance', tone: 'mint' },
+  { key: 'leave', tone: 'lilac' },
+];
+
 const styles = StyleSheet.create({
-  brand: { gap: space.sm, paddingTop: space.xxl },
-  logo: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: space.sm,
+  showcase: {
+    borderRadius: radius.card,
+    padding: space.xl,
+    gap: space.md,
+    overflow: 'hidden',
+    marginTop: space.sm,
   },
+  blob: { position: 'absolute', borderRadius: 999, opacity: 0.22 },
+  blobTop: { width: 220, height: 220, top: -110, end: -70 },
+  blobBottom: { width: 160, height: 160, bottom: -90, start: -50, opacity: 0.16 },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  mark: { width: 30, height: 30 },
+  markSquare: { position: 'absolute', width: 20, height: 20, borderRadius: 7 },
+  markBack: { top: 0, start: 0 },
+  markFront: { bottom: 0, end: 0 },
+  showcaseBody: { opacity: 0.8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  chip: { borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 5 },
 });
