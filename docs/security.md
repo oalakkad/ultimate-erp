@@ -81,6 +81,15 @@ Internal review, not a substitute for the external penetration test recommended 
 | R13 QR attendance spoofing | ✅ Controlled | `attendance.spec.ts` (rotating signed codes, replay protection) |
 | R14 Technical admin sees business data | ✅ By design | No platform-operator access path exists yet (`erp_platform` is NOLOGIN); to design with support access |
 | R15 Breach response (Kuwait CITRA 24 h) | 🟡 Runbook ready | `operations.md` §7 incident runbook + tabletop walk-through 2026-10-31; legal confirmation of the notification duty is an owner item (compliance.md ⚖️) |
+## 2e. Phase 16 (2026-11-01): the mobile app's session transport
+
+- **What changed on the server:** one middleware (`platform/request-context/header-session.middleware.ts`). A request that carries `X-Auth-State` is treated as a cookie-less client: the header's content (base64url JSON of cookie name → value, ≤ 8 KB, names `[A-Za-z0-9_.-]`, values printable ASCII without `;`) becomes the request's `Cookie` header, and every `Set-Cookie` the response would carry is moved into the response's `X-Auth-State` header instead. Nothing else changed: Better Auth, the guards, rate limits, two-factor, hand-off and audit run exactly as for a browser.
+- **Why it is safe:** the values are the same HMAC-signed cookies a browser would hold, so a tampered state is simply an invalid session (tested). Browsers never attach a custom header by themselves (a cross-site page would need CORS approval for it), so a header-state request carries no ambient credential — that is why the Origin check does not apply to it (a POST with a foreign Origin is still refused when it relies on cookies; tested). A malformed header is refused with 400 before anything else runs.
+- **On the device:** the state lives in the iOS Keychain / Android Keystore (`expo-secure-store`), one per host (main address, company address). Signing out removes it locally and ends the sessions on the server. The 30-minute idle and 12-hour absolute limits apply unchanged; after them the app shows the sign-in screen.
+- **What the app never does:** choose a company by ID (hosts, as on the web), hold a long-lived refresh token, store passwords, or decide permissions — it only hides what `/access/me` says the person cannot do.
+- **Not in this phase:** push notifications (would need an Expo/APNs/FCM account), certificate pinning (consider for the store build), biometric unlock of the app (the OS lock protects the secure store).
+- **Evidence:** `apps/api/test/mobile-session.spec.ts` (4), `apps/api/src/platform/request-context/header-session.middleware.spec.ts` (4), `apps/web/e2e/mobile-web.spec.ts` (EN + AR).
+
 ## 2b. Accepted risks (reviewed)
 | Finding | Why accepted | Revisit |
 |---|---|---|

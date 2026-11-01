@@ -25,6 +25,8 @@ pnpm install
 | `pnpm check` | Format check, lint, typecheck, tests (CI `check` job) |
 | `pnpm e2e` | Browser tests (Playwright + axe). First time: `pnpm --filter @ultimate-erp/web exec playwright install chromium` |
 | `pnpm e2e:journey` | The whole first-day journey (sign up → company → two-factor → invite) in a real browser, EN and AR. Start `pnpm dev` first |
+| `pnpm e2e:mobile` | The mobile app in a browser preview (sign in, two-factor, company, check in, tasks, leave), EN and AR, against the dev stack. Start `pnpm dev` first |
+| `pnpm --filter @ultimate-erp/mobile start` | The mobile app in Expo Go or a development build on a phone (same Wi-Fi; see `docs/operations.md` section 8) |
 | `pnpm security` | Vulnerability audit, licence check, secret scan (CI `security` job; needs Docker) |
 | `pnpm build` | Compile all packages to `dist/` |
 | `pnpm services:up` / `services:down` / `services:logs` | Start / stop / follow the Docker services |
@@ -57,6 +59,7 @@ All ports bind to `127.0.0.1` only. Values in `.env.example` are local throwaway
 ```
 apps/api            NestJS API (platform: config, logging, request IDs, errors, database, health, mail, rate limits, validation, audit, openapi; modules: tenancy, identity, access)
 apps/web            React web app (Vite, TanStack Router/Query); talks to the API via /api
+apps/mobile         Expo / React Native app (Phase 16): attendance scan, notifications, tasks, time, leave
 packages/ui         Design system: tokens (light/dark), fonts, components (Tailwind + Radix)
 packages/i18n       English/Arabic catalogs (UI + emails), ICU messages, money/date formatting
 packages/db         Drizzle schema, SQL migrations, roles/RLS, withTenant, test database helper

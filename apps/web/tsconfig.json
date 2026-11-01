@@ -1,4 +1,4 @@
 {
   "extends": "@ultimate-erp/config/tsconfig.react.json",
-  "include": ["src", "e2e", "vite.config.ts", "playwright.config.ts"]
+  "include": ["src", "e2e", "vite.config.ts", "playwright.config.ts", "playwright.mobile.config.ts"]
 }

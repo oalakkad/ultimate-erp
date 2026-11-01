@@ -55,6 +55,7 @@ Module rules:
 ```
 
 - **apps/web** — React single-page app. Has *no* business logic of record; it displays and submits. All authoritative calculations (budgets, balances, payroll, permissions) run on the server.
+- **apps/mobile** — Expo / React Native app (Phase 16): attendance scan, notifications, tasks, time, leave, approvals. Shares only `packages/contracts` and `packages/i18n` with the web; no business logic of its own; holds its session state in the device's secure store and sends it in a header (`docs/modules/mobile.md`).
 - **apps/api** — HTTP API, authentication, authorization, business rules, transactions.
 - **apps/worker** — same codebase, different entry point. Runs background jobs: email delivery, PDF generation, reminders, exports, scheduled checks (contract expiry, overdue invoices).
 - **PostgreSQL** — the single source of truth. Job queue (pg-boss) also lives here, so on-prem customers need only Postgres + object storage + SMTP.
@@ -106,7 +107,7 @@ Why `packages/domain` is separate: hour-allocation rules, invoice state transiti
 
 1. **Rate limit** by IP and by account.
 2. **Correlation ID** assigned (or accepted from trusted proxy) and attached to every log line.
-3. **Authenticate** — session cookie (web) or bearer token (mobile) validated by the identity module.
+3. **Authenticate** — session cookie (web) or the same session carried in the `X-Auth-State` header (mobile, Phase 16) validated by the identity module.
 4. **Resolve tenant** — from the subdomain (`acme.erp.example.com`) or custom domain. The frontend never chooses the tenant by sending a raw company ID that we trust.
 5. **Verify membership** — the user must have an active membership in that tenant. Otherwise `404` (not `403`, to avoid confirming the tenant exists to outsiders where appropriate).
 6. **Validate input** with the Zod schema from `packages/contracts`. Unknown fields are rejected (prevents mass assignment).

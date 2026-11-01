@@ -76,6 +76,8 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:3000/api/v1/health && exit 0; sleep 1; done
           cat ../../api.log; exit 1
       - run: pnpm --filter @ultimate-erp/web e2e:journey
+      # The mobile app's browser preview (apps/mobile, exported by `pnpm build`) against the same stack.
+      - run: pnpm --filter @ultimate-erp/web e2e:mobile
       - if: failure()
         run: cat api.log worker.log
 

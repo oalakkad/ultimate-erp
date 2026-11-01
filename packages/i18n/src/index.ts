@@ -15,3 +15,4 @@ export function format(template: string, params: Record<string, string> = {}): s
 }
 
 export * from './format.js';
+export * from './notification-text.js';

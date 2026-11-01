@@ -147,3 +147,23 @@ For a suspected security incident or data breach. Kuwait: notify the regulator (
 6. **Learn.** Write a short report (timeline, cause, fixes) within two weeks; add a test that would have caught it.
 
 **Tabletop walk-through, 2026-10-31** (scenario: an employee's password is phished and used to export the client list): containment by removing the member (Members screen) — available, immediate; evidence: audit search for `clients.client.exported` by that actor shows time, address and request ID — available; assessment: export contents = the client list visible to that role — determinable from the permission matrix; notification: steps above; gap found: an admin cannot end another person's sessions without removing them from the company (only the person can, on their account) — workaround: remove and later re-invite. Recorded as a follow-up.
+
+## 8. The mobile app (Phase 16)
+
+The app in `apps/mobile` is an Expo (React Native) project. It is a second client of the same API: it needs no server of its own.
+
+### What the server needs
+- Nothing new for a deployed installation: the app talks to the main address (`APP_PUBLIC_URL` / `WEB_PUBLIC_URL`, e.g. `https://erp.yourfirm.com`) and to the company addresses the server hands it (`https://acme.erp.yourfirm.com`), both already served by the web container's nginx. CORS is not involved on a phone.
+- The address is configurable in the app itself (sign-in screen → "Server address"), so one build serves SaaS and on-premises customers; a company can also bake its address in with `EXPO_PUBLIC_API_URL` at build time.
+
+### Development
+- Browser preview: `pnpm --filter @ultimate-erp/mobile web` (port 8081) with `pnpm dev` running; the API must list `http://localhost:8081` in `CORS_ORIGINS` (the default `.env.example` does). The preview is for development and tests only, not a product surface.
+- A phone with Expo Go on the same Wi-Fi: `pnpm --filter @ultimate-erp/mobile start`, scan the QR. `*.localhost` does not resolve on a phone: set `APP_PUBLIC_URL`/`WEB_PUBLIC_URL` to an address the phone can reach, e.g. `http://192-168-1-20.nip.io:5173` (nip.io resolves `anything.192-168-1-20.nip.io` to 192.168.1.20), restart `pnpm dev`, and type that address in the app's "Server address" field. Company hosts then become `acme.192-168-1-20.nip.io:5173`.
+- Camera scanning needs a real device (Expo Go or a development build); the browser preview offers a text field for the code instead.
+
+### Building for the stores (owner steps — need accounts)
+1. Create an Expo account and run `npx eas login` / `npx eas build:configure` in `apps/mobile` (adds `eas.json`).
+2. iOS: an Apple Developer account (USD 99/year); Android: a Google Play developer account (one-off USD 25). EAS Build manages the signing keys.
+3. `npx eas build --platform all --profile production`, then `npx eas submit`. Set `EXPO_PUBLIC_API_URL` in the build profile to the installation's main address, or leave it and let people type the address.
+4. Replace the placeholder icon and splash (`apps/mobile/assets/`) with the firm's artwork before the first store submission.
+5. Push notifications are deferred: when wanted, add `expo-notifications`, register device tokens on the server (a new table) and send from the worker — the in-app notification list and badge already exist.

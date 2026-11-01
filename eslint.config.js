@@ -97,8 +97,8 @@ export default defineConfig(
     rules: { 'no-restricted-imports': ['error', { paths: RAW_DATABASE_IMPORTS }] },
   },
   {
-    // React rules of hooks (web app and design system).
-    files: ['apps/web/**/*.tsx', 'packages/ui/**/*.tsx'],
+    // React rules of hooks (web app, mobile app and design system).
+    files: ['apps/web/**/*.tsx', 'apps/mobile/**/*.tsx', 'packages/ui/**/*.tsx'],
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules,
   },

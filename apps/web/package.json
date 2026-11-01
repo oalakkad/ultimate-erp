@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests --dir src",
     "e2e": "playwright test --project=ui",
-    "e2e:journey": "playwright test --project=journey"
+    "e2e:journey": "playwright test --project=journey",
+    "e2e:mobile": "playwright test --config playwright.mobile.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "6.0.2",

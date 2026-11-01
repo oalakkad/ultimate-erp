@@ -31,3 +31,6 @@ Each item the product brief requires for Phase 15 (§18), with its evidence. Det
 - [ ] Payroll and leave rules verified by a Kuwaiti payroll/legal expert; then remove the "test only" flag
 - [ ] External penetration test; fix any high findings
 - [ ] Decide HSTS preload for the platform domain
+
+## Addendum 2026-11-01 — mobile app (Phase 16)
+The Expo app (`apps/mobile`) is built and verified in the browser preview and through the API suite, but **not yet built for the stores**: that needs the owner's Expo account plus Apple Developer / Google Play accounts (`operations.md` §8). Until then the web app on a phone browser remains the mobile surface. The server change for the app (header session transport, `security.md` §2e) is live and tested; it does not affect browser users.

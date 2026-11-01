@@ -15,7 +15,7 @@ One API serves the web app, the future React Native app and integrations. The we
 ## 2. Tenancy and authentication
 
 - The tenant is resolved from the **host** (`acme.<platform-domain>`, `acme.localhost` in dev) and verified against the user's membership. Requests never carry a trusted `companyId`; any such field in a body is rejected.
-- Web: httpOnly session cookie + CSRF protection. Mobile: bearer session token. *(Milestone 1.3)*
+- Web: httpOnly session cookie + CSRF protection *(1.3a)*. Mobile *(Phase 16)*: the same session, carried in the **`X-Auth-State`** header instead of cookies — the client sends the header (empty at first) and stores the value the server returns in the same header (an opaque base64url map of the cookies the server would have set; at most 8 KB, else `400 BAD_REQUEST`). Requests with the header are exempt from the Origin check (no ambient browser credential) and never receive `Set-Cookie`. See `docs/modules/mobile.md` §3–§4.
 - Unknown tenant or no membership ⇒ `404 NOT_FOUND` (does not confirm the tenant exists).
 - Implemented in 1.2: every route except `/health` and `/health/live` passes through tenant resolution; `X-Forwarded-Host` and any client-sent tenant ID are ignored.
 

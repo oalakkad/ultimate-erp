@@ -1,13 +1,12 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import {
-  isRole,
   type Notification,
   notificationListResponseSchema,
   okResponseSchema,
   unreadCountResponseSchema,
 } from '@ultimate-erp/contracts';
-import { formatDate } from '@ultimate-erp/i18n';
+import { formatDate, notificationText } from '@ultimate-erp/i18n';
 import { Button, Drawer, EmptyState, ErrorState, IconButton, LoadingState } from '@ultimate-erp/ui';
 import { Bell } from 'lucide-react';
 import { useState } from 'react';
@@ -19,119 +18,11 @@ import { safeReturnTo } from '../lib/navigation.js';
 const UNREAD_KEY = ['notifications', 'unread'] as const;
 const LIST_KEY = ['notifications', 'list'] as const;
 
-/** The sentence for one notification, in the reader's language. */
+/** The sentence for one notification, in the reader's language (shared with the mobile app). */
 function useNotificationText() {
-  const { t, locale } = useI18n();
-  return (item: Notification) => {
-    switch (item.type) {
-      case 'access.member_joined':
-        return t('ui.notifications.types.access_member_joined', { name: item.params.name ?? '' });
-      case 'access.roles_changed': {
-        const roles = (item.params.roles ?? '')
-          .split(',')
-          .filter(isRole)
-          .map((role) => t(`roles.${role}`))
-          .join(' · ');
-        return t('ui.notifications.types.access_roles_changed', { roles });
-      }
-      case 'contracts.submitted':
-      case 'contracts.approved':
-      case 'contracts.rejected':
-      case 'contracts.renewal_due':
-      case 'contracts.expired': {
-        const key = item.type.replace('.', '_') as 'contracts_expired';
-        return t(`ui.notifications.types.${key}`, {
-          number: item.params.number ?? '',
-          endDate: item.params.endDate ?? '',
-        });
-      }
-      case 'billing.issued':
-        return t('ui.notifications.types.billing_issued', {
-          number: item.params.number ?? '',
-          total: item.params.total ?? '',
-        });
-      case 'projects.budget_threshold':
-        return t('ui.notifications.types.projects_budget_threshold', {
-          number: item.params.number ?? '',
-          percent: item.params.percent ?? '',
-        });
-      case 'announcements.published':
-        return t('ui.notifications.types.announcements_published', {
-          title: (locale === 'ar' ? item.params.titleAr : item.params.title) ?? '',
-        });
-      case 'expenses.submitted':
-        return t('ui.notifications.types.expenses_submitted', {
-          name: item.params.name ?? '',
-          number: item.params.number ?? '',
-          total: item.params.total ?? '',
-        });
-      case 'expenses.decided':
-        return t(
-          item.params.status === 'approved'
-            ? 'ui.notifications.types.expenses_approved'
-            : 'ui.notifications.types.expenses_rejected',
-          { number: item.params.number ?? '' },
-        );
-      case 'expenses.reimbursed':
-        return t('ui.notifications.types.expenses_reimbursed', {
-          number: item.params.number ?? '',
-          total: item.params.total ?? '',
-        });
-      case 'billing.overdue':
-        return t('ui.notifications.types.billing_overdue', {
-          number: item.params.number ?? '',
-          dueDate: item.params.dueDate ?? '',
-        });
-      case 'payroll.submitted':
-      case 'payroll.payslip_ready': {
-        const key = item.type.replace('.', '_') as 'payroll_submitted';
-        return t(`ui.notifications.types.${key}`, { period: item.params.period ?? '' });
-      }
-      case 'attendance.correction_requested':
-        return t('ui.notifications.types.attendance_correction_requested', {
-          name: item.params.name ?? '',
-          date: item.params.date ?? '',
-        });
-      case 'attendance.correction_decided':
-        return t(
-          item.params.status === 'approved'
-            ? 'ui.notifications.types.attendance_correction_approved'
-            : 'ui.notifications.types.attendance_correction_rejected',
-          { date: item.params.date ?? '' },
-        );
-      case 'leave.requested':
-      case 'leave.approved':
-      case 'leave.rejected':
-      case 'leave.cancelled': {
-        const key = item.type.replace('.', '_') as 'leave_requested';
-        return t(`ui.notifications.types.${key}`, {
-          name: item.params.name ?? '',
-          from: item.params.from ?? '',
-          to: item.params.to ?? '',
-        });
-      }
-      case 'time.submitted':
-      case 'time.approved':
-      case 'time.rejected': {
-        const key = item.type.replace('.', '_') as 'time_submitted';
-        return t(`ui.notifications.types.${key}`, {
-          name: item.params.name ?? '',
-          week: item.params.week ?? '',
-        });
-      }
-      case 'tasks.assigned':
-      case 'tasks.overdue': {
-        const key = item.type.replace('.', '_') as 'tasks_assigned';
-        return t(`ui.notifications.types.${key}`, {
-          number: item.params.number ?? '',
-          title: item.params.title ?? '',
-          dueDate: item.params.dueDate ?? '',
-        });
-      }
-    }
-  };
+  const { locale } = useI18n();
+  return (item: Notification) => notificationText(locale, item);
 }
-
 /**
  * Bell in the top bar: unread count (refreshed every minute and when the tab regains focus)
  * and a panel with my notifications. Opening one marks it read and follows its link — the

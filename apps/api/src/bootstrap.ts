@@ -1,11 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { type NestExpressApplication } from '@nestjs/platform-express';
-import { API_PREFIX, REQUEST_ID_HEADER } from '@ultimate-erp/contracts';
+import { API_PREFIX, AUTH_STATE_HEADER, REQUEST_ID_HEADER } from '@ultimate-erp/contracts';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module.js';
 import { type AppConfig, webPublicUrl } from './platform/config/config.js';
 import { PROXY_HOPS_SETTING } from './platform/request-context/client-ip.js';
+import { headerSessionMiddleware } from './platform/request-context/header-session.middleware.js';
 import { originCheckMiddleware } from './platform/request-context/origin-check.middleware.js';
 import { jsonBodyMiddleware } from './platform/request-context/json-body.middleware.js';
 import { requestIdMiddleware } from './platform/request-context/request-id.middleware.js';
@@ -39,6 +40,9 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
       },
     }),
   );
+  // Mobile app: auth state in a header instead of cookies (before the Origin check, which
+  // does not apply to such requests — they carry no ambient browser credential).
+  app.use(headerSessionMiddleware());
   app.use(
     originCheckMiddleware([config.APP_PUBLIC_URL, webPublicUrl(config), ...config.CORS_ORIGINS]),
   );
@@ -48,7 +52,7 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
     app.enableCors({
       origin: config.CORS_ORIGINS,
       credentials: true,
-      exposedHeaders: [REQUEST_ID_HEADER],
+      exposedHeaders: [REQUEST_ID_HEADER, AUTH_STATE_HEADER],
     });
   }
 

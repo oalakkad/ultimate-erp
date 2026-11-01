@@ -19,7 +19,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Connected modules, consistent data model (client → contract → project → budget → tasks → hours → profitability → invoice → payment → reports) | domain-model.md §1–2 | 🟡 designed |
 | Genuine multi-tenancy, not company switching | ADR-0003, architecture §6 | 🟡 designed, built in 1.2 |
-| Web first, React Native later | ADR-0001/0002, Phase 16 | 🟡 designed |
+| Web first, React Native later | ADR-0001/0002, Phase 16 | ✅ 16 (modules/mobile.md): Expo / React Native app reusing the API, identity, permissions and contracts |
 | Commercial SaaS + on-prem | ADR-0007 | 🟡 designed |
 
 ## §3 Non-negotiable rules
@@ -38,7 +38,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Evaluated stack with reasons and rejected alternatives (all 18 areas) | ADR-0002 | ✅ |
 | Versions verified, not assumed | ADR-0002 amendments (TS 6 vs 7, NestJS 12, MinIO → RustFS) | ✅ 1.1 |
 | Modular monolith | ADR-0001 | ✅ decided |
-| Mobile reuse: API contracts, validation, domain logic outside UI | `packages/contracts`, `packages/domain`, api.md | 🟡 contracts built; domain in 1.2+ |
+| Mobile reuse: API contracts, validation, domain logic outside UI | `packages/contracts`, `packages/i18n`, api.md | ✅ 16: the app imports only `packages/contracts` (shapes, checked responses) and `packages/i18n` (texts, formatting, shared notification sentences); every rule stays on the server; no React component is shared |
 | Versioned, documented API | api.md (`/api/v1`), OpenAPI | 🟡 conventions done; OpenAPI ⏳ 1.3 |
 
 ## §5 UI/UX design
@@ -103,11 +103,11 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | F Timesheets & performance (timers, approvals, billable, overtime, utilization, profitability) | 7 | ✅ 7 (modules/timesheets.md): entries, timer, weekly timesheet, approval by project manager, rejection/correction, duplicates, billable, planned vs actual, audit of approved-time changes; overtime → 11, profitability → 11/12, utilisation vs capacity → 8 |
 | G Employees & teams (profiles, hierarchy, documents, restricted personal data, on/offboarding) | 8 (minimal record in 1.3) | ✅ 8 (modules/people.md): records, departments, teams, reporting line, status lifecycle, schedules/capacity, documents, encrypted private data + emergency contacts, history, on/offboarding checklists, three access levels |
 | H Leave (configurable policies, ledger balances, approvals, calendar) | 9 — after Kuwaiti labour rules confirmed | ✅ 9 (modules/leave.md): configurable types (Kuwait defaults flagged "to be verified"), accrual, balances via ledger (no double deduction, DB-enforced), working days minus holidays, half days, documents, approve/reject/withdraw/cancel, overlap check, team calendar, notifications, dashboard summary |
-| I Attendance (rotating signed QR, corrections, shifts, disputes) | 10 | ✅ 10 (modules/attendance.md): rotating HMAC-signed kiosk QR (30 s, replay-protected, server time, authenticated), web check-in setting, shifts, late/early/absence/breaks, corrections with approval, auditable append-only events, summaries with timesheet comparison; payroll reads it in 11; mobile in 16 |
+| I Attendance (rotating signed QR, corrections, shifts, disputes) | 10 | ✅ 10 (modules/attendance.md): rotating HMAC-signed kiosk QR (30 s, replay-protected, server time, authenticated), web check-in setting, shifts, late/early/absence/breaks, corrections with approval, auditable append-only events, summaries with timesheet comparison; payroll reads it in 11; mobile scan + web check-in + corrections in 16 (modules/mobile.md) |
 | J Payroll (versioned rules, no invented formulas, SoD, payslips) | 11 — after jurisdiction rules verified | ✅ 11 (modules/payroll.md): salary history, versioned rules (law-dependent values off/0 and flagged), explicit inputs, traceable fils-exact engine, leave/attendance adjustments, preview, prepare/approve/pay separation (API + DB), test runs never payable, one run per month, payslips, history, CSV export, audit. **Not production-ready until rules are verified** |
 | K Invoicing & payments (states, PDF, partial payments, credit notes, aging, decimal money) | 12 | ✅ 12 (modules/billing.md): drafts, numbering on issue, client/contract/project links (DB-enforced), lines, discounts, configured taxes (flagged), KWD 3-dp fils maths, states incl. overdue, print view for PDF, recorded vs provider payments, partial payments, credit notes, void/reversal corrections (DB-enforced), reminders, aging, revenue, billing approved time once. Server PDF / client delivery / payment gateway later |
 | Expenses ("if implemented" in brief) | 12b — default: included | ✅ 12b (modules/expenses.md): claims with lines, categories and receipt threshold as settings, receipts (virus-scanned files), draft → submitted → approved / sent back → reimbursed with separation of duties (DB-enforced), team-scoped approval, recorded reimbursement, project cost, re-billing to invoices once at cost, notifications, dashboard "pending expenses or approvals" |
-| L Notifications & announcements | infra 1.5a, per module, complete 13 | ✅ 13 (modules/notifications.md): in-app + email with retries, read/unread, deep links, cap + audit (1.5a); every brief event type incl. budget thresholds and invoice issued; per-person preferences (in-app / email copy, security and announcements mandatory in-app); bilingual company announcements to everyone or roles with exact recipient-count confirmation, 10/day limit, delivery status, audit; forced RLS. SMS / push later (push with Phase 16) |
+| L Notifications & announcements | infra 1.5a, per module, complete 13 | ✅ 13 (modules/notifications.md): in-app + email with retries, read/unread, deep links, cap + audit (1.5a); every brief event type incl. budget thresholds and invoice issued; per-person preferences (in-app / email copy, security and announcements mandatory in-app); bilingual company announcements to everyone or roles with exact recipient-count confirmation, 10/day limit, delivery status, audit; forced RLS. mobile app shows the same list and badge (16); SMS / push deferred (push needs an Expo/APNs/FCM account — owner step) |
 | M Reports & analytics | 14 | ✅ 14 (modules/reports.md): 13 reports (clients, projects/budget consumption, profitability, utilization, task performance, timesheets, attendance, leave, payroll, invoices, payments, receivables, revenue) with written definitions, filters, per-report permission and scope, formula-safe audited CSV exports (payroll needs confidential export) |
 | N Audit logs & administration | audit log ✅ 1.3b; search 14 | ✅ append-only trail (1.3b) recording security, roles, employees, money, contracts, budgets, payroll, invoices, attendance corrections, exports; Phase 14 search by area/action, actor, target, request reference and dates, Audit log screen, audited CSV export |
 
@@ -173,7 +173,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 |---|---|---|
 | Phase 0 discovery & architecture | docs/ | ✅ approved 2026-10-24 |
 | Phase 1 foundation (setup, config, lint, types, tests, DB, migrations, auth, tenants, authz, errors, logging, tokens, components, layout, navigation, docs) | roadmap 1.1–1.5 | 🟡 1.1 ✅, 1.2 built |
-| Phases 2–16 in the brief's order | roadmap.md | ⏳ |
+| Phases 2–16 in the brief's order | roadmap.md | ✅ all built 2026-10-29 → 2026-11-01 (12b added by decision) |
 
 ## §20 Workspace management
 | Requirement | Where | Status |
@@ -232,7 +232,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 | Automated unit, integration, security, E2E tests | ✅ unit/integration/security; E2E journey 1.4b (grows per phase) |
 | Organized code & docs; reproducible setup & deployment | ✅ setup; deployment proven end to end by `pnpm deploy:verify` (CI `deploy` job) 15b |
 | Documented security & compliance assessment | 🟡 security.md + compliance.md ongoing |
-| Ready for React Native client | 🟡 shared contracts ✅ |
+| Ready for React Native client | ✅ 16: app built (`apps/mobile`); store builds need the owner's Expo/Apple/Google accounts |
 | Production readiness shown by evidence | ✅ `release-readiness.md` (15d): every brief Phase 15 item with evidence; owner go-live checklist |
 
 ## §25 First task (Phase 0)

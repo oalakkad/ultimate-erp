@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "Ultimate ERP",
+    "slug": "ultimate-erp",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "ultimateerp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f5f6f9"
+    },
+    "ios": {
+      "bundleIdentifier": "com.ultimateerp.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "The camera reads the attendance QR code shown at your office kiosk."
+      }
+    },
+    "android": {
+      "package": "com.ultimateerp.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#3b1f3e"
+      },
+      "permissions": ["android.permission.CAMERA"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-localization",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "The camera reads the attendance QR code shown at your office kiosk.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "http://localhost:5173"
+    }
+  }
+}
