@@ -4,3 +4,4 @@ web-build/
 android/
 ios/
 *.orig.*
+expo-go-qr.html
