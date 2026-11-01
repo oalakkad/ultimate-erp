@@ -26,7 +26,7 @@ pnpm install
 | `pnpm e2e` | Browser tests (Playwright + axe). First time: `pnpm --filter @ultimate-erp/web exec playwright install chromium` |
 | `pnpm e2e:journey` | The whole first-day journey (sign up → company → two-factor → invite) in a real browser, EN and AR. Start `pnpm dev` first |
 | `pnpm e2e:mobile` | The mobile app in a browser preview (sign in, two-factor, company, check in, tasks, leave), EN and AR, against the dev stack. Start `pnpm dev` first |
-| `pnpm --filter @ultimate-erp/mobile start` | The mobile app in Expo Go or a development build on a phone (same Wi-Fi; see `docs/operations.md` section 8) |
+| `pnpm dev:phone`, then `pnpm --filter @ultimate-erp/mobile start` | Test the mobile app on your own phone with Expo Go (same Wi-Fi): the first command makes the laptop reachable from the phone; see `docs/operations.md` section 8 |
 | `pnpm security` | Vulnerability audit, licence check, secret scan (CI `security` job; needs Docker) |
 | `pnpm build` | Compile all packages to `dist/` |
 | `pnpm services:up` / `services:down` / `services:logs` | Start / stop / follow the Docker services |

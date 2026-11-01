@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "env:init": "node scripts/init-env.mjs",
+    "dev:phone": "node scripts/phone-dev.mjs",
     "db:bootstrap": "pnpm --filter @ultimate-erp/db build && pnpm --filter @ultimate-erp/db bootstrap",
     "db:migrate": "pnpm --filter @ultimate-erp/db build && pnpm --filter @ultimate-erp/db migrate",
     "db:setup": "pnpm --filter @ultimate-erp/db build && pnpm --filter @ultimate-erp/db bootstrap && pnpm --filter @ultimate-erp/db migrate",

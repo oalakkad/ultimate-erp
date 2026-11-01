@@ -15,6 +15,14 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    // Reachable from a phone on the same network (scripts/phone-dev.mjs); company addresses then
+    // look like acme.192-168-1-20.nip.io, which Vite must accept as a Host.
+    host: true,
+    allowedHosts: ['.localhost', '.nip.io'],
+    // Reachable from a phone on the same network (scripts/phone-dev.mjs); company addresses then
+    // look like acme.192-168-1-20.nip.io, which Vite must accept as a Host.
+    host: true,
+    allowedHosts: ['.localhost', '.nip.io'],
     proxy: {
       '/api': { target: 'http://127.0.0.1:3000', changeOrigin: false },
     },
