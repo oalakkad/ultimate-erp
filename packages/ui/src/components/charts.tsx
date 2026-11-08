@@ -220,7 +220,7 @@ function Tooltip({
   return (
     <div
       role="status"
-      className="pointer-events-none absolute z-10 grid min-w-[120px] gap-1 rounded-ctl border border-line bg-card px-2.5 py-2 text-[12.5px] shadow-pop"
+      className="pointer-events-none absolute z-10 grid min-w-[120px] gap-1 rounded-ctl ui-glass-pop px-2.5 py-2 text-[12.5px] shadow-pop"
       style={{
         insetInlineStart: `${fromStart}%`,
         top: `${(y / H) * 100}%`,
@@ -266,7 +266,7 @@ function Callout({
       }}
     >
       <div
-        className="ui-callout grid justify-items-center gap-0.5 rounded-ctl border border-line bg-card px-2 py-1 text-[11.5px] leading-tight whitespace-nowrap shadow-pop"
+        className="ui-callout grid justify-items-center gap-0.5 rounded-ctl ui-glass-pop px-2 py-1 text-[11.5px] leading-tight whitespace-nowrap shadow-pop"
         style={{ animationDelay: '900ms' }}
       >
         <span className="text-ink-3">{text}</span>
@@ -288,7 +288,8 @@ function peakOf(data: ChartDatum[], key: string | undefined): number | null {
 
 /** Column path: 4px rounded data-end, square at the baseline. */
 function columnPath(x: number, y: number, w: number, base: number): string {
-  const r = Math.min(4, w / 2, Math.max(0, base - y));
+  // Pill-shaped columns (design-system.md v0.4): fully rounded top, flat on the baseline.
+  const r = Math.min(w / 2, Math.max(0, base - y));
   return `M${x},${base}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${base}Z`;
 }
 
@@ -304,11 +305,11 @@ export function BarChart(props: ChartProps) {
   const base = PAD.top + PLOT_H;
   const scaleY = (v: number) => base - (v / top) * PLOT_H;
   const band = geometry.plotW / Math.max(1, data.length);
-  const barW = Math.max(4, Math.min(24, (band * 0.7 - 2 * (shown.length - 1)) / shown.length));
-  const groupW = shown.length * barW + (shown.length - 1) * 2;
+  const barW = Math.max(4, Math.min(22, (band * 0.62 - 4 * (shown.length - 1)) / shown.length));
+  const groupW = shown.length * barW + (shown.length - 1) * 4;
 
   const bar = (di: number, si: number) => {
-    const xStart = geometry.left + di * band + (band - groupW) / 2 + si * (barW + 2);
+    const xStart = geometry.left + di * band + (band - groupW) / 2 + si * (barW + 4);
     const x = geometry.rtl ? geometry.mirror(xStart) - barW : xStart;
     const value = data[di]?.values[shown[si]?.key ?? ''] ?? 0;
     return { x, y: scaleY(value), value };
@@ -335,9 +336,39 @@ export function BarChart(props: ChartProps) {
           role="group"
           aria-label={title}
         >
+          <defs>
+            <pattern
+              id="ui-bar-hatch"
+              width="6"
+              height="6"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
+              <rect width="6" height="6" fill="var(--frame)" />
+              <line x1="0" y1="0" x2="0" y2="6" stroke="var(--line-2)" strokeWidth="2" />
+            </pattern>
+          </defs>
           <Axis ticks={ticks} scaleY={scaleY} geometry={geometry} formatTick={formatTick} />
           {data.map((d, di) => (
             <g key={d.label}>
+              {/* Each period sits in a soft capsule track; the best one is tinted. */}
+              {(() => {
+                const first = bar(di, 0).x;
+                const last = bar(di, shown.length - 1).x;
+                const x0 = Math.min(first, last) - 6;
+                const w = groupW + 12;
+                return (
+                  <rect
+                    aria-hidden
+                    x={x0}
+                    y={PAD.top}
+                    width={w}
+                    height={PLOT_H}
+                    rx={w / 2}
+                    fill={peak === di ? 'var(--lilac)' : 'url(#ui-bar-hatch)'}
+                  />
+                );
+              })()}
               {shown.map((s, si) => {
                 const { x, y, value } = bar(di, si);
                 const active = hover?.d === di && hover.s === si;

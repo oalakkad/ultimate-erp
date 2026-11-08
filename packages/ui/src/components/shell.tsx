@@ -38,12 +38,12 @@ export function Logo({ subtitle }: { subtitle?: string }) {
   );
 }
 
-/** The rounded application frame on the soft ground: sidebar + main column. */
+/** Full-window layout on the wallpaper: a floating glass sidebar beside the main column. */
 export function AppFrame({ sidebar, children }: { sidebar: ReactNode; children: ReactNode }) {
   return (
-    <div className="mx-auto grid max-w-[1320px] overflow-hidden rounded-[24px] border-[6px] border-card bg-frame shadow-frame md:grid-cols-[252px_minmax(0,1fr)] md:rounded-frame">
+    <div className="grid min-h-dvh gap-3 p-2.5 sm:p-3 md:grid-cols-[264px_minmax(0,1fr)]">
       {sidebar}
-      <main className="grid min-w-0 content-start gap-5 p-4 md:px-[26px] md:pt-[22px] md:pb-7">
+      <main className="grid min-w-0 content-start gap-5 px-1.5 py-2 md:px-4 md:pt-3 md:pb-6">
         {children}
       </main>
     </div>
@@ -65,7 +65,7 @@ export function Sidebar({
   footer?: ReactNode;
 }) {
   return (
-    <aside className="hidden flex-col gap-[18px] border-e border-line bg-card px-4 py-5 md:flex">
+    <aside className="sticky top-3 hidden h-[calc(100dvh-1.5rem)] flex-col gap-[18px] overflow-y-auto rounded-frame ui-glass px-4 py-5 md:flex">
       {header}
       {profile}
       <nav aria-label={label} className="grid gap-3.5">
@@ -111,7 +111,9 @@ export function NavItem({
       aria-current={current ? 'page' : undefined}
       className={cn(
         'flex items-center gap-[11px] rounded-ctl px-3 py-[9px] text-[13.5px] font-medium text-ink-2 transition-colors [&>svg]:size-[18px] [&>svg]:stroke-[1.8]',
-        current ? 'bg-plum font-semibold text-on-plum' : 'hover:bg-frame hover:text-ink',
+        current
+          ? 'bg-plum font-semibold text-on-plum shadow-[0_10px_20px_-10px_rgb(59_31_62/0.7)]'
+          : 'hover:bg-frame hover:text-ink',
       )}
     >
       {icon}
@@ -186,7 +188,7 @@ export function PageHeader({
             </ol>
           </nav>
         )}
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">{title}</h1>
       </div>
       {actions && <div className="ms-auto flex flex-wrap gap-2">{actions}</div>}
     </div>
@@ -218,7 +220,7 @@ export function SearchBox({
       type="button"
       onClick={onClick}
       aria-keyshortcuts={shortcut ? 'Control+K Meta+K' : undefined}
-      className="flex h-[42px] max-w-[380px] min-w-0 flex-1 items-center gap-2.5 rounded-[14px] border border-line bg-card px-3.5 text-start text-ink-3 shadow-card hover:text-ink"
+      className="ui-glass flex h-11 max-w-[420px] min-w-0 flex-1 items-center gap-2.5 rounded-full px-4 text-start text-ink-3 hover:text-ink"
     >
       <Search aria-hidden className="size-[18px]" />
       <span className="truncate">{label}</span>

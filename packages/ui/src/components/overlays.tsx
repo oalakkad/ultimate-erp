@@ -75,7 +75,7 @@ export function Dialog({
               }
             : {})}
           {...(description ? {} : { 'aria-describedby': undefined })}
-          className="fixed start-1/2 top-1/2 z-50 grid w-[min(480px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-card border border-line bg-card p-6 shadow-pop rtl:translate-x-1/2"
+          className="fixed start-1/2 top-1/2 z-50 grid w-[min(480px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-card ui-glass-pop p-6 rtl:translate-x-1/2"
         >
           <div className="flex items-start gap-3">
             <RadixDialog.Title className="text-lg font-bold tracking-tight">
@@ -117,7 +117,7 @@ export function Drawer({
         <RadixDialog.Overlay className={OVERLAY} />
         <RadixDialog.Content
           {...(description ? {} : { 'aria-describedby': undefined })}
-          className={`fixed inset-y-3 z-50 grid w-[min(420px,calc(100vw-24px))] content-start gap-4 overflow-y-auto rounded-card border border-line bg-card p-6 shadow-pop ${side === 'start' ? 'start-3' : 'end-3'}`}
+          className={`fixed inset-y-3 z-50 grid w-[min(420px,calc(100vw-24px))] content-start gap-4 overflow-y-auto rounded-card ui-glass-pop p-6 ${side === 'start' ? 'start-3' : 'end-3'}`}
         >
           <div className="flex items-start gap-3">
             <RadixDialog.Title className="text-lg font-bold tracking-tight">

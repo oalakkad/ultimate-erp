@@ -1,4 +1,4 @@
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { Checkbox as RadixCheckbox, Select as RadixSelect } from 'radix-ui';
 import {
   type InputHTMLAttributes,
@@ -6,6 +6,7 @@ import {
   type Ref,
   type TextareaHTMLAttributes,
   useId,
+  useState,
 } from 'react';
 import { cn } from '../lib/cn.js';
 
@@ -21,17 +22,37 @@ interface FieldShellProps {
   hint?: string | undefined;
   error?: string | undefined;
   optionalLabel?: string | undefined;
+  /** A small link or button at the end of the label row, e.g. "Forgot password?". */
+  labelAction?: ReactNode;
   children: ReactNode;
 }
 
 /** Label, hint and error wiring shared by all fields (aria-describedby, aria-invalid). */
-function FieldShell({ id, label, hint, error, optionalLabel, children }: FieldShellProps) {
+function FieldShell({
+  id,
+  label,
+  hint,
+  error,
+  optionalLabel,
+  labelAction,
+  children,
+}: FieldShellProps) {
+  const labelEl = (
+    <label htmlFor={id} className="flex items-baseline gap-2 text-[13px] font-semibold text-ink">
+      {label}
+      {optionalLabel && <span className="text-xs font-medium text-ink-3">{optionalLabel}</span>}
+    </label>
+  );
   return (
     <div className="grid gap-1.5">
-      <label htmlFor={id} className="flex items-baseline gap-2 text-[13px] font-semibold text-ink">
-        {label}
-        {optionalLabel && <span className="text-xs font-medium text-ink-3">{optionalLabel}</span>}
-      </label>
+      {labelAction ? (
+        <div className="flex items-baseline justify-between gap-3">
+          {labelEl}
+          <span className="text-[12.5px]">{labelAction}</span>
+        </div>
+      ) : (
+        labelEl
+      )}
       {children}
       {error ? (
         <p id={`${id}-error`} className="text-[12.5px] font-medium text-bad">
@@ -76,6 +97,67 @@ export function TextField({
         className={cn(CONTROL, 'h-11', className)}
         {...props}
       />
+    </FieldShell>
+  );
+}
+
+export interface PasswordFieldProps extends Omit<TextFieldProps, 'type'> {
+  /** Accessible names of the eye button, e.g. "Show password" / "Hide password". */
+  showLabel: string;
+  hideLabel: string;
+  labelAction?: ReactNode;
+}
+
+/** A password input with a show/hide button at its end (mirrors in RTL via logical padding). */
+export function PasswordField({
+  label,
+  hint,
+  error,
+  optionalLabel,
+  labelAction,
+  showLabel,
+  hideLabel,
+  className,
+  ...props
+}: PasswordFieldProps) {
+  const id = useId();
+  const [visible, setVisible] = useState(false);
+  return (
+    <FieldShell
+      id={id}
+      label={label}
+      hint={hint}
+      error={error}
+      optionalLabel={optionalLabel}
+      labelAction={labelAction}
+    >
+      <div className="relative">
+        <input
+          id={id}
+          type={visible ? 'text' : 'password'}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy(id, hint, error)}
+          className={cn(CONTROL, 'h-11 pe-11', className)}
+          {...props}
+        />
+        <button
+          type="button"
+          aria-label={visible ? hideLabel : showLabel}
+          aria-pressed={visible}
+          aria-controls={id}
+          title={visible ? hideLabel : showLabel}
+          onClick={() => {
+            setVisible((v) => !v);
+          }}
+          className="absolute inset-y-0 end-0 grid w-11 place-items-center rounded-e-ctl text-ink-3 transition-colors hover:text-ink focus-visible:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset"
+        >
+          {visible ? (
+            <EyeOff aria-hidden className="size-[18px]" strokeWidth={1.8} />
+          ) : (
+            <Eye aria-hidden className="size-[18px]" strokeWidth={1.8} />
+          )}
+        </button>
+      </div>
     </FieldShell>
   );
 }
@@ -193,7 +275,7 @@ export function SelectField({
           <RadixSelect.Content
             position="popper"
             sideOffset={6}
-            className="z-50 min-w-(--radix-select-trigger-width) overflow-hidden rounded-ctl border border-line bg-card p-1 shadow-pop"
+            className="z-50 min-w-(--radix-select-trigger-width) overflow-hidden rounded-ctl ui-glass-pop p-1 shadow-pop"
           >
             <RadixSelect.Viewport>
               {options.map((option) => (

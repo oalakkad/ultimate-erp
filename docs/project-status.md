@@ -1,9 +1,9 @@
 # Project Status
 
-Last updated: 2026-10-28
+Last updated: 2026-11-03
 
 ## Current phase
-Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance), 11 (Payroll, test-only until rules are verified) and 12 (Invoicing) built and committed 2026-10-30. Phase 13 (Notifications & announcements), Phase 12b (Expenses), design v0.3 and Phase 14 (Reports & audit search) built and committed 2026-10-31. Phase 15 (Hardening & release prep, plan `hardening.md`): **15a (backup, restore, clean install) and 15b (production configuration & deployment validation) and 15c (performance) and 15d (security review, monitoring/traces, incident runbook, readiness) built and committed 2026-10-31 — **Phase 15 complete** (`release-readiness.md`).**** **Phase 16 (React Native / Expo mobile app, spec `modules/mobile.md`) built and committed 2026-11-01 — every phase of the brief is now built.** Remaining work is owner-dependent: store builds and push notifications (Expo/Apple/Google accounts), real deployment (account, domain, SMTP), legal verification of the flagged rules, a pilot firm, and the deferred GRC tooling decision. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
+Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milestone 1.2 approved and committed (`097350e`). Milestone 1.3a approved and committed (`253b180`). Milestone 1.3b approved and committed (`4ae3f76`). Milestone 1.4a approved and committed (`b875341`). Milestone 1.4b approved and committed (`f1f9276`). **Milestone 1.5a approved and committed (`511f52e`). Milestone 1.5b (files, monitoring, Dockerfiles) built and committed 2026-10-29 in nonstop mode. **Phase 1 complete.** Phase 2 (2a shell, 2b dashboard) built and committed 2026-10-29. Phase 3 (Clients / CRM), Phase 4 (Contracts & engagement letters) Phase 5 (Projects & budgeting) Phases 6 (Tasks), 7 (Timesheets), 8 (Employees & teams), 9 (Leave), 10 (Attendance), 11 (Payroll, test-only until rules are verified) and 12 (Invoicing) built and committed 2026-10-30. Phase 13 (Notifications & announcements), Phase 12b (Expenses), design v0.3 and Phase 14 (Reports & audit search) built and committed 2026-10-31. Phase 15 (Hardening & release prep, plan `hardening.md`): **15a (backup, restore, clean install) and 15b (production configuration & deployment validation) and 15c (performance) and 15d (security review, monitoring/traces, incident runbook, readiness) built and committed 2026-10-31 — **Phase 15 complete** (`release-readiness.md`).**** **Phase 16 (React Native / Expo mobile app, spec `modules/mobile.md`) built and committed 2026-11-01 — every phase of the brief is now built.** **Phase 17 (platform console for the founder, owner request, spec `modules/platform.md`) built 2026-11-01 and documented 2026-11-03.** Remaining work is owner-dependent: store builds and push notifications (Expo/Apple/Google accounts), real deployment (account, domain, SMTP), legal verification of the flagged rules, a pilot firm, and the deferred GRC tooling decision. All work is traced against `product-brief.md` in `requirements-checklist.md`; session hand-offs are in `session-log.md`.
 
 ## Confirmed decisions
 - Jurisdiction: Kuwait. Currency: KWD (3 decimals).
@@ -97,6 +97,20 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - Prepare (HR & payroll or CEO) → approve → mark paid; never the same person who prepared; one live run per month.
 - Overtime hours are an explicit input; end-of-service, WPS files and PIFSS reports wait for verified rules.
 - Every role that can be an employee sees its own approved payslips.
+
+## Decisions 2026-11-08 (design v0.4 — owner request)
+- **Liquid glass**: the owner asked for an iOS-style glassy, full-screen look ("too plain"), with reference shots. Pastel wallpaper, frosted translucent surfaces, floating glass sidebar, plum active pill, pastel-washed key-number tiles, pill-column charts. Reverses the v0.3 ban on glass (design-system.md §7).
+- **Sign-in page**: plum brand panel with today's Gregorian + Hijri date, the engagement-to-invoice flow and three product facts; form with show-password, inline "Forgot password?", "Keep me signed in" (real: passed to the server as rememberMe).
+- **Dashboard sections that list things**: my next tasks, my week (hours per day), projects by budget used, who is away — each only for people allowed to see it (server-side).
+- **Demo data** (development only): `pnpm demo:seed` creates the company "Al Noor Audit & Advisory (demo)" at `alnoor` with 12 people and data in every module, through the real API; credentials in the git-ignored `demo-credentials.local.md`.
+
+## Decisions 2026-11-03 (Phase 17, Claude in nonstop mode — reviewable; details in `modules/platform.md` §9)
+- **Directory only, no business data:** the founder sees each company's name, address, status, owners, number of people, pending invitations, last activity and file volume — never clients, hours, invoices, salaries or documents.
+- **No support access into companies** and no "log in as". If ever needed, it will be a separate feature approved by the company's Owner, limited in time and audited.
+- **Founders are granted only from the server's command line** (`pnpm platform:founder <email>`, `--revoke` to remove); there is no screen or API for it.
+- **Two-factor is mandatory** to open the console; the console works only on the main address (company addresses answer "not found").
+- Suspension is the only action and is reversible; companies are never deleted. Every suspension/reactivation needs a reason and is recorded in an append-only platform audit.
+- The flaky `tasks.spec.ts` allocation test (30 s limit exceeded only under full parallel load) now has a 90 s limit.
 
 ## Decisions 2026-11-01 (Phase 16, Claude in nonstop mode — reviewable; details in `modules/mobile.md` §9)
 - **Expo SDK 58** (React Native 0.88, React 19.3) with React Navigation (native stack + bottom tabs); no Expo Router (deep links are a small table in `lib/scan-link.ts`).
@@ -243,6 +257,12 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 
 - **Phase 4 — Contracts & engagement letters** (2026-10-30; spec `modules/contracts.md`): bilingual templates, CT-/EL- numbering, versions, draft → review → approved → sent → signed copy → active → expired/terminated with separation of duties, renewal reminders and expiry (daily 08:00 Kuwait), print view for PDF, client tab, dashboard card. Tests: 308 unit/integration + 8 browser.
 
+## How to verify Phase 17
+1. `pnpm check` and `pnpm security` → green (numbers in the newest session-log entry).
+2. API alone: `pnpm --filter @ultimate-erp/api exec vitest run test/platform.spec.ts` → 2 passed.
+3. With `pnpm dev` running: `pnpm --filter @ultimate-erp/web exec playwright test e2e/platform.spec.ts --project=journey` → 2 passed (EN, AR).
+4. By hand: `pnpm platform:founder you@example.com` → "can now open the platform console". Sign in on the main address with that account, turn two-factor on (My account), open Companies → "Platform console". You see every company; Suspend one with a reason → its address now shows "not found"; Reactivate → it works again; both actions are in the audit list. Another account opening `/platform` sees "not found".
+
 ## How to verify Phase 16
 1. `pnpm check` → 449 tests; `pnpm security` clean (3 moderate advisories below the threshold: esbuild as before, plus glob/minimatch inside Expo's build tooling).
 2. With `pnpm dev` running: `pnpm --filter @ultimate-erp/mobile build && pnpm --filter @ultimate-erp/web e2e:mobile` → 2 passed (EN, AR) in about a minute.
@@ -361,8 +381,8 @@ Phase 1 — Foundation. Milestone 1.1 approved and committed (`c3d09be`). Milest
 - No password-change screen yet (API exists); no audit-log or company-settings screens yet.
 - Members table and app frame are not yet tuned for phone width (navigation drawer in Phase 2).
 - Dev DB contains rehearsal accounts/companies (`rehearsal-*@example.com`, `rehearsal-*` slugs) from verification runs.
-- `erp_platform` is NOLOGIN until platform-operator features are designed.
+- `erp_platform` stays NOLOGIN: the Phase 17 console uses checked `SECURITY DEFINER` functions through the app role instead (security.md §2f).
 - Not yet built by design: worker, files, notifications, monitoring, Dockerfiles (1.5).
 
 ## Next recommended step
-Phase 15c (performance: volume seed at the architecture target, load test, query fixes where measured, route-level code splitting), then 15d (`hardening.md`), built in nonstop mode. See the newest entry in `session-log.md`.
+All phases of the brief plus Phase 17 are built. Owner steps: turn two-factor on for the founder account to open the console, review the reviewable decisions, legal verification of the flagged rules, deployment account/domain/SMTP, store builds / push, pilot firm. See the newest entry in `session-log.md`.

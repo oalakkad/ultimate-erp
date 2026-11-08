@@ -19,7 +19,7 @@ Status: **Draft — Phase 0.** Targets OWASP ASVS 5.0 Level 2 for the whole app,
 | R11 | Secrets exposure | `.env` git-ignored, `.env.example` placeholders only, secrets via environment/secret manager, config validated at boot. | Secret-scan in CI (gitleaks). |
 | R12 | Notification/announcement leaks or mass-send accidents | Recipient set resolved server-side with authorization; announcements require permission, preview + confirmation with recipient count; rate limited; audited. | Tests. |
 | R13 | QR attendance spoofing | Short-lived signed rotating codes, authenticated check-in, server time, replay protection, optional geofence; corrections audited. | Phase 10 tests. |
-| R14 | Developer/technical admin seeing business data | Technical admin role has system permissions only (health, logs without PII, integrations); no business-data permissions by default; support access to tenant data is time-boxed, tenant-approved and audited. | Permission tests. |
+| R14 | Developer/technical admin seeing business data | Technical admin role has system permissions only (health, logs without PII, integrations); no business-data permissions by default; support access to tenant data is time-boxed, tenant-approved and audited. The founder's platform console (Phase 17, §2f) sees a company directory only. | Permission tests; `platform.spec.ts`. |
 | R15 | Data breach response (Kuwait: 24h CITRA notification) | Incident runbook (operations.md §7), audit trail, alerting. | Tabletop walk-through 2026-10-31 (operations.md §7). |
 
 ## 2. Baseline controls (Phase 1 must deliver)
@@ -79,7 +79,7 @@ Internal review, not a substitute for the external penetration test recommended 
 | R11 Secrets exposure | ✅ Controlled | gitleaks in CI; production guard refuses example secrets and placeholders (`config.spec.ts`); `NAME_FILE` secrets; backups excluded from images |
 | R12 Mass-send accidents | ✅ Controlled | `announcements.spec.ts` (count confirmation, daily limit, audit) |
 | R13 QR attendance spoofing | ✅ Controlled | `attendance.spec.ts` (rotating signed codes, replay protection) |
-| R14 Technical admin sees business data | ✅ By design | No platform-operator access path exists yet (`erp_platform` is NOLOGIN); to design with support access |
+| R14 Technical admin sees business data | ✅ By design | The only platform access path is the Phase 17 console (§2f): directory facts through checked `SECURITY DEFINER` functions, no business data, no company context (`platform.spec.ts`: a client name never appears, the founder gets 404 on a company's `/clients`). `erp_platform` stays NOLOGIN. Support access into a company is still not built (would need tenant approval, a time limit and audit) |
 | R15 Breach response (Kuwait CITRA 24 h) | 🟡 Runbook ready | `operations.md` §7 incident runbook + tabletop walk-through 2026-10-31; legal confirmation of the notification duty is an owner item (compliance.md ⚖️) |
 ## 2e. Phase 16 (2026-11-01): the mobile app's session transport
 
@@ -89,6 +89,17 @@ Internal review, not a substitute for the external penetration test recommended 
 - **What the app never does:** choose a company by ID (hosts, as on the web), hold a long-lived refresh token, store passwords, or decide permissions — it only hides what `/access/me` says the person cannot do.
 - **Not in this phase:** push notifications (would need an Expo/APNs/FCM account), certificate pinning (consider for the store build), biometric unlock of the app (the OS lock protects the secure store).
 - **Evidence:** `apps/api/test/mobile-session.spec.ts` (4), `apps/api/src/platform/request-context/header-session.middleware.spec.ts` (4), `apps/web/e2e/mobile-web.spec.ts` (EN + AR).
+
+## 2f. Phase 17 (2026-11-01): the platform console access path
+
+- **What it is:** a page on the main address (`/platform`) where the installation's founder sees every company (name, address, status, owners, number of people, pending invitations, last activity, file volume) and can suspend or reactivate a company with a reason. Spec: `modules/platform.md`.
+- **Who may use it:** accounts listed in the global table `platform_operators`. Rows are written **only by the command-line tool** (`pnpm platform:founder <email> [--revoke]`, migrator role). The application role can read the table but not write it (tested: 42501), so no bug in the API can promote anyone.
+- **The gate on every `/platform` route** (`PlatformGuard`): session (401) → main address only (404 on a company address) → operator (404 — non-operators cannot learn the console exists) → two-factor on (403 `MFA_REQUIRED`).
+- **How it reads across companies without breaking isolation:** four `SECURITY DEFINER` functions in migration `0039` (`app.is_platform_operator`, `app.platform_companies`, `app.platform_overview`, `app.platform_set_company_status`). Each re-checks that the caller is an operator, uses a fixed `search_path`, is not executable by `PUBLIC`, and returns directory facts only. The console never opens a company transaction and never queries business tables; forced row-level security on company tables is unchanged.
+- **Suspension:** sets `tenants.status = 'suspended'`; the host resolver accepts only active companies, so the company's address answers 404 and it disappears from members' company lists immediately. Reactivation reverses it. Nothing is deleted.
+- **Audit:** every status change is written to the append-only `platform_audit_events` (actor, company, from → to, reason, request reference, client address); update, delete and truncate are refused by trigger (tested).
+- **Not built (deliberately):** "log in as", support access into a company's data, granting through the API.
+- **Evidence:** `apps/api/test/platform.spec.ts` (2 tests), `packages/db` global-table review, `apps/web/e2e/platform.spec.ts` (EN + AR, axe).
 
 ## 2b. Accepted risks (reviewed)
 | Finding | Why accepted | Revisit |

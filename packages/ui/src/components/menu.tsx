@@ -55,7 +55,7 @@ export function Menu({
           aria-label={label}
           align="start"
           sideOffset={6}
-          className="z-50 grid min-w-[240px] gap-0.5 rounded-tile border border-line bg-card p-1.5 shadow-pop"
+          className="z-50 grid min-w-[240px] gap-0.5 rounded-tile ui-glass-pop p-1.5"
         >
           {items.map(row)}
           {footer && footer.length > 0 && (

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { acceptedResponseSchema, signUpRequestSchema } from '@ultimate-erp/contracts';
-import { Button, TextField } from '@ultimate-erp/ui';
+import { Button, PasswordField, TextField } from '@ultimate-erp/ui';
 import { useForm } from 'react-hook-form';
 import { type z } from 'zod';
 import { useI18n } from '../../app/i18n.js';
@@ -68,16 +68,17 @@ export function SignUpPage() {
           error={errors.email ? t('ui.validation.email') : undefined}
           {...form.register('email')}
         />
-        <TextField
+        <PasswordField
           label={t('ui.auth.password')}
-          type="password"
+          showLabel={t('ui.auth.showPassword')}
+          hideLabel={t('ui.auth.hidePassword')}
           autoComplete="new-password"
           hint={t('ui.auth.passwordHint')}
           error={errors.password ? t('ui.validation.passwordLength') : undefined}
           {...form.register('password')}
         />
         <FormError error={signUp.error} />
-        <Button type="submit" loading={signUp.isPending}>
+        <Button type="submit" className="h-11" loading={signUp.isPending}>
           {t('ui.auth.signUpSubmit')}
         </Button>
       </form>

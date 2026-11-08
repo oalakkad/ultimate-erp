@@ -21,6 +21,7 @@
     "db:migrate": "pnpm --filter @ultimate-erp/db build && pnpm --filter @ultimate-erp/db migrate",
     "db:setup": "pnpm --filter @ultimate-erp/db build && pnpm --filter @ultimate-erp/db bootstrap && pnpm --filter @ultimate-erp/db migrate",
     "db:seed": "pnpm services:up && pnpm db:setup && pnpm --filter @ultimate-erp/db seed:dev",
+    "demo:seed": "node --env-file-if-exists=.env --disable-warning=ExperimentalWarning apps/api/test/demo/demo-seed.ts",
     "db:generate": "pnpm --filter @ultimate-erp/db generate",
     "services:up": "docker compose -f infra/compose/compose.dev.yaml --env-file .env up -d --wait",
     "services:down": "docker compose -f infra/compose/compose.dev.yaml --env-file .env down",

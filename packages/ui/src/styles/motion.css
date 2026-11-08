@@ -146,6 +146,10 @@
     transform-origin: left;
     animation: ui-grow-x var(--dur-slow) var(--ease) both;
   }
+  .ui-fill-y {
+    transform-origin: bottom;
+    animation: ui-grow-y var(--dur-slow) var(--ease) both;
+  }
   [dir='rtl'] .ui-fill-x {
     transform-origin: right;
   }

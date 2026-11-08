@@ -21,6 +21,8 @@ import pg from 'pg';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../src/bootstrap.js';
+import { kuwaitToday } from '../src/modules/contracts/contracts.service.js';
+import { weekStartOf } from '../src/modules/time/time.service.js';
 import { Notifier } from '../src/platform/notifications/notifier.js';
 import { createWorker } from '../src/worker-bootstrap.js';
 import { testConfig } from './support/config.js';
@@ -714,11 +716,21 @@ describe('dashboard summary (Phase 2b)', () => {
     const { owner, host } = await founder();
     const bob = await person('bob');
     await join(bob, host, owner, 'employee');
+    const weekStart = weekStartOf(kuwaitToday());
+    const shiftDays = (iso: string, n: number) =>
+      new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
     expect(await summary(bob, host)).toEqual({
       tasks: { mineOpen: 0, mineOverdue: 0, companyOverdue: null },
       time: { thisWeekHours: '0', waitingForMe: null },
       leave: { onLeaveToday: 0, waitingForMe: null },
       expenses: { mineOpen: 0, waitingForMe: null, toReimburse: null },
+      // Their own next tasks and week (empty here); no project health or who is away.
+      myTasks: { items: [] },
+      myWeek: {
+        weekStart,
+        days: Array.from({ length: 7 }, (_, i) => ({ date: shiftDays(weekStart, i), hours: '0' })),
+        weeklyTarget: null,
+      },
     });
   });
 

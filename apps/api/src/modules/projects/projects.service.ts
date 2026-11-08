@@ -68,6 +68,13 @@ export const formatHours = (h: bigint): string => {
   return `${sign}${abs / 100n}${frac === 0n ? '' : `.${String(frac).padStart(2, '0').replace(/0$/, '')}`}`;
 };
 
+/** Projects a person manages or is on the team of ("my projects" for project-scoped people). */
+export const onProjectTeam = (membershipId: string) =>
+  or(
+    eq(projects.managerMembershipId, membershipId),
+    sql`exists (select 1 from project_members pm where pm.tenant_id = ${projects.tenantId} and pm.project_id = ${projects.id} and pm.membership_id = ${membershipId})`,
+  );
+
 /** Projects / engagements & budgeting (docs/modules/projects.md). */
 @Injectable()
 export class ProjectsService {
@@ -147,12 +154,7 @@ export class ProjectsService {
     ];
     const mineOnly = query.mine === 'true' || !this.companyWide(access, 'projects.project.read');
     if (mineOnly) {
-      conditions.push(
-        or(
-          eq(projects.managerMembershipId, access.membershipId),
-          sql`exists (select 1 from project_members pm where pm.tenant_id = ${projects.tenantId} and pm.project_id = ${projects.id} and pm.membership_id = ${access.membershipId})`,
-        ),
-      );
+      conditions.push(onProjectTeam(access.membershipId));
     }
     if (query.search) {
       const pattern = `%${query.search.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;

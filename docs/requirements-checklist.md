@@ -67,7 +67,7 @@ Last reviewed: 2026-10-28 (after Milestone 1.4a). Source: `docs/product-brief.md
 ## §7 Roles & access control
 | Requirement | Where | Status |
 |---|---|---|
-| CEO, Manager, Team Leader, Employee, Technical Admin, Platform Operator distinguished; no unrestricted "Super Admin" | permissions.md §2 | ✅ designed |
+| CEO, Manager, Team Leader, Employee, Technical Admin, Platform Operator distinguished; no unrestricted "Super Admin" | permissions.md §2, modules/platform.md | ✅ designed; Platform Operator built as the founder console in Phase 17 (directory + suspend/reactivate only, no business data, CLI-only grant, two-factor, audited) |
 | RBAC with permission keys + scopes (own/team/project/company), server-side | permissions.md, modules/access.md | ✅ 1.3b (team/project resource checks with those modules) |
 | Separation of duties, least privilege, auditable permission changes, session revocation | modules/access.md, modules/identity.md | ✅ 1.3a/1.3b |
 | Technical admin has no business-data access | permissions.md, security.md R14 | ✅ designed |

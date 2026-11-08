@@ -33,10 +33,12 @@ pnpm install
 | `docker build -f infra/docker/api.Dockerfile -t ultimate-erp-api .` | Production image for the API and worker (web: `infra/docker/web.Dockerfile`); on-prem example in `infra/compose/compose.prod.example.yaml` |
 | `pnpm db:setup` | Create database roles + apply migrations (run by `pnpm dev`) |
 | `pnpm db:seed` | Starts the services, prepares the database, adds the two demo companies (dev only): http://acme.localhost:3000/api/v1/tenant |
+| `pnpm demo:seed` | With `pnpm dev` running: creates the fictional demo company **Al Noor Audit & Advisory** (http://alnoor.localhost:5173) with 12 people and clients, contracts, projects, tasks, timesheets, leave, attendance, invoices, expenses and a test payroll run, all through the real API (dev only). Prints the sign-in details and saves them to `demo-credentials.local.md` (git-ignored). `--slug <name>` seeds another copy. |
 | `pnpm http <METHOD> <url> [key=value ...] [--as <person>]` | Development helper: call the API, including company addresses like `http://acme.localhost:3000` (PowerShell cannot resolve `*.localhost`). Keeps cookies per person in `.dev-cookies/` |
 | `pnpm db:generate --name=<what>` | Create a migration from schema changes (see [docs/database.md](docs/database.md)) |
 | `pnpm backup` / `pnpm backup:verify <folder>` | Encrypted backup of the development database and files into `backups/`, and its check (see [docs/operations.md](docs/operations.md)) |
 | `pnpm backup:restore <folder> --database <name> --bucket <name>` | Restore drill into a side database and bucket (never over existing data) |
+| `pnpm platform:founder <email>` (`--revoke` to remove) | Gives an existing account the platform console (`/platform` on the main address: every company, suspend / reactivate). Two-factor must be on to open it; see [docs/operations.md](docs/operations.md) §9 |
 | `pnpm deploy:verify` | Builds the images and checks the production setup end to end (HTTPS, headers, full browser journey, backup); see [docs/operations.md](docs/operations.md) §5 |
 | `pnpm perf` | Performance test with 2 million time entries (~15 min); results in [docs/performance.md](docs/performance.md) |
 | `pnpm notices` | Regenerates `THIRD_PARTY_NOTICES.txt` after dependency changes (`pnpm security` checks it) |

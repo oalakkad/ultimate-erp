@@ -20,7 +20,7 @@ export function Card({
   return (
     <section
       className={cn(
-        'ui-gloss ui-rise grid min-w-0 content-start gap-4 rounded-card border border-line bg-card p-5',
+        'ui-rise grid min-w-0 content-start gap-4 rounded-card ui-glass p-5',
         className,
       )}
       {...props}
@@ -82,19 +82,72 @@ export function Tile({
 }
 
 /** Small statistic with an optional change chip. Financial figures never animate. */
+/** Pastel wash (top-start) fading into the glass, and the solid icon chip, per area colour. */
+const TONE: Record<Tone, { wash: string; chip: string }> = {
+  mint: {
+    wash: 'bg-[linear-gradient(150deg,var(--mint)_0%,var(--card)_78%)]',
+    chip: 'bg-mint-solid',
+  },
+  blush: {
+    wash: 'bg-[linear-gradient(150deg,var(--blush)_0%,var(--card)_78%)]',
+    chip: 'bg-blush-solid',
+  },
+  lilac: {
+    wash: 'bg-[linear-gradient(150deg,var(--lilac)_0%,var(--card)_78%)]',
+    chip: 'bg-lilac-solid',
+  },
+  butter: {
+    wash: 'bg-[linear-gradient(150deg,var(--butter)_0%,var(--card)_78%)]',
+    chip: 'bg-butter-solid',
+  },
+  sky: { wash: 'bg-[linear-gradient(150deg,var(--sky)_0%,var(--card)_78%)]', chip: 'bg-sky-solid' },
+};
+
 export function StatCard({
   label,
   value,
   delta,
+  tone,
+  icon,
+  hint,
 }: {
   label: string;
   value: ReactNode;
   delta?: { direction: 'up' | 'down'; text: string } | undefined;
+  /** Area colour of the tile (design-system.md v0.4); plain glass without it. */
+  tone?: Tone | undefined;
+  icon?: ReactNode;
+  /** One short line under the number, e.g. "2 new this month". */
+  hint?: string | undefined;
 }) {
   return (
-    <div className="ui-lift ui-rise grid min-w-[150px] gap-1 rounded-tile border border-line bg-card px-4 py-3">
-      <span className="text-xs font-medium text-ink-2">{label}</span>
-      <b className="num flex items-center gap-2 text-[22px] font-extrabold tracking-tight">
+    <div
+      className={cn(
+        'ui-lift ui-rise ui-glass grid min-w-0 content-start gap-1 rounded-tile px-4 py-3.5',
+        tone && 'gap-2 px-5 py-4',
+        tone && TONE[tone].wash,
+      )}
+    >
+      <span className="flex items-center gap-2.5 text-[12.5px] font-semibold text-ink-2">
+        {icon && tone && (
+          <span
+            aria-hidden
+            className={cn(
+              'grid size-8 shrink-0 place-items-center rounded-full text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.35)] [&_svg]:size-4 [&_svg]:stroke-[2]',
+              TONE[tone].chip,
+            )}
+          >
+            {icon}
+          </span>
+        )}
+        {label}
+      </span>
+      <b
+        className={cn(
+          'num flex min-w-0 flex-wrap items-center gap-2 font-extrabold tracking-tight',
+          tone ? 'text-[clamp(22px,2vw,30px)] leading-tight' : 'text-[22px]',
+        )}
+      >
         {value}
         {delta && (
           <span
@@ -112,6 +165,7 @@ export function StatCard({
           </span>
         )}
       </b>
+      {hint && <span className="text-[12.5px] text-ink-2">{hint}</span>}
     </div>
   );
 }

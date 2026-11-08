@@ -24,6 +24,6 @@ Add a new entry at the top of `docs/session-log.md`: what was done, repo state (
 - Tenant isolation, server-side authorization and validation are release-blocking. Never trust a company ID from the client.
 - Money: never floats; `numeric(20,3)` + currency; strings over the API.
 - All UI text through i18n catalogs (EN + AR); logical CSS properties only.
-- Design: follow `docs/design-system.md` (v0.2, vibrant pastel card style). Do not drift toward neutral/minimal "generic SaaS" styling. Reference preview: https://claude.ai/artifact/Ffk4Wtd2i9PGtVEK6FHA8H
+- Design: follow `docs/design-system.md` (v0.4 "liquid glass": pastel wallpaper, frosted glass surfaces, full-window layout — owner decision 2026-11-08). Do not drift toward neutral/minimal "generic SaaS" styling. Reference preview: https://claude.ai/artifact/Ffk4Wtd2i9PGtVEK6FHA8H
 - Keep `docs/project-status.md` updated at the end of every milestone.
 - Commit each verified milestone (owner-authorized 2026-10-29, see above). Push only when the owner asks.

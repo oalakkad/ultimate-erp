@@ -8,7 +8,7 @@ import {
   twoFactorVerifyRequestSchema,
   type User,
 } from '@ultimate-erp/contracts';
-import { Button, Checkbox, TextField } from '@ultimate-erp/ui';
+import { Button, Checkbox, PasswordField, TextField } from '@ultimate-erp/ui';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { type z } from 'zod';
@@ -73,8 +73,7 @@ export function SignInPage() {
   if (step !== 'password') {
     const errors = codeForm.formState.errors;
     return (
-      <AuthLayout title={t('ui.auth.twoFactorTitle')}>
-        <p className="text-ink-2">{t('ui.auth.twoFactorBody')}</p>
+      <AuthLayout title={t('ui.auth.twoFactorTitle')} subtitle={t('ui.auth.twoFactorBody')}>
         <form
           noValidate
           className="grid gap-4"
@@ -107,7 +106,7 @@ export function SignInPage() {
             )}
           />
           <FormError error={verify.error} />
-          <Button type="submit" loading={verify.isPending}>
+          <Button type="submit" className="h-11" loading={verify.isPending}>
             {t('ui.auth.verify')}
           </Button>
           <Button
@@ -131,18 +130,14 @@ export function SignInPage() {
       title={
         companyName ? t('ui.auth.signInTo', { company: companyName }) : t('ui.auth.signInTitle')
       }
+      subtitle={companyName ? t('ui.auth.signInSubtitleCompany') : t('ui.auth.signInSubtitle')}
       footer={
-        <>
-          <span>
-            {t('ui.auth.noAccount')}{' '}
-            <Link className={LINK_CLASS} to="/sign-up" search={returnTo ? { returnTo } : {}}>
-              {t('ui.auth.createAccount')}
-            </Link>
-          </span>
-          <Link className={LINK_CLASS} to="/forgot-password">
-            {t('ui.auth.forgot')}
+        <span>
+          {t('ui.auth.noAccount')}{' '}
+          <Link className={LINK_CLASS} to="/sign-up" search={returnTo ? { returnTo } : {}}>
+            {t('ui.auth.createAccount')}
           </Link>
-        </>
+        </span>
       }
     >
       <form
@@ -157,19 +152,36 @@ export function SignInPage() {
         <TextField
           label={t('ui.auth.email')}
           type="email"
-          autoComplete="email"
+          autoComplete="username"
           error={errors.email ? t('ui.validation.email') : undefined}
           {...passwordForm.register('email')}
         />
-        <TextField
+        <PasswordField
           label={t('ui.auth.password')}
-          type="password"
           autoComplete="current-password"
+          showLabel={t('ui.auth.showPassword')}
+          hideLabel={t('ui.auth.hidePassword')}
+          labelAction={
+            <Link className={LINK_CLASS} to="/forgot-password">
+              {t('ui.auth.forgotShort')}
+            </Link>
+          }
           error={errors.password ? t('ui.validation.required') : undefined}
           {...passwordForm.register('password')}
         />
+        <Controller
+          control={passwordForm.control}
+          name="rememberMe"
+          render={({ field }) => (
+            <Checkbox
+              label={t('ui.auth.rememberMe')}
+              checked={field.value ?? true}
+              onCheckedChange={field.onChange}
+            />
+          )}
+        />
         <FormError error={signIn.error} />
-        <Button type="submit" loading={signIn.isPending}>
+        <Button type="submit" className="mt-1 h-11" loading={signIn.isPending}>
           {t('ui.auth.signInSubmit')}
         </Button>
       </form>

@@ -24,6 +24,8 @@ Status: **Draft — Phase 0.** Final matrix is built module by module.
 | Tenant | **Finance** (suggested) | Tenant | Invoicing, payments. |
 | Tenant | **HR / Payroll** (suggested) | Tenant | Employee records, leave policy, payroll preparation. |
 
+**Founder (platform console, Phase 17)** is the first built form of the Platform Operator. It is **not a company role**: it is a row in the global `platform_operators` table, granted only from the server's command line (`pnpm platform:founder <email>`), and it gives **no permission inside any company** (a founder who is not a member of a company gets 404 there like anyone else). It opens only the console on the main address: the company directory and suspend / reactivate with an audited reason, with two-factor required (`modules/platform.md`).
+
 "Super Admin" is deliberately **not** a role name — it implies unrestricted access. The tenant's top role is Owner/CEO and is still bounded by explicit permissions; the platform roles have no default access to tenant business data.
 
 ## 3. Initial matrix (excerpt — expanded per module)

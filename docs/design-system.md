@@ -1,6 +1,6 @@
 # Design System
 
-Status: **Direction v0.2 approved by owner (2026-10-24); v0.3 motion & audit rules added 2026-10-31 at the owner's request (§5–§6). Implemented in Milestone 1.4a** (`packages/ui`, gallery at http://localhost:5173/gallery).
+Status: **Direction v0.2 approved by owner (2026-10-24); v0.3 motion & audit rules added 2026-10-31 at the owner's request (§5–§6). Implemented in Milestone 1.4a** (`packages/ui`, gallery at http://localhost:5173/gallery). **v0.4 "liquid glass" adopted 2026-11-08 at the owner's request (§7) — it supersedes the v0.3 ban on glass and the boxed app frame.**
 Live reference: https://claude.ai/artifact/Ffk4Wtd2i9PGtVEK6FHA8H (private to the owner).
 
 v0.1 ("calm precision", neutral slate + teal) was rejected as too generic. v0.2 follows the owner's reference shots: vibrant, friendly, card-based.
@@ -97,3 +97,14 @@ Signals that make an interface read as generated, and what we do instead:
 | Charts with no story | Title states the period; description states the totals; one annotation marks the peak |
 
 Every new screen is checked against this table before hand-over.
+
+## 7. v0.4 — Liquid glass (owner decision 2026-11-08)
+
+The owner found v0.3 "plain, nothing special" and asked for an iOS-style, glassy look that fills the screen, sharing reference shots (pastel tile dashboards, frosted panels, pill-column charts). This reverses the §5–§6 rejection of glass; the rest of §6 (colour with meaning, no zero-filled cards, specific labels, charts with a story) still applies.
+
+- **Wallpaper**: a soft pastel mesh (lilac, peach, mint, sky radial gradients) fixed behind the app; a deep plum/indigo mesh in dark mode (`--wallpaper`).
+- **Glass surfaces** (`.ui-glass`): `--card` is translucent (white 66 % / dark 62 %), blurred 22 px with 170 % saturation, a light 1 px edge and a two-sided inner highlight ("liquid edge", technique from the 21st.dev Liquid Glass Card, without its Chromium-only SVG displacement filter). Popovers, menus, dialogs, drawers and chart tooltips use `.ui-glass-pop` (90 % opaque) so text over content stays readable. `prefers-reduced-transparency` turns glass into solid surfaces.
+- **Layout**: the app fills the window — no boxed frame. The sidebar is a floating glass panel (sticky, full height); the active item is a plum pill with a soft shadow. Search, icon buttons and the language/theme toggles are glass pills in the top bar.
+- **Shape**: card radius 26, tile 20, pills fully round.
+- **Dashboard**: a greeting with the person's name in the display face and today's date; key numbers as pastel-washed glass tiles with a solid icon chip (area colour: butter money, mint projects/attendance, sky clients/time, lilac tasks/people) and one hint line; charts use pill columns inside hatched capsule tracks, the best period's track tinted lilac; my week as seven capsule columns (today in plum).
+- **Contrast**: surfaces stay ≥ 62 % opaque so ink / ink-2 / ink-3 keep WCAG AA; checked with axe in light and dark before each hand-over.

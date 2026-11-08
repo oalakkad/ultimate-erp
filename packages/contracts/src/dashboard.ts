@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { taskStatusSchema } from './tasks.js';
 
 // Executive dashboard (docs/modules/shell-dashboard.md §4). Every section is present only if
 // the caller may see it; numbers are computed from real records — never estimated.
@@ -120,6 +121,77 @@ export const dashboardSummarySchema = z
           .object({ count: z.number().int().min(0), amount: z.string() })
           .strict()
           .nullable(),
+      })
+      .strict()
+      .optional(),
+    /** My next open tasks (anyone with tasks): overdue first, then soonest due; at most 5. */
+    myTasks: z
+      .object({
+        items: z.array(
+          z
+            .object({
+              id: z.uuid(),
+              title: z.string(),
+              status: taskStatusSchema,
+              dueDate: z.iso.date().nullable(),
+              overdue: z.boolean(),
+              projectId: z.uuid(),
+              projectNameEn: z.string(),
+              projectNameAr: z.string(),
+            })
+            .strict(),
+        ),
+      })
+      .strict()
+      .optional(),
+    /** My logged hours per day of the current work week (people who log time). */
+    myWeek: z
+      .object({
+        weekStart: z.iso.date(),
+        /** Seven days from weekStart; hours as decimal strings ("7.50"). */
+        days: z.array(z.object({ date: z.iso.date(), hours: z.string() }).strict()).length(7),
+        /** Contracted weekly hours from my employee record, or null without one. */
+        weeklyTarget: z.string().nullable(),
+      })
+      .strict()
+      .optional(),
+    /** Open projects I may see (company or managed), most budget used first; at most 6. */
+    projectHealth: z
+      .object({
+        items: z.array(
+          z
+            .object({
+              id: z.uuid(),
+              nameEn: z.string(),
+              nameAr: z.string(),
+              clientNameEn: z.string(),
+              clientNameAr: z.string(),
+              /** Budgeted, approved-logged and allocated hours as decimal strings; budget null if none. */
+              budgetHours: z.string().nullable(),
+              loggedHours: z.string(),
+              allocatedHours: z.string(),
+              endDate: z.iso.date().nullable(),
+            })
+            .strict(),
+        ),
+      })
+      .strict()
+      .optional(),
+    /** People I may see on approved leave today or in the next 7 days; at most 8. */
+    away: z
+      .object({
+        items: z.array(
+          z
+            .object({
+              membershipId: z.uuid(),
+              name: z.string(),
+              startDate: z.iso.date(),
+              endDate: z.iso.date(),
+              leaveTypeEn: z.string(),
+              leaveTypeAr: z.string(),
+            })
+            .strict(),
+        ),
       })
       .strict()
       .optional(),

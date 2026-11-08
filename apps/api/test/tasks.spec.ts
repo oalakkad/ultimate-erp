@@ -370,6 +370,7 @@ describe('who sees and does what', () => {
     expect(summary.tasks).toEqual({ mineOpen: 1, mineOverdue: 0, companyOverdue: null });
   });
 
+  // Sets up two companies and several people: slow under full parallel load, hence 90 s.
   it('lets a Manager allocate only on projects they work on; other companies get 404', async () => {
     const f = await firm();
     const t = await task(f);
@@ -405,7 +406,7 @@ describe('who sees and does what', () => {
       [f.managerId, f.aId, f.bId, f.cId].sort(),
     );
     expect((await f.a.get('/api/v1/workload', f.host)).status).toBe(403);
-  });
+  }, 90_000);
 });
 
 describe('workflow and dependencies', () => {

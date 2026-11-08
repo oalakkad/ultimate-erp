@@ -167,3 +167,23 @@ The app in `apps/mobile` is an Expo (React Native) project. It is a second clien
 3. `npx eas build --platform all --profile production`, then `npx eas submit`. Set `EXPO_PUBLIC_API_URL` in the build profile to the installation's main address, or leave it and let people type the address.
 4. Replace the placeholder icon and splash (`apps/mobile/assets/`) with the firm's artwork before the first store submission.
 5. Push notifications are deferred: when wanted, add `expo-notifications`, register device tokens on the server (a new table) and send from the worker — the in-app notification list and badge already exist.
+
+## 9. The platform console (Phase 17)
+
+The console (`/platform` on the main address) shows every company using the installation and lets its founder suspend or reactivate a company with a reason. It shows no business data. Spec: `modules/platform.md`.
+
+### Granting and revoking the founder
+There is deliberately no screen or API for this — only the server's command line, with the migrator database login:
+
+```
+pnpm platform:founder someone@example.com            # grant
+pnpm platform:founder someone@example.com --revoke   # revoke
+```
+
+- The account must already exist (sign up first); otherwise the command says so and changes nothing.
+- Locally the command reads `DATABASE_MIGRATOR_URL` from `.env`. On a server (on-premises compose), use the `backup` service, which already has the migrator login: `docker compose --profile ops run --rm --entrypoint node backup dist/ops/cli.js founder someone@example.com` (add `--revoke` to remove).
+- The founder must **turn two-factor on** (web → My account) before the console opens; until then it answers "two-factor required".
+- Note each grant and revoke in your own change record: the command line does not write the platform audit (suspensions and reactivations do).
+
+### Suspending a company
+Console → the company's row → Suspend → reason (required). The company's address stops answering at once and it disappears from its members' company lists; nothing is deleted. Reactivate the same way. Both actions appear in the console's audit list.

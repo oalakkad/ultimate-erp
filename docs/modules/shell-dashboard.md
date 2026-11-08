@@ -32,6 +32,18 @@ The first complete experience for a CEO / Owner (brief §18 Phase 2, Module A): 
 - **Charts:** reusable, accessible SVG bar / line / donut components in `packages/ui` (each with a data-table alternative and RTL support), shown in the gallery with clearly labelled example data; used by modules from Phase 3 on.
 - **Filters:** date-range control (presets: this month, last 30 days, this quarter, year to date, custom) ready for module cards.
 
+### 4a. Lists added 2026-11-08 (owner feedback: the dashboard was empty for managers and employees)
+The summary now also returns four lists, each present only for the roles below and scoped like its module (`packages/contracts/src/dashboard.ts`, tests `apps/api/test/dashboard.spec.ts`):
+
+| Section | Who gets it | What it holds |
+|---|---|---|
+| `myTasks` | anyone who can have tasks (same as `tasks`) | my open tasks (backlog, ready, in progress, in review) — overdue first, then soonest due, no due date last; at most 5; with the project's English and Arabic names |
+| `myWeek` | people who log time (same as `time`) | my hours per day of the current Sunday–Saturday week (draft, submitted and approved count; rejected entries do not — same rule as "my hours this week"), plus my contracted weekly hours from my employee record (null without one) |
+| `projectHealth` | Owner/CEO and Finance: every open project. Manager: only projects they lead or are on (the dashboard is about their own work, even though they may read all projects). Team leads and employees: none | open (planned, active, on hold), not archived projects: budget hours (null when 0), approved logged hours, hours allocated on tasks that are not cancelled, end date, client names; most of the budget used first, no budget last; at most 6 |
+| `away` | people who may read leave for their team (team leads, managers) or the company (Owner, CEO, HR); not employees | approved leave overlapping today … today + 7 days of the people they may see; soonest first; at most 8; name and leave type in English and Arabic |
+
+All four run inside the same company transaction as the rest of the summary; names are looked up afterwards through the identity service, the same as the activity feed.
+
 ## 5. Tests
 2a: unit (`commands.spec.ts`: matching, ordering, Arabic normalisation); browser journey EN + AR — Ctrl K → type "Members" → Enter → Members; breadcrumb back home; phone layout menu; password change; axe on palette, phone menu and My account. 2b: summary API permission and isolation tests; dashboard in the journey with axe; chart components unit-tested (accessible names, table alternative, RTL).
 

@@ -17,7 +17,11 @@ export default defineConfig({
   reporter: [['list']],
   use: { baseURL: deployedUrl ?? 'http://localhost:5173', trace: 'retain-on-failure' },
   projects: [
-    { name: 'ui', testIgnore: /journey|platform/, use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'ui',
+      testIgnore: /journey|platform|mobile-web/,
+      use: { ...devices['Desktop Chrome'] },
+    },
     {
       name: 'journey',
       testMatch: /(journey|platform)\.spec\.ts/,

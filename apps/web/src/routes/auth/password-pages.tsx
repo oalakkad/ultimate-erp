@@ -6,7 +6,7 @@ import {
   okResponseSchema,
   resetPasswordRequestSchema,
 } from '@ultimate-erp/contracts';
-import { Button, LoadingState, TextField } from '@ultimate-erp/ui';
+import { Button, LoadingState, PasswordField, TextField } from '@ultimate-erp/ui';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Link } from '@tanstack/react-router';
@@ -57,7 +57,7 @@ export function ForgotPasswordPage() {
             {...form.register('email')}
           />
           <FormError error={request.error} />
-          <Button type="submit" loading={request.isPending}>
+          <Button type="submit" className="h-11" loading={request.isPending}>
             {t('ui.auth.forgotSubmit')}
           </Button>
         </form>
@@ -120,23 +120,25 @@ export function ResetPasswordPage() {
             })(e)
           }
         >
-          <TextField
+          <PasswordField
             label={t('ui.auth.newPassword')}
-            type="password"
+            showLabel={t('ui.auth.showPassword')}
+            hideLabel={t('ui.auth.hidePassword')}
             autoComplete="new-password"
             hint={t('ui.auth.passwordHint')}
             error={errors.newPassword ? t('ui.validation.passwordLength') : undefined}
             {...form.register('newPassword')}
           />
-          <TextField
+          <PasswordField
             label={t('ui.auth.confirmPassword')}
-            type="password"
+            showLabel={t('ui.auth.showPassword')}
+            hideLabel={t('ui.auth.hidePassword')}
             autoComplete="new-password"
             error={errors.confirm ? t('ui.validation.passwordsDiffer') : undefined}
             {...form.register('confirm')}
           />
           <FormError error={reset.error} />
-          <Button type="submit" loading={reset.isPending}>
+          <Button type="submit" className="h-11" loading={reset.isPending}>
             {t('ui.auth.resetSubmit')}
           </Button>
         </form>

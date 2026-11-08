@@ -49,7 +49,7 @@ import {
 } from 'lucide-react';
 import { type MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../app/i18n.js';
-import { LanguageSwitch, ThemeSwitch, useChangeLocale } from '../app/switches.js';
+import { LanguageToggle, ThemeToggle, useChangeLocale } from '../app/switches.js';
 import { api } from '../lib/api.js';
 import { type Command } from '../lib/commands.js';
 import { errorReference, errorText } from '../lib/errors.js';
@@ -838,8 +838,8 @@ export function AppLayout() {
             <>
               {/* Hidden until two-factor is set up: the server refuses it with MFA_REQUIRED. */}
               {ready && <NotificationBell />}
-              <ThemeSwitch />
-              <LanguageSwitch />
+              <LanguageToggle />
+              <ThemeToggle />
               <Button
                 variant="secondary"
                 icon={<LogOut aria-hidden className="mirror size-4" />}

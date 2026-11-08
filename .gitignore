@@ -25,3 +25,6 @@ backups/
 
 # Output of pnpm perf (results are recorded in docs/performance.md)
 apps/api/test/perf/last-run.md
+
+# Demo-data credentials written by `pnpm demo:seed` (local only)
+demo-credentials*.local.md

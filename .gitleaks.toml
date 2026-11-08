@@ -11,6 +11,8 @@ paths = [
   '''pnpm-lock\.yaml''',
   # Local-only file, git-ignored; values come from .env.example placeholders.
   '''(^|/)\.env$''',
+  # Local-only demo sign-in details written by `pnpm demo:seed` (development data), git-ignored.
+  '''(^|/)demo-credentials[^/]*\.local\.md$''',
   # Local backups (pnpm backup), git-ignored; encrypted. manifest.json's keyCheck is a key
   # verifier, not a secret (docs/operations.md section 2).
   '''(^|/)backups/''',

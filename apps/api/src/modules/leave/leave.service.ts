@@ -821,6 +821,47 @@ export class LeaveService {
     return { onLeaveToday, waitingForMe };
   }
 
+  /**
+   * Approved leave overlapping [from, to] of people the caller may see, soonest first. Null for
+   * people who may only see their own leave (the dashboard's "Who's away" is for teams and HR).
+   */
+  async upcomingAway(
+    tx: TenantTransaction,
+    access: AccessContext,
+    from: string,
+    to: string,
+    limit: number,
+  ) {
+    if (
+      !hasPermission(access.permissions, 'leave.request.read', 'company') &&
+      !hasPermission(access.permissions, 'leave.request.read', 'team')
+    ) {
+      return null;
+    }
+    const visible = await this.visible(tx, access);
+    const rows = await tx
+      .select({
+        membershipId: leaveRequests.membershipId,
+        userId: memberships.userId,
+        startDate: leaveRequests.startDate,
+        endDate: leaveRequests.endDate,
+        leaveTypeEn: leaveTypes.nameEn,
+        leaveTypeAr: leaveTypes.nameAr,
+      })
+      .from(leaveRequests)
+      .innerJoin(memberships, eq(memberships.id, leaveRequests.membershipId))
+      .innerJoin(leaveTypes, eq(leaveTypes.id, leaveRequests.leaveTypeId))
+      .where(
+        and(
+          eq(leaveRequests.status, 'approved'),
+          lte(leaveRequests.startDate, to),
+          gte(leaveRequests.endDate, from),
+        ),
+      )
+      .orderBy(asc(leaveRequests.startDate), asc(leaveRequests.id));
+    return rows.filter((r) => !visible || visible.has(r.membershipId)).slice(0, limit);
+  }
+
   // --- helpers -------------------------------------------------------------------------------
 
   private async canSee(tx: TenantTransaction, access: AccessContext, membershipId: string) {

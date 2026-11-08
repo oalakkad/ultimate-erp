@@ -225,3 +225,9 @@ Per IP and per account on login, OTP verify, password reset, invitation accept, 
 | GET | `/api/v1/reports/:key/export.csv?…` | per report (+ `exports.confidential` for payroll) | CSV with totals line; audited | 14 |
 | GET | `/api/v1/docs/openapi.json` | Public, **dev/test only** | Generated OpenAPI 3.1 document | 1.3b |
 | GET | `/api/v1/tenant` | Public, tenant host | Public profile of the company owning the host: `{ slug, name: { en, ar }, defaultLocale }` (`tenantPublicProfileSchema`). Unknown/unverified/suspended host ⇒ 404. Database unavailable ⇒ 503. | 1.2 |
+| GET | `/api/v1/platform/me` | Session, main address | `{ founder }` — whether I may open the platform console here | 17 |
+| GET | `/api/v1/platform/overview` | Founder + two-factor, main address | Installation-wide numbers (companies, people, accounts, sign-ins in 7 days, file bytes as a string) | 17 |
+| GET | `/api/v1/platform/companies?search=&status=` | Founder + two-factor | Company directory — identity, owners, people, pending invitations, last activity; **no business data** | 17 |
+| GET | `/api/v1/platform/companies/:id` | Founder + two-factor | One company | 17 |
+| POST | `/api/v1/platform/companies/:id/status` | Founder + two-factor | `{ status: "active" \| "suspended", reason }` → the company; a change is written to the platform audit; no reason ⇒ 422 | 17 |
+| GET | `/api/v1/platform/audit-events` | Founder + two-factor | The founders' own actions, newest first (200). Non-founders get 404 on every `/platform` route except `/me`; company addresses always get 404 | 17 |

@@ -76,7 +76,7 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={cn(
-        'relative grid size-[42px] place-items-center rounded-[14px] border border-line bg-card text-ink-2',
+        'ui-glass relative grid size-11 place-items-center rounded-full text-ink-2',
         'transition-colors hover:text-ink [&_svg]:size-[18px] [&_svg]:stroke-[1.8]',
         className,
       )}

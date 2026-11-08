@@ -7,18 +7,30 @@ import {
   revenueSchema,
 } from '@ultimate-erp/contracts';
 import { formatDate, formatMoney, formatNumber } from '@ultimate-erp/i18n';
-import { BarChart, Card, ErrorState, LoadingState, Meter, StatCard } from '@ultimate-erp/ui';
+import {
+  BarChart,
+  Card,
+  DisplayName,
+  ErrorState,
+  LoadingState,
+  Meter,
+  StatCard,
+  type Tone,
+} from '@ultimate-erp/ui';
 import {
   AlarmClock,
   Banknote,
+  Building2,
   CalendarClock,
   ChevronRight,
   Circle,
   CircleCheck,
   ClipboardCheck,
+  Clock,
   Fingerprint,
   FolderKanban,
   HandCoins,
+  ListChecks,
   MailPlus,
   Plane,
   UserRound,
@@ -26,8 +38,8 @@ import {
 } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useI18n } from '../app/i18n.js';
-import { AppPageHeader } from '../components/page-header.js';
 import { api } from '../lib/api.js';
+import { Away, MyTasks, MyWeek, ProjectHealth } from './dashboard-sections.js';
 import { errorReference, errorText } from '../lib/errors.js';
 import { can, useAccess, useMe } from '../lib/session.js';
 
@@ -97,82 +109,88 @@ export function DashboardPage() {
     const done = steps.filter((step) => step.done).length;
 
     body = (
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="grid min-w-0 content-start gap-4 lg:col-span-2">
-          <KeyNumbers s={s} />
-          <Attention s={s} />
-          {s.billing && <Revenue />}
-        </div>
+      <div className="grid gap-4">
+        <KeyNumbers s={s} />
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid min-w-0 content-start gap-4 lg:col-span-2">
+            <Attention s={s} />
+            {s.myWeek && <MyWeek section={s.myWeek} />}
+            {s.projectHealth && <ProjectHealth section={s.projectHealth} />}
+            {s.billing && <Revenue />}
+          </div>
 
-        <div className="grid content-start gap-4">
-          {s.setup && done < steps.length && (
-            <Card title={t('ui.dashboard.gettingStarted')}>
-              <div className="grid gap-1.5">
-                <small className="text-ink-2">
-                  {t('ui.dashboard.progress', { done, total: steps.length })}
-                </small>
-                <Meter label={t('ui.dashboard.gettingStarted')} value={done} max={steps.length} />
-              </div>
-              <ul className="grid gap-2">
-                {steps.map((step) => (
-                  <li key={step.label} className="flex items-center gap-2.5 text-[13.5px]">
-                    {step.done ? (
-                      <CircleCheck aria-hidden className="size-[18px] text-mint-ink" />
-                    ) : (
-                      <Circle aria-hidden className="size-[18px] text-ink-3" />
-                    )}
-                    <span className={step.done ? 'text-ink-2 line-through' : 'font-semibold'}>
-                      {step.label}
-                    </span>
-                    {step.done && <span className="sr-only">{t('ui.dashboard.stepDone')}</span>}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-
-          <Card title={t('ui.dashboard.quickActions')}>
-            <div className="flex flex-wrap gap-2">
-              {canInvite && (
-                <Link to="/members" search={{ invite: '1' }} className={ACTION_LINK}>
-                  <MailPlus aria-hidden className="size-4" />
-                  {t('ui.dashboard.inviteCta')}
-                </Link>
-              )}
-              {canReadMembers && (
-                <Link to="/members" className={ACTION_LINK}>
-                  <Users aria-hidden className="size-4" />
-                  {t('ui.dashboard.actionMembers')}
-                </Link>
-              )}
-              <Link to="/account" className={ACTION_LINK}>
-                <UserRound aria-hidden className="size-4" />
-                {t('ui.dashboard.actionAccount')}
-              </Link>
-            </div>
-          </Card>
-
-          {s.activity && (
-            <Card title={t('ui.dashboard.activity')}>
-              {s.activity.items.length === 0 ? (
-                <p className="text-[13.5px] text-ink-2">{t('ui.dashboard.noActivity')}</p>
-              ) : (
-                <ol className="grid gap-3">
-                  {s.activity.items.map((item) => (
-                    <li key={item.id} className="grid gap-0.5 border-s-2 border-line-2 ps-3">
-                      <span className="text-[13.5px]">{activityText(item)}</span>
-                      <small className="text-ink-3">
-                        {formatDate(locale, new Date(item.occurredAt), {
-                          dateStyle: 'medium',
-                          timeStyle: 'short',
-                        })}
-                      </small>
+          <div className="grid content-start gap-4">
+            {s.myTasks && <MyTasks section={s.myTasks} />}
+            {s.away && <Away section={s.away} />}
+            {s.setup && done < steps.length && (
+              <Card title={t('ui.dashboard.gettingStarted')}>
+                <div className="grid gap-1.5">
+                  <small className="text-ink-2">
+                    {t('ui.dashboard.progress', { done, total: steps.length })}
+                  </small>
+                  <Meter label={t('ui.dashboard.gettingStarted')} value={done} max={steps.length} />
+                </div>
+                <ul className="grid gap-2">
+                  {steps.map((step) => (
+                    <li key={step.label} className="flex items-center gap-2.5 text-[13.5px]">
+                      {step.done ? (
+                        <CircleCheck aria-hidden className="size-[18px] text-mint-ink" />
+                      ) : (
+                        <Circle aria-hidden className="size-[18px] text-ink-3" />
+                      )}
+                      <span className={step.done ? 'text-ink-2 line-through' : 'font-semibold'}>
+                        {step.label}
+                      </span>
+                      {step.done && <span className="sr-only">{t('ui.dashboard.stepDone')}</span>}
                     </li>
                   ))}
-                </ol>
-              )}
+                </ul>
+              </Card>
+            )}
+
+            <Card title={t('ui.dashboard.quickActions')}>
+              <div className="flex flex-wrap gap-2">
+                {canInvite && (
+                  <Link to="/members" search={{ invite: '1' }} className={ACTION_LINK}>
+                    <MailPlus aria-hidden className="size-4" />
+                    {t('ui.dashboard.inviteCta')}
+                  </Link>
+                )}
+                {canReadMembers && (
+                  <Link to="/members" className={ACTION_LINK}>
+                    <Users aria-hidden className="size-4" />
+                    {t('ui.dashboard.actionMembers')}
+                  </Link>
+                )}
+                <Link to="/account" className={ACTION_LINK}>
+                  <UserRound aria-hidden className="size-4" />
+                  {t('ui.dashboard.actionAccount')}
+                </Link>
+              </div>
             </Card>
-          )}
+
+            {s.activity && (
+              <Card title={t('ui.dashboard.activity')}>
+                {s.activity.items.length === 0 ? (
+                  <p className="text-[13.5px] text-ink-2">{t('ui.dashboard.noActivity')}</p>
+                ) : (
+                  <ol className="grid gap-3">
+                    {s.activity.items.map((item) => (
+                      <li key={item.id} className="grid gap-0.5 border-s-2 border-line-2 ps-3">
+                        <span className="text-[13.5px]">{activityText(item)}</span>
+                        <small className="text-ink-3">
+                          {formatDate(locale, new Date(item.occurredAt), {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
+                        </small>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -180,7 +198,8 @@ export function DashboardPage() {
 
   return (
     <div className="grid gap-4">
-      <AppPageHeader title={t('ui.dashboard.title')} home={false} />
+      <h1 className="sr-only">{t('ui.dashboard.title')}</h1>
+      <Greeting name={me.data?.user.name ?? ''} />
       {body}
     </div>
   );
@@ -190,10 +209,23 @@ export function DashboardPage() {
 function KeyNumbers({ s }: { s: DashboardSummary }) {
   const { t, locale } = useI18n();
   const n = (v: number) => formatNumber(locale, v);
-  const items: { key: string; label: string; value: string; link: LinkProps }[] = [];
+  const items: {
+    key: string;
+    label: string;
+    value: string;
+    link: LinkProps;
+    tone: Tone;
+    icon: ReactNode;
+    hint?: string | undefined;
+  }[] = [];
   if (s.billing)
     items.push({
       key: 'outstanding',
+      tone: 'butter',
+      icon: <Banknote />,
+      hint: s.billing.overdueCount
+        ? t('ui.dashboard.hintOverdue', { amount: formatMoney(locale, s.billing.overdue, 'KWD') })
+        : undefined,
       label: t('ui.dashboard.outstanding'),
       value: formatMoney(locale, s.billing.outstanding, 'KWD'),
       link: { to: '/invoices' },
@@ -201,6 +233,11 @@ function KeyNumbers({ s }: { s: DashboardSummary }) {
   if (s.projects)
     items.push({
       key: 'projects',
+      tone: 'mint',
+      icon: <FolderKanban />,
+      hint: s.projects.endingSoon
+        ? t('ui.dashboard.hintEndingSoon', { count: s.projects.endingSoon })
+        : undefined,
       label: t('ui.dashboard.activeProjects'),
       value: n(s.projects.active),
       link: { to: '/projects' },
@@ -208,6 +245,11 @@ function KeyNumbers({ s }: { s: DashboardSummary }) {
   if (s.clients)
     items.push({
       key: 'clients',
+      tone: 'sky',
+      icon: <Building2 />,
+      hint: s.clients.newThisMonth
+        ? t('ui.dashboard.hintNewThisMonth', { count: s.clients.newThisMonth })
+        : undefined,
       label: t('ui.dashboard.activeClients'),
       value: n(s.clients.active),
       link: { to: '/clients' },
@@ -215,6 +257,11 @@ function KeyNumbers({ s }: { s: DashboardSummary }) {
   if (s.tasks)
     items.push({
       key: 'tasks',
+      tone: 'lilac',
+      icon: <ListChecks />,
+      hint: s.tasks.mineOverdue
+        ? t('ui.dashboard.hintOverdueTasks', { count: s.tasks.mineOverdue })
+        : undefined,
       label: t('ui.dashboard.myOpenTasks'),
       value: n(s.tasks.mineOpen),
       link: { to: '/tasks', search: { mine: '1' } },
@@ -222,6 +269,8 @@ function KeyNumbers({ s }: { s: DashboardSummary }) {
   if (s.time)
     items.push({
       key: 'time',
+      tone: 'sky',
+      icon: <Clock />,
       label: t('ui.dashboard.hoursThisWeek'),
       value: formatNumber(locale, Number(s.time.thisWeekHours), { maximumFractionDigits: 2 }),
       link: { to: '/time' },
@@ -229,6 +278,8 @@ function KeyNumbers({ s }: { s: DashboardSummary }) {
   if (s.attendance)
     items.push({
       key: 'in',
+      tone: 'mint',
+      icon: <Fingerprint />,
       label: t('ui.dashboard.inNow'),
       value: n(s.attendance.inNow),
       link: { to: '/attendance' },
@@ -236,6 +287,8 @@ function KeyNumbers({ s }: { s: DashboardSummary }) {
   if (s.team)
     items.push({
       key: 'team',
+      tone: 'lilac',
+      icon: <Users />,
       label: t('ui.dashboard.activeMembers'),
       value: n(s.team.activeMembers),
       link: { to: '/members' },
@@ -245,11 +298,17 @@ function KeyNumbers({ s }: { s: DashboardSummary }) {
   const shown = items.slice(0, 4);
   return (
     <section aria-label={t('ui.dashboard.keyNumbers')}>
-      <ul className="ui-stagger grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <ul className="ui-stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
         {shown.map((item) => (
           <li key={item.key} className="grid">
             <Link {...item.link} className="grid rounded-tile">
-              <StatCard label={item.label} value={item.value} />
+              <StatCard
+                label={item.label}
+                value={item.value}
+                tone={item.tone}
+                icon={item.icon}
+                hint={item.hint}
+              />
             </Link>
           </li>
         ))}
@@ -442,5 +501,35 @@ function Revenue() {
         showChartLabel={t('ui.common.showChart')}
       />
     </Card>
+  );
+}
+
+/** "Good afternoon," + the person's first name in the display face, and today's date. */
+function Greeting({ name }: { name: string }) {
+  const { t, locale } = useI18n();
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting =
+    hour < 12
+      ? t('ui.shell.greetingMorning')
+      : hour < 17
+        ? t('ui.shell.greetingAfternoon')
+        : t('ui.shell.greetingEvening');
+  const first = name.trim();
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-3 pt-1">
+      <div className="grid gap-0.5">
+        <span className="text-[15px] font-medium text-ink-2">{greeting}</span>
+        {first && <DisplayName>{first}</DisplayName>}
+      </div>
+      <p className="ui-glass rounded-full px-4 py-2 text-[13px] font-semibold text-ink-2">
+        {formatDate(locale, now, {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })}
+      </p>
+    </div>
   );
 }
