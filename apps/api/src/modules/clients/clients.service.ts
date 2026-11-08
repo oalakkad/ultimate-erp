@@ -183,14 +183,15 @@ export class ClientsService {
       const beyond = query.dir === 'asc' ? gt : lt;
       conditions.push(or(beyond(column, typed), and(eq(column, typed), beyond(clients.id, id))));
     }
-    const rows = await this.database.withTenant(access.tenantId, (tx) =>
-      tx
+    const { rows, extras } = await this.database.withTenant(access.tenantId, async (tx) => {
+      const found = await tx
         .select()
         .from(clients)
         .where(and(...conditions))
         .orderBy(order(column), order(clients.id))
-        .limit(query.limit + 1),
-    );
+        .limit(query.limit + 1);
+      return { rows: found, extras: await this.cardExtras(tx, found.slice(0, query.limit)) };
+    });
     const page = rows.slice(0, query.limit);
     const last = page.at(-1);
     const sortValue = (row: ClientRow) => {
@@ -209,7 +210,12 @@ export class ClientsService {
       return v instanceof Date ? v.toISOString() : v;
     };
     return {
-      items: page.map(toSummary),
+      items: page.map((row) => ({
+        ...toSummary(row),
+        industry: row.industry,
+        accountManagerName: extras.managers.get(row.id) ?? null,
+        primaryContact: extras.contacts.get(row.id) ?? null,
+      })),
       nextCursor: rows.length > query.limit && last ? encodeCursor(sortValue(last), last.id) : null,
     };
   }
@@ -647,6 +653,46 @@ export class ClientsService {
     const [row] = lock ? await query.for('update') : await query;
     if (!row) throw notFound();
     return row;
+  }
+
+  /** Account manager names and primary contacts for one page of the list (two queries). */
+  private async cardExtras(tx: TenantTransaction, page: ClientRow[]) {
+    const managers = new Map<string, string>();
+    const contacts = new Map<string, string>();
+    if (page.length === 0) return { managers, contacts };
+    const ids = page.map((r) => r.id);
+    const memberIds = [
+      ...new Set(page.map((r) => r.accountManagerMembershipId).filter((x): x is string => !!x)),
+    ];
+    if (memberIds.length > 0) {
+      const members = await tx
+        .select({ id: memberships.id, userId: memberships.userId })
+        .from(memberships)
+        .where(inArray(memberships.id, memberIds));
+      const users = new Map(
+        (await this.identity.userSummaries(members.map((m) => m.userId))).map((u) => [
+          u.id,
+          u.name,
+        ]),
+      );
+      const byMember = new Map(members.map((m) => [m.id, users.get(m.userId)]));
+      for (const r of page) {
+        const name = r.accountManagerMembershipId && byMember.get(r.accountManagerMembershipId);
+        if (name) managers.set(r.id, name);
+      }
+    }
+    const primaries = await tx
+      .select({ clientId: clientContacts.clientId, name: clientContacts.name })
+      .from(clientContacts)
+      .where(
+        and(
+          inArray(clientContacts.clientId, ids),
+          eq(clientContacts.isPrimary, true),
+          isNull(clientContacts.archivedAt),
+        ),
+      );
+    for (const c of primaries) if (!contacts.has(c.clientId)) contacts.set(c.clientId, c.name);
+    return { managers, contacts };
   }
 
   private async toClient(tx: TenantTransaction, row: ClientRow): Promise<Client> {

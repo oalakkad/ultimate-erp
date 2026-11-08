@@ -14,4 +14,5 @@ export {
 export * from './components/menu.js';
 export * from './components/shell.js';
 export * from './components/states.js';
+export * from './components/workspace.js';
 export { cn } from './lib/cn.js';

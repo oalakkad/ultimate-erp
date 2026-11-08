@@ -253,6 +253,12 @@ describe('contacts, communication history and documents', () => {
       ['Omar', true, false],
       ['Sara', false, true],
     ]);
+    // The list row (client card) shows the current primary contact.
+    const row = clientListResponseSchema
+      .parse((await manager.get('/api/v1/clients?search=Contacts', host)).body)
+      .items.find((x) => x.id === c.id);
+    expect(row?.primaryContact).toBe('Omar');
+    expect(row?.accountManagerName).toBeNull();
   });
 
   it('logs interactions linked to a contact of the same client only', async () => {

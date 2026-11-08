@@ -3,22 +3,37 @@ import { Link } from '@tanstack/react-router';
 import {
   CLIENT_STATUSES,
   clientListResponseSchema,
+  type ClientListItem,
   type ClientStatus,
-  type ClientSummary,
 } from '@ultimate-erp/contracts';
 import { formatDate } from '@ultimate-erp/i18n';
 import {
+  Avatar,
   Button,
   Card,
+  CardGrid,
   Checkbox,
   EmptyState,
+  EntityCard,
   ErrorState,
+  initialsOf,
   LoadingState,
+  SectionTitle,
   SelectField,
   StatusChip,
   TextField,
+  ViewToggle,
 } from '@ultimate-erp/ui';
-import { ArrowDown, ArrowUp, Download, Plus } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  Building2,
+  Download,
+  Landmark,
+  MapPin,
+  Plus,
+  UserRound,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useI18n } from '../../app/i18n.js';
 import { AppPageHeader } from '../../components/page-header.js';
@@ -26,11 +41,17 @@ import { api } from '../../lib/api.js';
 import { errorReference, errorText } from '../../lib/errors.js';
 import { can, useAccess } from '../../lib/session.js';
 import { useDebounced } from '../../lib/use-debounced.js';
+import { useViewMode } from '../../lib/use-view-mode.js';
 
 type Sort = 'number' | 'name' | 'created';
 const PAGE = 25;
 const PRIMARY_LINK =
-  'inline-flex h-10 items-center gap-2 rounded-ctl bg-plum px-4 text-[13.5px] font-bold text-on-plum hover:bg-plum-hover';
+  'inline-flex h-10 items-center gap-2 rounded-ctl bg-plum px-4 text-[13.5px] font-bold text-on-plum shadow-[0_8px_18px_-8px_rgb(59_31_62/0.7)] transition-transform hover:-translate-y-px hover:bg-plum-hover';
+const ACCENT: Record<ClientStatus, 'mint' | 'sky' | 'butter'> = {
+  active: 'mint',
+  prospect: 'sky',
+  inactive: 'butter',
+};
 
 export const STATUS_CHIP: Record<ClientStatus, 'good' | 'info' | 'warn'> = {
   active: 'good',
@@ -47,6 +68,7 @@ export function ClientsPage() {
   const [archived, setArchived] = useState(false);
   const [sort, setSort] = useState<Sort>('name');
   const [dir, setDir] = useState<'asc' | 'desc'>('asc');
+  const [mode, setMode] = useViewMode('clients');
   const term = useDebounced(search.trim());
   // Sorting by name follows the reader's language.
   const sortParam = sort === 'name' && locale === 'ar' ? 'nameAr' : sort;
@@ -73,7 +95,7 @@ export function ClientsPage() {
     getNextPageParam: (last: { nextCursor: string | null }) => last.nextCursor ?? undefined,
     placeholderData: (previous) => previous,
   });
-  const items: ClientSummary[] = list.data?.pages.flatMap((p) => p.items) ?? [];
+  const items: ClientListItem[] = list.data?.pages.flatMap((p) => p.items) ?? [];
   const filtered = Boolean(term) || status !== 'all' || archived;
 
   const header = (column: Sort, label: string) => {
@@ -169,7 +191,27 @@ export function ClientsPage() {
         </div>
       </div>
 
-      <Card>
+      <SectionTitle
+        title={t('ui.ws.clients.directory')}
+        count={items.length > 0 ? items.length : undefined}
+        action={
+          <ViewToggle
+            label={t('ui.ws.view')}
+            value={mode}
+            onChange={setMode}
+            cardsLabel={t('ui.ws.cards')}
+            tableLabel={t('ui.ws.table')}
+          />
+        }
+      />
+      {mode === 'cards' && items.length > 0 && (
+        <CardGrid className={list.isPlaceholderData ? 'opacity-60' : ''}>
+          {items.map((c) => (
+            <ClientCard key={c.id} client={c} />
+          ))}
+        </CardGrid>
+      )}
+      <Card className={mode === 'cards' && items.length > 0 ? 'hidden' : undefined}>
         {list.isPending && <LoadingState label={t('ui.common.loading')} />}
         {list.isError && (
           <ErrorState
@@ -186,7 +228,7 @@ export function ClientsPage() {
             body={filtered ? t('ui.states.emptyBody') : t('ui.clients.emptyBody')}
           />
         )}
-        {items.length > 0 && (
+        {mode === 'table' && items.length > 0 && (
           <div
             className={`overflow-x-auto transition-opacity ${list.isPlaceholderData ? 'opacity-60' : ''}`}
           >
@@ -249,17 +291,106 @@ export function ClientsPage() {
             </table>
           </div>
         )}
-        {list.hasNextPage && (
-          <Button
-            variant="secondary"
-            className="w-fit"
-            loading={list.isFetchingNextPage}
-            onClick={() => void list.fetchNextPage()}
-          >
-            {t('ui.clients.loadMore')}
-          </Button>
-        )}
       </Card>
+      {list.hasNextPage && (
+        <Button
+          variant="secondary"
+          className="w-fit justify-self-center"
+          loading={list.isFetchingNextPage}
+          onClick={() => void list.fetchNextPage()}
+        >
+          {t('ui.clients.loadMore')}
+        </Button>
+      )}
     </div>
+  );
+}
+
+/** A client as a card: who they are, where, who looks after them and who to call. */
+function ClientCard({ client: c }: { client: ClientListItem }) {
+  const { t, locale } = useI18n();
+  const name = locale === 'ar' ? c.legalName.ar : c.legalName.en;
+  const other = locale === 'ar' ? c.legalName.en : c.legalName.ar;
+  const TypeIcon = c.type === 'government' ? Landmark : Building2;
+  return (
+    <Link to="/clients/$clientId" params={{ clientId: c.id }} className="block rounded-tile">
+      <EntityCard
+        accent={c.archived ? undefined : ACCENT[c.status]}
+        header={
+          <div className="flex items-start gap-3">
+            <Avatar name={c.legalName.en} initials={initialsOf(c.legalName.en)} size={46} />
+            <div className="grid min-w-0 flex-1 gap-0.5">
+              <span className="truncate text-[14px] font-bold">{name}</span>
+              <span className="truncate text-[12px] text-ink-3">{other}</span>
+              <span className="flex flex-wrap gap-1 pt-1">
+                <StatusChip
+                  status={STATUS_CHIP[c.status]}
+                  label={t(`ui.clients.status.${c.status}`)}
+                />
+                {c.archived && <StatusChip status="bad" label={t('ui.clients.archivedBadge')} />}
+              </span>
+            </div>
+            <span className="num text-[11.5px] font-semibold text-ink-3" dir="ltr">
+              {c.number}
+            </span>
+          </div>
+        }
+        footer={
+          <>
+            <span className="flex items-center gap-1">
+              <TypeIcon aria-hidden className="size-3.5" />
+              {c.industry ?? t(`ui.clients.type.${c.type}`)}
+            </span>
+            {c.city && (
+              <span className="flex items-center gap-1">
+                <MapPin aria-hidden className="size-3.5" />
+                {c.city}
+              </span>
+            )}
+          </>
+        }
+      >
+        <dl className="grid gap-2 text-[12.5px]">
+          <div className="flex items-center gap-2">
+            <dt className="w-24 shrink-0 text-ink-3">{t('ui.ws.clients.manager')}</dt>
+            <dd className="flex min-w-0 items-center gap-1.5 font-semibold">
+              {c.accountManagerName ? (
+                <>
+                  <Avatar
+                    name={c.accountManagerName}
+                    initials={initialsOf(c.accountManagerName)}
+                    size={20}
+                  />
+                  <span className="truncate">{c.accountManagerName}</span>
+                </>
+              ) : (
+                <span className="font-normal text-ink-3">{t('ui.ws.clients.none')}</span>
+              )}
+            </dd>
+          </div>
+          <div className="flex items-center gap-2">
+            <dt className="w-24 shrink-0 text-ink-3">{t('ui.ws.clients.contact')}</dt>
+            <dd className="flex min-w-0 items-center gap-1.5 font-semibold">
+              {c.primaryContact ? (
+                <>
+                  <UserRound aria-hidden className="size-3.5 text-ink-3" />
+                  <span className="truncate">{c.primaryContact}</span>
+                </>
+              ) : (
+                <span className="font-normal text-ink-3">{t('ui.ws.clients.none')}</span>
+              )}
+            </dd>
+          </div>
+          {c.commercialRegistration && (
+            <div className="flex items-center gap-2">
+              <dt className="w-24 shrink-0 text-ink-3">{t('ui.clients.colCr')}</dt>
+              <dd className="num font-semibold" dir="ltr">
+                {c.commercialRegistration}
+              </dd>
+            </div>
+          )}
+        </dl>
+      </EntityCard>
+    </Link>
   );
 }

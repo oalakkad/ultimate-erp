@@ -132,8 +132,17 @@ export const clientListQuerySchema = z
   .strict();
 export type ClientListQuery = z.input<typeof clientListQuerySchema>;
 
+/** A list row: the summary plus what a client card shows (same permission as the detail). */
+export const clientListItemSchema = clientSummarySchema
+  .extend({
+    industry: z.string().nullable(),
+    accountManagerName: z.string().nullable(),
+    primaryContact: z.string().nullable(),
+  })
+  .strict();
+export type ClientListItem = z.infer<typeof clientListItemSchema>;
 export const clientListResponseSchema = z
-  .object({ items: z.array(clientSummarySchema), nextCursor: z.string().nullable() })
+  .object({ items: z.array(clientListItemSchema), nextCursor: z.string().nullable() })
   .strict();
 
 export const clientIdParamSchema = z.object({ id: z.uuid() }).strict();

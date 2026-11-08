@@ -57,6 +57,17 @@
     opacity: 0;
   }
 }
+@keyframes ui-step {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+@keyframes ui-ring-draw {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
 @keyframes ui-shimmer {
   to {
     background-position: -200% 0;
@@ -169,5 +180,39 @@
   /* Toasts spring in. */
   .ui-toast {
     animation: ui-pop 420ms var(--spring) both;
+  }
+
+  /* Entity cards (workspace.tsx): lift, deepen the shadow and brighten the edge on hover or
+     keyboard focus of the link around them. */
+  .ui-card-hover {
+    transition:
+      transform var(--dur-fast) var(--ease),
+      box-shadow var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+  :is(a, button):is(:hover, :focus-visible) > .ui-card-hover {
+    transform: translateY(-3px);
+    box-shadow:
+      var(--shadow-pop),
+      inset 1px 1px 0 0 var(--glass-edge);
+    border-color: var(--line-2);
+  }
+
+  /* Wizard: each step slides in from the reading direction. */
+  .ui-step {
+    animation: ui-step var(--dur) var(--ease) both;
+  }
+  [dir='rtl'] .ui-step {
+    animation-name: ui-step-rtl;
+  }
+  .ui-ring-draw {
+    animation: ui-ring-draw var(--dur-slow) var(--ease) both;
+  }
+}
+
+@keyframes ui-step-rtl {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
   }
 }

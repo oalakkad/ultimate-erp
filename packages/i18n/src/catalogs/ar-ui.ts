@@ -2051,4 +2051,38 @@ export const arUi: Catalog['ui'] = {
     personRole: 'الشريك المدير',
     companyName: 'القرين للاستشارات',
   },
+  ws: {
+    overview: 'نظرة عامة',
+    view: 'طريقة العرض',
+    cards: 'بطاقات',
+    table: 'جدول',
+    billing: {
+      invoicedYear: 'المفوتر في {year}',
+      collectedYear: 'المحصّل في {year}',
+      collectionRate: '{pct} من المفوتر',
+      outstanding: 'المستحق اليوم',
+      overdue: 'متأخر السداد',
+      trendBody: 'المفوتر {invoiced}، المستلم {received}.',
+      bestMonth: 'أفضل شهر',
+      agingTitle: 'الذمم المدينة حسب العمر',
+      topDebtors: 'أكبر الأرصدة',
+      overdueAmount: '{amount} متأخرة',
+      register: 'سجل الفواتير',
+      lateBy:
+        '{count, plural, one {متأخرة يومًا واحدًا} two {متأخرة يومين} few {متأخرة # أيام} many {متأخرة # يومًا} other {متأخرة # يوم}}',
+      dueIn:
+        '{count, plural, =0 {تستحق اليوم} one {تستحق خلال يوم} two {تستحق خلال يومين} few {تستحق خلال # أيام} many {تستحق خلال # يومًا} other {تستحق خلال # يوم}}',
+      dueOn: 'تستحق في {date}',
+      notIssued: 'لم تصدر بعد',
+      paidOf: 'المدفوع {paid}',
+      left: 'المتبقي {amount}',
+    },
+    clients: {
+      directory: 'دليل العملاء',
+      manager: 'الشريك المسؤول',
+      contact: 'جهة الاتصال',
+      none: 'غير محدد',
+    },
+    // ws:end
+  },
 };
