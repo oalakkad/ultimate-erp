@@ -24,6 +24,7 @@ import { useI18n } from '../app/i18n.js';
 import { AppPageHeader } from '../components/page-header.js';
 import { api } from '../lib/api.js';
 import { errorReference, errorText } from '../lib/errors.js';
+import { ReportsOverview } from './reports-overview.js';
 
 const GROUPS: { key: 'finance' | 'work' | 'people'; reports: ReportKey[] }[] = [
   {
@@ -52,8 +53,9 @@ export function ReportsPage() {
   });
   const mine = new Set(catalog.data?.items.map((i) => i.key));
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-5">
       <AppPageHeader title={t('ui.reports.title')} />
+      {catalog.data && <ReportsOverview keys={mine} />}
       {catalog.isPending && <LoadingState label={t('ui.common.loading')} lines={4} />}
       {catalog.isError && (
         <ErrorState
@@ -69,33 +71,38 @@ export function ReportsPage() {
           <EmptyState title={t('ui.reports.none')} body={t('ui.reports.noneBody')} />
         </Card>
       )}
-      {GROUPS.map((group) => {
-        const keys = group.reports.filter((k) => mine.has(k));
-        if (keys.length === 0) return null;
-        return (
-          <Card key={group.key} title={t(`ui.reports.groups.${group.key}`)}>
-            <ul className="ui-stagger -mx-2 grid">
-              {keys.map((key) => (
-                <li key={key}>
-                  <Link
-                    to="/reports/$reportKey"
-                    params={{ reportKey: key }}
-                    className="group flex items-center gap-3 rounded-ctl px-2 py-2.5 hover:bg-frame"
-                  >
-                    <span className="grid min-w-0 flex-1 gap-0.5">
-                      <b className="text-[14px] font-bold">{t(`ui.reports.names.${key}`)}</b>
-                      <small className="text-[12.5px] text-ink-2">
-                        {t(`ui.reports.summaries.${key}`)}
-                      </small>
-                    </span>
-                    <ChevronRight aria-hidden className="mirror size-4 text-ink-3" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        );
-      })}
+      {catalog.data && catalog.data.items.length > 0 && (
+        <h2 className="text-[15px] font-bold tracking-tight">{t('ui.ws.reports.library')}</h2>
+      )}
+      <div className="grid items-start gap-5 lg:grid-cols-3">
+        {GROUPS.map((group) => {
+          const keys = group.reports.filter((k) => mine.has(k));
+          if (keys.length === 0) return null;
+          return (
+            <Card key={group.key} title={t(`ui.reports.groups.${group.key}`)}>
+              <ul className="ui-stagger -mx-2 grid">
+                {keys.map((key) => (
+                  <li key={key}>
+                    <Link
+                      to="/reports/$reportKey"
+                      params={{ reportKey: key }}
+                      className="group flex items-center gap-3 rounded-ctl px-2 py-2.5 hover:bg-frame"
+                    >
+                      <span className="grid min-w-0 flex-1 gap-0.5">
+                        <b className="text-[14px] font-bold">{t(`ui.reports.names.${key}`)}</b>
+                        <small className="text-[12.5px] text-ink-2">
+                          {t(`ui.reports.summaries.${key}`)}
+                        </small>
+                      </span>
+                      <ChevronRight aria-hidden className="mirror size-4 text-ink-3" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
