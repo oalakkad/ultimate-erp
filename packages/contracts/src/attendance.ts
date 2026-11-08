@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EMPTY_UPDATE, hasAnyField } from './update.js';
 
 // Attendance (docs/modules/attendance.md §5).
 
@@ -35,7 +36,8 @@ export const siteRequestSchema = z
 export const siteUpdateSchema = siteRequestSchema
   .partial()
   .extend({ archived: z.boolean().optional() })
-  .strict();
+  .strict()
+  .refine(hasAnyField, EMPTY_UPDATE);
 export const siteListResponseSchema = z
   .object({
     items: z.array(z.object({ id: z.uuid(), name: bilingual, archived: z.boolean() }).strict()),
@@ -67,7 +69,8 @@ export const shiftUpdateSchema = z
   .object(shiftFields)
   .partial()
   .extend({ archived: z.boolean().optional() })
-  .strict();
+  .strict()
+  .refine(hasAnyField, EMPTY_UPDATE);
 export const shiftSchema = z
   .object({
     id: z.uuid(),

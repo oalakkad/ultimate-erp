@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EMPTY_UPDATE, hasAnyField } from './update.js';
 
 // Leave management (docs/modules/leave.md §7).
 
@@ -36,7 +37,8 @@ export const leaveTypeRequestSchema = z
 export const leaveTypeUpdateSchema = z
   .object({ ...typeFields, archived: z.boolean(), confirmVerified: z.boolean() })
   .partial()
-  .strict();
+  .strict()
+  .refine(hasAnyField, EMPTY_UPDATE);
 
 export const leaveTypeSchema = z
   .object({

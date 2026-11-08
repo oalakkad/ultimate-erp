@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { fileSchema } from './files.js';
+import { EMPTY_UPDATE, hasAnyField } from './update.js';
 
 // Employees & teams (docs/modules/people.md §7).
 
@@ -227,7 +228,8 @@ export const departmentRequestSchema = z.object(bilingualName).strict();
 export const departmentUpdateSchema = z
   .object({ ...bilingualName, archived: z.boolean() })
   .partial()
-  .strict();
+  .strict()
+  .refine(hasAnyField, EMPTY_UPDATE);
 export const departmentSchema = z
   .object({ id: z.uuid(), name: bilingual, archived: z.boolean(), people: z.number().int() })
   .strict();
@@ -243,7 +245,8 @@ export const teamRequestSchema = z
 export const teamUpdateSchema = teamRequestSchema
   .partial()
   .extend({ archived: z.boolean().optional() })
-  .strict();
+  .strict()
+  .refine(hasAnyField, EMPTY_UPDATE);
 export const teamSchema = z
   .object({
     id: z.uuid(),

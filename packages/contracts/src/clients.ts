@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { fileSchema } from './files.js';
+import { EMPTY_UPDATE, hasAnyField } from './update.js';
 
 // Clients / CRM (docs/modules/clients.md §5). Shared by the API (validation) and the web app (forms).
 
@@ -207,7 +208,10 @@ export const contactRequestSchema = z
     isAuthorizedRepresentative: z.boolean().optional(),
   })
   .strict();
-export const contactUpdateSchema = contactRequestSchema.partial().strict();
+export const contactUpdateSchema = contactRequestSchema
+  .partial()
+  .strict()
+  .refine(hasAnyField, EMPTY_UPDATE);
 
 export const contactSchema = z
   .object({

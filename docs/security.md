@@ -101,6 +101,27 @@ Internal review, not a substitute for the external penetration test recommended 
 - **Not built (deliberately):** "log in as", support access into a company's data, granting through the API.
 - **Evidence:** `apps/api/test/platform.spec.ts` (2 tests), `packages/db` global-table review, `apps/web/e2e/platform.spec.ts` (EN + AR, axe).
 
+## 2g. Security audit 2026-11-08 (commercial-readiness review)
+
+Method: an empirical attack sweep instead of re-reading earlier reviews, plus targeted code searches. Internal review — still not a substitute for the external penetration test.
+
+**Cross-tenant attack sweep** (`apps/api/test/tenant-sweep.spec.ts`, runs in `pnpm test`). Company A is filled through the real API (people, department, team, client, contact, interaction, engagement letter + version, project, task, comment, time entry, leave request, issued invoice + payment, submitted expense claim, announcement). Every `id` of every company-owned table of A is then harvested from the database (catalogue query — new tables are included automatically). The Owner of company B (fully privileged in B, two-factor on) then:
+1. sends **every route of the API, every method**, with each of A's ids in the path, on B's address;
+2. sends every list route with A's ids in each id filter the route declares;
+3. sends every company route to **A's address** directly (not a member);
+4. sends every parameterised route with an empty body on **B's own** records (robustness).
+
+Pass criteria: no 2xx for A's ids, no answer containing A's marker text or any of A's ids, no 5xx, and a fingerprint (md5 of every row) of all A's tables unchanged. A positive control proves the detector sees A's data when A's Owner asks.
+
+Result (2026-11-08): **6,783 requests — 0 cross-tenant answers, 0 server errors, A unchanged** (after the fix below). Limits: mutation routes whose body fails validation (422) never reach the record lookup; those paths are covered by each module's own cross-tenant cases and by the unchanged fingerprint.
+
+| # | Severity | Finding | Affected | Fix | Verified |
+|---|---|---|---|---|---|
+| S1 | Medium | An empty update body `{}` passed validation and crashed with 500 (empty SQL `SET`). No data exposure, but unhandled errors on authenticated routes and noisy error reports. | `PATCH /teams/:id`, `/departments/:id`, `/leave/types/:id`, `/attendance/sites/:id`, `/attendance/shifts/:id` (same shape: `PATCH /clients/:id/contacts/:childId`) | Contract rule `hasAnyField` (`packages/contracts/src/update.ts`): an update must change at least one field → 422 `empty_update` | Sweep part 4: 0 × 5xx (was 200) |
+| S2 | Low | The demo seed had one fixed password for every demo account in source code. | `apps/api/test/demo/demo-seed.ts` | Random password per run (or `DEMO_PASSWORD`), written only to the git-ignored `demo-credentials*.local.md` | Code review; seed still dev-only (refuses unless `NODE_ENV=development`, `APP_PROFILE=dev`) |
+| S3 | Info | `dangerouslySetInnerHTML` in My account | `apps/web/src/routes/account.tsx` (two-factor QR) | None needed: the SVG is generated in the browser by the `qrcode` library from the server's `otpauth://` URI; no user-controlled markup | Code review |
+| S4 | Info | No raw SQL (`sql.raw`, `unsafe`) in the API; browser storage holds only display preferences (language, theme), never tokens; sessions are HttpOnly cookies | — | — | Code search |
+
 ## 2b. Accepted risks (reviewed)
 | Finding | Why accepted | Revisit |
 |---|---|---|
