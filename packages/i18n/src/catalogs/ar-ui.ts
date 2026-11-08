@@ -2126,6 +2126,12 @@ export const arUi: Catalog['ui'] = {
       holiday: 'عطلة رسمية',
       weekend: 'عطلة نهاية الأسبوع',
     },
+    tasks: {
+      noDue: 'بلا تاريخ استحقاق',
+      assigned: 'مسندة إلى {names}',
+      unassigned: 'غير مسندة لأحد',
+      emptyColumn: 'لا مهام هنا',
+    },
     // ws:end
   },
 };

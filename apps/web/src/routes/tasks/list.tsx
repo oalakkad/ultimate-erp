@@ -9,6 +9,7 @@ import {
 import {
   Button,
   Card,
+  CardGrid,
   Checkbox,
   EmptyState,
   ErrorState,
@@ -28,7 +29,7 @@ import { useDebounced } from '../../lib/use-debounced.js';
 import { useSearchParam } from '../../lib/use-search-param.js';
 import { dateText } from '../contracts/shared.js';
 import { hoursText } from '../projects/shared.js';
-import { PriorityBadge, TaskStatusChip } from './shared.js';
+import { PriorityBadge, TaskCard, TaskStatusChip } from './shared.js';
 
 const PRIMARY_LINK =
   'inline-flex h-10 items-center gap-2 rounded-ctl bg-plum px-4 text-[13.5px] font-bold text-on-plum hover:bg-plum-hover';
@@ -36,7 +37,7 @@ const BOARD: TaskStatus[] = [...OPEN_TASK_STATUSES, 'completed'];
 
 /** Tasks I may see, as a list or a board by status (brief Module E). */
 export function TasksPage() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const access = useAccess(true);
   const [search, setSearch] = useState('');
   const [state, setState] = useState<'open' | 'closed' | 'all'>('open');
@@ -147,6 +148,17 @@ export function TasksPage() {
         label={t('ui.tasks.view')}
         items={[
           {
+            value: 'cards',
+            label: t('ui.ws.cards'),
+            content: frame(
+              <CardGrid className={list.isPlaceholderData ? 'opacity-60' : ''}>
+                {items.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+              </CardGrid>,
+            ),
+          },
+          {
             value: 'list',
             label: t('ui.tasks.viewList'),
             content: frame(<TaskTable items={items} dim={list.isPlaceholderData} />),
@@ -162,36 +174,21 @@ export function TasksPage() {
                     <section
                       key={status}
                       aria-label={t(`ui.tasks.status.${status}`)}
-                      className="grid min-w-[200px] content-start gap-2 rounded-tile bg-frame p-2.5"
+                      className="ui-glass grid min-w-[220px] content-start gap-2.5 rounded-card p-3"
                     >
-                      <h2 className="flex items-center justify-between text-[13px] font-bold">
+                      <h2 className="flex items-center justify-between px-1 text-[13px] font-bold">
                         {t(`ui.tasks.status.${status}`)}
-                        <span className="tabular-nums text-ink-3">{column.length}</span>
+                        <span className="num rounded-full bg-plum-soft px-2 py-px text-[11.5px] text-ink-2">
+                          {column.length}
+                        </span>
                       </h2>
+                      {column.length === 0 && (
+                        <p className="rounded-tile border border-dashed border-line-2 p-3 text-center text-[12px] text-ink-3">
+                          {t('ui.ws.tasks.emptyColumn')}
+                        </p>
+                      )}
                       {column.map((task) => (
-                        <article
-                          key={task.id}
-                          className="grid gap-1 rounded-tile bg-card p-2.5 shadow-sm"
-                        >
-                          <Link
-                            to="/tasks/$taskId"
-                            params={{ taskId: task.id }}
-                            className="text-[13.5px] font-semibold hover:underline"
-                          >
-                            {task.title}
-                          </Link>
-                          <small className="text-ink-3">
-                            {locale === 'ar' ? task.project.name.ar : task.project.name.en}
-                          </small>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <PriorityBadge priority={task.priority} />
-                            {task.overdue && (
-                              <small className="font-semibold text-bad">
-                                {t('ui.tasks.overdue')}
-                              </small>
-                            )}
-                          </div>
-                        </article>
+                        <TaskCard key={task.id} task={task} compact />
                       ))}
                     </section>
                   );

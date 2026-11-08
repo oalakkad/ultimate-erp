@@ -97,7 +97,7 @@ export function EntityCard({
   header: ReactNode;
   children?: ReactNode;
   footer?: ReactNode;
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <div

@@ -2127,6 +2127,12 @@ export const enUi = {
       holiday: 'Public holiday',
       weekend: 'Weekend',
     },
+    tasks: {
+      noDue: 'No due date',
+      assigned: 'Assigned to {names}',
+      unassigned: 'Nobody assigned',
+      emptyColumn: 'No tasks here',
+    },
     // ws:end
   },
 } as const;

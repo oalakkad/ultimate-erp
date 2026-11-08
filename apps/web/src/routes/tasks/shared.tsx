@@ -1,13 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import {
   allocationPreviewSchema,
   type TaskPriority,
   type TaskStatus,
+  type TaskSummary,
 } from '@ultimate-erp/contracts';
-import { StatusChip } from '@ultimate-erp/ui';
+import { AvatarStack, EntityCard, StatusChip } from '@ultimate-erp/ui';
+import { CalendarClock, Clock3 } from 'lucide-react';
 import { useI18n } from '../../app/i18n.js';
 import { api } from '../../lib/api.js';
 import { useDebounced } from '../../lib/use-debounced.js';
+import { daysFromToday } from '../../lib/use-view-mode.js';
+import { dateText } from '../contracts/shared.js';
 import { hoursText } from '../projects/shared.js';
 
 export const taskKey = (id: string) => ['tasks', 'detail', id] as const;
@@ -117,5 +122,90 @@ export function AllocationImpact({
         </ul>
       )}
     </div>
+  );
+}
+
+const PRIORITY_ACCENT: Record<TaskPriority, 'sky' | 'lilac' | 'butter' | 'blush'> = {
+  low: 'sky',
+  normal: 'lilac',
+  high: 'butter',
+  urgent: 'blush',
+};
+
+/**
+ * A task as a card (cards view and board): priority accent, title, project and client, who is
+ * on it, allocated hours and the deadline in words ("3 days late", "Due in 2 days").
+ */
+export function TaskCard({ task, compact = false }: { task: TaskSummary; compact?: boolean }) {
+  const { t, locale } = useI18n();
+  const names = task.allocations.map((a) => a.name);
+  const days = task.dueDate ? daysFromToday(task.dueDate) : null;
+  const closed = task.status === 'completed' || task.status === 'cancelled';
+  return (
+    <Link to="/tasks/$taskId" params={{ taskId: task.id }} className="block rounded-tile">
+      <EntityCard
+        accent={task.overdue ? 'blush' : PRIORITY_ACCENT[task.priority]}
+        className={compact ? 'gap-2.5 p-3 pt-4' : undefined}
+        header={
+          <div className="grid gap-1">
+            <span className="flex items-center gap-2 text-[11.5px] text-ink-3">
+              <span dir="ltr" className="num font-semibold">
+                {task.number}
+              </span>
+              <span className="ms-auto flex gap-1">
+                <PriorityBadge priority={task.priority} />
+              </span>
+            </span>
+            <span className="text-[13.5px] leading-snug font-bold">{task.title}</span>
+            <span className="truncate text-[12px] text-ink-2">
+              {locale === 'ar' ? task.project.name.ar : task.project.name.en}
+              {!compact && (
+                <span className="text-ink-3">
+                  {' · '}
+                  {locale === 'ar' ? task.client.name.ar : task.client.name.en}
+                </span>
+              )}
+            </span>
+          </div>
+        }
+        footer={
+          <>
+            <span
+              className={`flex items-center gap-1 ${task.overdue ? 'font-semibold text-blush-ink' : ''}`}
+            >
+              <CalendarClock aria-hidden className="size-3.5" />
+              {days === null || closed
+                ? task.dueDate
+                  ? dateText(locale, task.dueDate)
+                  : t('ui.ws.tasks.noDue')
+                : days < 0
+                  ? t('ui.ws.billing.lateBy', { count: -days })
+                  : t('ui.ws.billing.dueIn', { count: days })}
+            </span>
+            <span className="ms-auto flex items-center gap-1">
+              <Clock3 aria-hidden className="size-3.5" />
+              {hoursText(locale, t, task.allocatedHours)}
+            </span>
+          </>
+        }
+      >
+        <div className="flex items-center gap-2">
+          {names.length > 0 ? (
+            <AvatarStack
+              names={names}
+              size={compact ? 24 : 28}
+              label={t('ui.ws.tasks.assigned', { names: names.join(', ') })}
+            />
+          ) : (
+            <span className="text-[12px] text-ink-3">{t('ui.ws.tasks.unassigned')}</span>
+          )}
+          {!compact && (
+            <span className="ms-auto">
+              <TaskStatusChip status={task.status} />
+            </span>
+          )}
+        </div>
+      </EntityCard>
+    </Link>
   );
 }
