@@ -297,18 +297,19 @@ export function Ring({
   label,
   value,
   max,
-  color = 'var(--lilac-solid)',
+  color,
   size = 76,
   children,
 }: {
   label: string;
   value: number;
   max: number;
-  color?: string;
+  color?: string | undefined;
   size?: number;
   children?: ReactNode;
 }) {
   const r = 15.5;
+  const stroke = color ?? 'var(--lilac-solid)';
   const c = 2 * Math.PI * r;
   const pct = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
   return (
@@ -328,7 +329,7 @@ export function Ring({
           cy="18"
           r={r}
           fill="none"
-          stroke={color}
+          stroke={stroke}
           strokeWidth="3.2"
           strokeLinecap="round"
           strokeDasharray={`${String(pct * c)} ${String(c)}`}

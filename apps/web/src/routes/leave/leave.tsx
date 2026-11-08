@@ -13,8 +13,9 @@ import {
   type LeaveType,
   leaveTypeListResponseSchema,
 } from '@ultimate-erp/contracts';
-import { formatDate } from '@ultimate-erp/i18n';
+import { formatDate, formatNumber } from '@ultimate-erp/i18n';
 import {
+  Avatar,
   Button,
   Card,
   Checkbox,
@@ -27,8 +28,12 @@ import {
   Tabs,
   TextArea,
   TextField,
+  initialsOf,
+  Ring,
+  StatCard,
   useToast,
 } from '@ultimate-erp/ui';
+import { CalendarCheck2, CalendarRange, Hourglass, Palmtree } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useI18n } from '../../app/i18n.js';
 import { FormError } from '../../components/auth-layout.js';
@@ -67,6 +72,7 @@ export function LeavePage() {
   return (
     <div className="grid gap-4">
       <AppPageHeader title={t('ui.leave.title')} />
+      <LeaveOverview approver={approver} />
       <Tabs
         label={t('ui.leave.title')}
         items={[
@@ -85,6 +91,127 @@ export function LeavePage() {
 }
 
 const typeName = (locale: string, n: { en: string; ar: string }) => (locale === 'ar' ? n.ar : n.en);
+
+const RING_COLORS = [
+  'var(--mint-solid)',
+  'var(--sky-solid)',
+  'var(--lilac-solid)',
+  'var(--butter-solid)',
+];
+
+/**
+ * The leave picture at a glance (redesign 2026-11-08): my balance, what waits for me, who is
+ * away today and in the next two weeks — every number from the leave API (the server applies
+ * the company's leave rules; nothing is calculated here).
+ */
+function LeaveOverview({ approver }: { approver: boolean }) {
+  const { t, locale } = useI18n();
+  const today = kuwaitToday();
+  const until = shift(today, 13);
+  const balances = useQuery({
+    queryKey: ['leave', 'balances', 'me'],
+    queryFn: () => api('/leave/balances', { schema: leaveBalanceSchema }),
+  });
+  const approvals = useQuery({
+    queryKey: ['leave', 'approvals'],
+    queryFn: () => api('/leave/requests?view=approvals', { schema: leaveListResponseSchema }),
+    enabled: approver,
+  });
+  const calendar = useQuery({
+    queryKey: ['leave', 'calendar', today, until],
+    queryFn: () =>
+      api(`/leave/calendar?from=${today}&to=${until}`, { schema: leaveCalendarSchema }),
+  });
+  const annual = balances.data?.items.find((i) => i.type.code === 'annual');
+  const approved = calendar.data?.leave.filter((l) => l.status === 'approved') ?? [];
+  const awayToday = approved.filter((l) => l.startDate <= today && l.endDate >= today);
+  const upcoming = [...approved].sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const people = new Set(approved.map((l) => l.person.membershipId)).size;
+  const nextHoliday = calendar.data?.holidays.find((h) => h.date >= today);
+  const short = (iso: string) =>
+    formatDate(locale, new Date(`${iso}T12:00:00Z`), { day: 'numeric', month: 'short' });
+  return (
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="ui-stagger grid content-start gap-4 sm:grid-cols-2">
+        <StatCard
+          tone="mint"
+          icon={<Palmtree />}
+          label={t('ui.ws.leave.myAnnual')}
+          value={annual ? t('ui.leave.daysValue', { days: annual.balance }) : '—'}
+          hint={
+            annual
+              ? t('ui.ws.leave.annualHint', { taken: annual.taken, pending: annual.pending })
+              : undefined
+          }
+        />
+        {approver ? (
+          <StatCard
+            tone="butter"
+            icon={<Hourglass />}
+            label={t('ui.ws.leave.waiting')}
+            value={formatNumber(locale, approvals.data?.items.length ?? 0)}
+            hint={t('ui.ws.leave.waitingHint')}
+          />
+        ) : (
+          <StatCard
+            tone="butter"
+            icon={<Hourglass />}
+            label={t('ui.ws.leave.myPending')}
+            value={annual ? t('ui.leave.daysValue', { days: annual.pending }) : '—'}
+          />
+        )}
+        <StatCard
+          tone="sky"
+          icon={<CalendarCheck2 />}
+          label={t('ui.ws.leave.awayToday')}
+          value={formatNumber(locale, new Set(awayToday.map((l) => l.person.membershipId)).size)}
+          hint={awayToday.map((l) => l.person.name).join(', ') || t('ui.ws.leave.everyoneIn')}
+        />
+        <StatCard
+          tone="lilac"
+          icon={<CalendarRange />}
+          label={t('ui.ws.leave.awaySoon')}
+          value={formatNumber(locale, people)}
+          hint={
+            nextHoliday
+              ? t('ui.ws.leave.nextHoliday', {
+                  name: locale === 'ar' ? nextHoliday.nameAr : nextHoliday.nameEn,
+                  date: short(nextHoliday.date),
+                })
+              : undefined
+          }
+        />
+      </div>
+      <Card title={t('ui.ws.leave.upcoming')}>
+        {calendar.isPending && <LoadingState label={t('ui.common.loading')} lines={2} />}
+        {calendar.data && upcoming.length === 0 && (
+          <p className="text-[13px] text-ink-2">{t('ui.ws.leave.noneUpcoming')}</p>
+        )}
+        <ul className="grid gap-2.5">
+          {upcoming.slice(0, 5).map((l) => {
+            const now = l.startDate <= today;
+            return (
+              <li key={l.id} className="flex items-center gap-3">
+                <Avatar name={l.person.name} initials={initialsOf(l.person.name)} size={34} />
+                <span className="grid min-w-0 flex-1">
+                  <span className="truncate text-[13px] font-semibold">{l.person.name}</span>
+                  <span className="text-[12px] text-ink-3">{typeName(locale, l.type)}</span>
+                </span>
+                <span
+                  className={`num rounded-full px-2.5 py-0.5 text-[11.5px] font-bold ${now ? 'bg-sky text-sky-ink' : 'bg-frame text-ink-2'}`}
+                >
+                  {now
+                    ? t('ui.ws.leave.nowUntil', { date: short(l.endDate) })
+                    : `${short(l.startDate)} – ${short(l.endDate)}`}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
+    </div>
+  );
+}
 
 function MyLeave() {
   const { t, locale } = useI18n();
@@ -111,24 +238,47 @@ function MyLeave() {
         )}
         {balances.data && (
           <>
-            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <dl className="ui-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {balances.data.items
                 .filter((i) => i.deductsBalance)
-                .map((i) => (
-                  <div key={i.type.id} className="grid gap-0.5 rounded-tile bg-frame p-3">
-                    <dt className="text-[12px] font-semibold text-ink-3">
-                      {typeName(locale, i.type.name)}
-                    </dt>
-                    <dd className="text-[18px] font-bold tabular-nums">
-                      {t('ui.leave.daysValue', { days: i.balance })}
-                    </dd>
-                    <dd className="text-[12px] text-ink-3">
-                      {t('ui.leave.balanceLine', {
-                        accrued: i.accrued,
-                        taken: i.taken,
-                        pending: i.pending,
+                .map((i, index) => (
+                  <div
+                    key={i.type.id}
+                    className="flex items-center gap-3.5 rounded-tile border border-line bg-frame p-3.5"
+                  >
+                    <Ring
+                      label={t('ui.ws.leave.ringLabel', {
+                        type: typeName(locale, i.type.name),
+                        left: i.balance,
                       })}
-                    </dd>
+                      value={Math.max(0, Number(i.balance))}
+                      max={Math.max(
+                        Number(i.accrued) + Number(i.adjustments),
+                        Number(i.balance),
+                        1,
+                      )}
+                      color={RING_COLORS[index % RING_COLORS.length]}
+                      size={64}
+                    >
+                      <b className="num text-[15px] font-extrabold">
+                        {formatNumber(locale, Number(i.balance))}
+                      </b>
+                    </Ring>
+                    <div className="grid min-w-0 gap-0.5">
+                      <dt className="truncate text-[12.5px] font-bold">
+                        {typeName(locale, i.type.name)}
+                      </dt>
+                      <dd className="text-[12px] font-semibold text-ink-2">
+                        {t('ui.leave.daysValue', { days: i.balance })}
+                      </dd>
+                      <dd className="text-[11.5px] text-ink-3">
+                        {t('ui.leave.balanceLine', {
+                          accrued: i.accrued,
+                          taken: i.taken,
+                          pending: i.pending,
+                        })}
+                      </dd>
+                    </div>
                   </div>
                 ))}
             </dl>
@@ -507,46 +657,148 @@ function Calendar() {
       {data.data && data.data.leave.length === 0 && data.data.holidays.length === 0 && (
         <EmptyState title={t('ui.leave.calendarEmpty')} body={t('ui.states.emptyBody')} />
       )}
-      {data.data && (
-        <ol className="grid gap-1.5">
-          {days.map((d) => {
-            const away = data.data.leave.filter((l) => l.startDate <= d && l.endDate >= d);
-            const holiday = data.data.holidays.find((h) => h.date === d);
-            if (away.length === 0 && !holiday) return null;
-            return (
-              <li
-                key={d}
-                className="grid gap-1 rounded-tile bg-frame p-2.5 text-[13px] sm:grid-cols-[10rem_1fr]"
-              >
-                <b>
-                  {formatDate(locale, new Date(`${d}T12:00:00Z`), {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'short',
-                  })}
-                </b>
-                <span className="flex flex-wrap gap-1.5">
-                  {holiday && (
-                    <span className="rounded-full bg-lilac px-2 py-0.5 font-semibold text-lilac-ink">
-                      {locale === 'ar' ? holiday.nameAr : holiday.nameEn}
-                    </span>
-                  )}
-                  {away.map((l) => (
-                    <span
-                      key={l.id}
-                      className={`rounded-full px-2 py-0.5 ${l.status === 'approved' ? 'bg-sky text-sky-ink' : 'bg-butter text-butter-ink'}`}
-                    >
-                      {l.person.name} · {typeName(locale, l.type)}
-                      {l.status === 'pending' ? ` (${t('ui.leave.status.pending')})` : ''}
-                    </span>
-                  ))}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
+      {data.data && (data.data.leave.length > 0 || data.data.holidays.length > 0) && (
+        <TeamGrid days={days} leave={data.data.leave} holidays={data.data.holidays} />
       )}
     </Card>
+  );
+}
+
+interface GridLeave {
+  id: string;
+  person: { membershipId: string; name: string };
+  type: { en: string; ar: string };
+  startDate: string;
+  endDate: string;
+  status: 'pending' | 'approved';
+}
+
+/** People × days: who is away when. Approved = solid sky; pending = striped butter + "?". */
+function TeamGrid({
+  days,
+  leave,
+  holidays,
+}: {
+  days: string[];
+  leave: GridLeave[];
+  holidays: { date: string; nameEn: string; nameAr: string }[];
+}) {
+  const { t, locale } = useI18n();
+  const people = [...new Map(leave.map((l) => [l.person.membershipId, l.person])).values()];
+  const today = kuwaitToday();
+  const weekend = (d: string) => {
+    const w = new Date(`${d}T12:00:00Z`).getUTCDay();
+    return w === 5 || w === 6;
+  };
+  const holidayOn = (d: string) => holidays.find((h) => h.date === d);
+  const shade = (d: string) => (holidayOn(d) ? 'bg-lilac' : weekend(d) ? 'bg-frame' : '');
+  return (
+    <div className="grid gap-3">
+      <div className="overflow-x-auto">
+        <table className="w-full border-separate border-spacing-0 text-[12px]">
+          <caption className="sr-only">{t('ui.ws.leave.gridCaption')}</caption>
+          <thead>
+            <tr>
+              <th
+                scope="col"
+                className="sticky start-0 z-10 min-w-[150px] bg-[var(--pop)] py-1 text-start font-semibold text-ink-3"
+              >
+                {t('ui.ws.leave.person')}
+              </th>
+              {days.map((d) => {
+                const h = holidayOn(d);
+                const date = new Date(`${d}T12:00:00Z`);
+                return (
+                  <th
+                    key={d}
+                    scope="col"
+                    title={h ? (locale === 'ar' ? h.nameAr : h.nameEn) : undefined}
+                    className={`min-w-[30px] px-0.5 py-1 text-center font-semibold ${d === today ? 'text-plum' : 'text-ink-3'} ${shade(d)}`}
+                  >
+                    <span className="block text-[10px] font-normal">
+                      {formatDate(locale, date, { weekday: 'narrow' })}
+                    </span>
+                    <span
+                      className={`num ${d === today ? 'rounded-full bg-plum px-1 text-on-plum' : ''}`}
+                    >
+                      {formatDate(locale, date, { day: 'numeric' })}
+                    </span>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {people.length === 0 && (
+              <tr>
+                <td colSpan={days.length + 1} className="py-3 text-ink-3">
+                  {t('ui.ws.leave.noneUpcoming')}
+                </td>
+              </tr>
+            )}
+            {people.map((p) => (
+              <tr key={p.membershipId}>
+                <th
+                  scope="row"
+                  className="sticky start-0 z-10 bg-[var(--pop)] py-1.5 pe-2 text-start font-semibold"
+                >
+                  <span className="flex items-center gap-2">
+                    <Avatar name={p.name} initials={initialsOf(p.name)} size={24} />
+                    <span className="truncate">{p.name}</span>
+                  </span>
+                </th>
+                {days.map((d) => {
+                  const l = leave.find(
+                    (x) =>
+                      x.person.membershipId === p.membershipId &&
+                      x.startDate <= d &&
+                      x.endDate >= d,
+                  );
+                  const label = l
+                    ? `${typeName(locale, l.type)}${l.status === 'pending' ? ` (${t('ui.leave.status.pending')})` : ''}`
+                    : undefined;
+                  return (
+                    <td key={d} className={`border-t border-line px-[1px] py-1.5 ${shade(d)}`}>
+                      {l && (
+                        <span
+                          title={label}
+                          className={`grid h-5 place-items-center rounded-md text-[10px] font-bold ${
+                            l.status === 'approved'
+                              ? 'bg-sky-solid text-white'
+                              : 'bg-[repeating-linear-gradient(45deg,var(--butter),var(--butter)_3px,var(--butter-solid)_3px,var(--butter-solid)_5px)] text-butter-ink'
+                          }`}
+                        >
+                          <span className="sr-only">{label}</span>
+                          <span aria-hidden>{l.status === 'pending' ? '?' : ''}</span>
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ul className="flex flex-wrap gap-4 text-[12px] text-ink-2">
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="size-3 rounded bg-sky-solid" />
+          {t('ui.leave.status.approved')}
+        </li>
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="size-3 rounded bg-butter-solid" />
+          {t('ui.leave.status.pending')}
+        </li>
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="size-3 rounded bg-lilac" />
+          {t('ui.ws.leave.holiday')}
+        </li>
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="size-3 rounded border border-line bg-frame" />
+          {t('ui.ws.leave.weekend')}
+        </li>
+      </ul>
+    </div>
   );
 }
 
