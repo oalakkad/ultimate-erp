@@ -187,3 +187,15 @@ pnpm platform:founder someone@example.com --revoke   # revoke
 
 ### Suspending a company
 Console → the company's row → Suspend → reason (required). The company's address stops answering at once and it disappears from its members' company lists; nothing is deleted. Reactivate the same way. Both actions appear in the console's audit list.
+
+## 10. The demo company (for showing the product)
+
+`pnpm demo:seed` builds a fictional, fully interconnected firm — "Al Noor Audit & Advisory (demo)" at `alnoor` — so you can show every module from the CEO's chair without any real data.
+
+- **What it creates** (through the real API, so every business rule applies): 12 people in every role (Owner, CEO, two Managers, HR & payroll, Finance, a Team lead, five Employees) with departments, teams and employee records; 8 clients with contacts and interactions; engagement letters and contracts in different states; 8 projects with budgets, teams and tasks; five weeks of time (approved, rejected, submitted and draft); leave (approved, pending, sick with a certificate); attendance; issued, partly paid, paid and overdue invoices; expense claims through approval and reimbursement; an announcement; and a **test** payroll run.
+- **Run it:** start `pnpm dev`, then `pnpm demo:seed` (another address: `pnpm demo:seed --slug alnoor2`). It takes a few minutes.
+- **Sign in:** the accounts, their two-factor secrets and backup codes are written to `demo-credentials.local.md` in the project folder (git-ignored, never committed). Each run makes a **new random password** (or uses `DEMO_PASSWORD` if you set it). Sign in at http://localhost:5173/sign-in as the CEO and open the company.
+- **Isolation:** the demo is an ordinary company: tenant isolation keeps it apart from every other company (tested by the cross-tenant sweep, `security.md` §2g). The CEO is a company role, never a platform operator. Emails go only to the local Mailpit inbox; no payment provider is connected.
+- **Reset:** companies are never deleted (by design). To get a fresh demo, seed a new address (`--slug alnoor2`) and suspend the old one in the platform console (§9).
+- **Safety:** the seed refuses to run unless `NODE_ENV=development` and `APP_PROFILE=dev`, so it cannot fill a production installation.
+- **Not built yet (needs an owner decision):** a public, self-service demo on a hosted staging server. That needs a "demo company" flag that blocks outgoing email and resets nightly, and a controlled way to hand out short-lived logins — see the open questions in `project-status.md`.

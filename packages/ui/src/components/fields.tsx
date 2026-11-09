@@ -238,6 +238,8 @@ export interface SelectFieldProps {
   onValueChange?: (value: string) => void;
   hint?: string | undefined;
   error?: string | undefined;
+  /** E.g. while the options are still loading (an empty open list would not refresh). */
+  disabled?: boolean | undefined;
 }
 
 /** Accessible select (Radix): keyboard, typeahead, right-to-left aware via DirectionProvider. */
@@ -249,11 +251,13 @@ export function SelectField({
   onValueChange,
   hint,
   error,
+  disabled,
 }: SelectFieldProps) {
   const id = useId();
   return (
     <FieldShell id={id} label={label} hint={hint} error={error}>
       <RadixSelect.Root
+        {...(disabled ? { disabled: true } : {})}
         {...(value === undefined ? {} : { value })}
         {...(onValueChange ? { onValueChange } : {})}
       >

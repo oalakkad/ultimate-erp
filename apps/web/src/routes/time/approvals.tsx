@@ -275,7 +275,12 @@ export function TimeApprovalsPage() {
             </div>
 
             {open && (
-              <div className="overflow-x-auto">
+              <div
+                className="overflow-x-auto"
+                tabIndex={0}
+                role="region"
+                aria-label={t('ui.ws.approvals.work')}
+              >
                 <table className="w-full text-[13px]">
                   <thead className="text-[11.5px] text-ink-3">
                     <tr>

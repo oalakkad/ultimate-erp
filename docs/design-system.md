@@ -108,3 +108,13 @@ The owner found v0.3 "plain, nothing special" and asked for an iOS-style, glassy
 - **Shape**: card radius 26, tile 20, pills fully round.
 - **Dashboard**: a greeting with the person's name in the display face and today's date; key numbers as pastel-washed glass tiles with a solid icon chip (area colour: butter money, mint projects/attendance, sky clients/time, lilac tasks/people) and one hint line; charts use pill columns inside hatched capsule tracks, the best period's track tinted lilac; my week as seven capsule columns (today in plum).
 - **Contrast**: surfaces stay ≥ 62 % opaque so ink / ink-2 / ink-3 keep WCAG AA; checked with axe in light and dark before each hand-over.
+
+## 8. Workspace pages (2026-11-08)
+
+The owner found module pages "plain, like quickly generated CRUD". Every list page now follows one composition: **overview → filters → records**, using the workspace kit in `packages/ui/src/components/workspace.tsx`:
+
+- `ViewToggle` + `useViewMode` (cards / table, remembered per list in the browser), `CardGrid`, `EntityCard` (glass card, coloured top accent = status or priority, header / body / footer, lifts on hover and keyboard focus — the whole card is one link).
+- `AvatarStack`, `Progress` (toned good / warn / bad; `budgetTone`: ≤ 80 % good, ≤ 100 % warn, above bad), `DistributionBar` (one bar split into parts, the legend carries the numbers and can filter), `Ring` (gauge with centre text), `SectionTitle`.
+- `Wizard`: numbered steps (done ✓ / current / upcoming), progress line, step slides in from the reading direction, live summary column, Back / Next, per-step validation shown after a Next attempt, review step last. Used for contracts and engagement letters; use it for any creation with more than ~8 fields in logical groups — not for short forms.
+- Money totals shown on a page are added exactly (`sumMoney` in `packages/contracts/src/money.ts`); floats only size marks.
+- Applied to: Invoices (KPIs, revenue trend, aging, cards), Clients (cards), Tasks (cards, board), Time approvals (per-person panels, floating selection bar), Leave (overview, rings, team availability grid), Reports (analytics landing), Contracts (creation wizard).

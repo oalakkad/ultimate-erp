@@ -83,7 +83,7 @@ export function ReportsOverview({ keys }: { keys: Set<ReportKey> }) {
     return null;
   const money = (v: string) => formatMoney(locale, v, 'KWD');
   const rev = revenue.data?.totals;
-  const pr = profit.data?.totals;
+  const profitTotals = profit.data?.totals;
   const ut = util.data?.totals;
   const tk = tasks.data?.totals;
   const utilRatio =
@@ -91,8 +91,10 @@ export function ReportsOverview({ keys }: { keys: Set<ReportKey> }) {
   const billRatio =
     ut && Number(ut.approvedHours) > 0 ? Number(ut.billableHours) / Number(ut.approvedHours) : null;
   const margin =
-    pr?.invoiced && compareMoney(pr.invoiced, '0') > 0 && pr.contribution
-      ? moneyRatio(pr.contribution, pr.invoiced)
+    profitTotals?.invoiced &&
+    compareMoney(profitTotals.invoiced, '0') > 0 &&
+    profitTotals.contribution
+      ? moneyRatio(profitTotals.contribution, profitTotals.invoiced)
       : null;
   const done = tk ? Number(tk.completed) : 0;
   return (
@@ -143,7 +145,7 @@ export function ReportsOverview({ keys }: { keys: Set<ReportKey> }) {
             tone="mint"
             icon={<PiggyBank />}
             label={t('ui.ws.reports.contribution')}
-            value={pr?.contribution ? money(pr.contribution) : '—'}
+            value={profitTotals?.contribution ? money(profitTotals.contribution) : '—'}
             hint={
               margin !== null ? t('ui.ws.reports.margin', { pct: pct(locale, margin) }) : undefined
             }

@@ -238,11 +238,11 @@ function MyLeave() {
         )}
         {balances.data && (
           <>
-            <dl className="ui-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="ui-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {balances.data.items
                 .filter((i) => i.deductsBalance)
                 .map((i, index) => (
-                  <div
+                  <li
                     key={i.type.id}
                     className="flex items-center gap-3.5 rounded-tile border border-line bg-frame p-3.5"
                   >
@@ -265,23 +265,23 @@ function MyLeave() {
                       </b>
                     </Ring>
                     <div className="grid min-w-0 gap-0.5">
-                      <dt className="truncate text-[12.5px] font-bold">
+                      <b className="truncate text-[12.5px] font-bold">
                         {typeName(locale, i.type.name)}
-                      </dt>
-                      <dd className="text-[12px] font-semibold text-ink-2">
+                      </b>
+                      <span className="text-[12px] font-semibold text-ink-2">
                         {t('ui.leave.daysValue', { days: i.balance })}
-                      </dd>
-                      <dd className="text-[11.5px] text-ink-3">
+                      </span>
+                      <span className="text-[11.5px] text-ink-3">
                         {t('ui.leave.balanceLine', {
                           accrued: i.accrued,
                           taken: i.taken,
                           pending: i.pending,
                         })}
-                      </dd>
+                      </span>
                     </div>
-                  </div>
+                  </li>
                 ))}
-            </dl>
+            </ul>
             {balances.data.items.some((i) => i.type.toVerify) && <VerifyNote />}
           </>
         )}
@@ -694,7 +694,12 @@ function TeamGrid({
   const shade = (d: string) => (holidayOn(d) ? 'bg-lilac' : weekend(d) ? 'bg-frame' : '');
   return (
     <div className="grid gap-3">
-      <div className="overflow-x-auto">
+      <div
+        className="overflow-x-auto"
+        tabIndex={0}
+        role="region"
+        aria-label={t('ui.ws.leave.gridCaption')}
+      >
         <table className="w-full border-separate border-spacing-0 text-[12px]">
           <caption className="sr-only">{t('ui.ws.leave.gridCaption')}</caption>
           <thead>

@@ -252,7 +252,9 @@ for (const locale of ['en', 'ar'] as const) {
       const clientEn = `Al Noor Trading ${run}`;
       const clientAr = `شركة النور للتجارة ${run}`;
       await page.getByRole('link', { name: t('ui.shell.clients') }).click();
-      await expect(page.getByRole('heading', { name: t('ui.clients.title') })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: t('ui.clients.title'), exact: true }),
+      ).toBeVisible();
       await expect(page.getByText(t('ui.clients.empty'))).toBeVisible();
       await expectAccessible(page, 'clients (empty)');
 
@@ -365,14 +367,26 @@ for (const locale of ['en', 'ar'] as const) {
       await guest.reload();
       await guest.getByRole('link', { name: t('ui.shell.contracts') }).click();
       await guest.getByRole('link', { name: t('ui.contracts.new') }).click();
-      await guest.getByLabel(t('ui.contracts.fields.client')).click();
-      await guest.getByRole('option', { name: new RegExp(clientName) }).click();
+      // The step slides in; open the picker until the option can be chosen.
+      await expect(async () => {
+        await guest.getByLabel(t('ui.contracts.fields.client')).click();
+        await guest.getByRole('option', { name: new RegExp(clientName) }).click({ timeout: 2000 });
+      }).toPass({ timeout: 20_000 });
+      // Guided flow (2026-11-08): type & client → template → title → value → dates → review.
+      const next = () => guest.getByRole('button', { name: t('ui.ws.wizard.next') }).click();
+      await next();
       await guest.getByLabel(t('ui.contracts.fields.template')).click();
       await guest.getByRole('option', { name: 'Annual audit' }).click();
+      await next();
+      await next(); // titles are required: the step stays and says so
+      await expect(guest.getByText(t('ui.validation.required')).first()).toBeVisible();
       await guest.getByLabel(t('ui.contracts.fields.titleEn')).fill('Audit FY2026');
       await guest.getByLabel(t('ui.contracts.fields.titleAr')).fill('تدقيق السنة المالية 2026');
+      await next();
       await guest.getByLabel(t('ui.contracts.fields.valueAmount')).fill('12500.500');
       await expectAccessible(guest, 'new contract');
+      await next();
+      await next();
       await guest.getByRole('button', { name: t('ui.contracts.create') }).click();
       const letterTitle = locale === 'ar' ? 'تدقيق السنة المالية 2026' : 'Audit FY2026';
       await expect(guest.getByRole('heading', { name: letterTitle })).toBeVisible();

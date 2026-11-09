@@ -2137,7 +2137,7 @@ export const enUi = {
       analytics: 'Business analytics',
       period: 'Period',
       periods: { quarter: 'This quarter', ytd: 'Year to date', '12m': 'Last 12 months' },
-      open: 'Open the {name} report',
+      open: 'Full report: {name}',
       invoiced: 'Invoiced',
       received: '{amount} received',
       contribution: 'Contribution after expenses',
@@ -2154,6 +2154,64 @@ export const enUi = {
       noHours: 'No approved hours in this period.',
       profitByProject: 'Contribution by project',
       library: 'Report library',
+    },
+    wizard: {
+      steps: 'Steps',
+      stepOf: 'Step {n} of {total}',
+      next: 'Next',
+      back: 'Back',
+      summary: 'Summary',
+      notSet: 'Not set yet',
+      titles: 'Title',
+      period: 'Period',
+      days: '{count, plural, one {# day} other {# days}}',
+      pickClient: 'Choose the client.',
+      moneyFormat: 'Use digits with up to 3 decimals, e.g. 12500.500',
+      currency: 'Use a 3-letter currency code, e.g. KWD',
+      endBeforeStart: 'The end date is before the start date.',
+      noticeDays: 'Enter 0 to 365 days.',
+      noTemplates:
+        'No templates of this type yet — you can add the text on the next page, or create templates under Contracts → Templates.',
+      legalNote:
+        'Templates hold your firm’s own wording. Ultimate does not provide legal text; have contract wording reviewed by your lawyer.',
+      draftNote:
+        'This creates a draft. On the next page you can review the generated text, then submit it for approval.',
+      kindHint: {
+        engagement_letter: 'Scope, fees and terms of an audit or advisory engagement',
+        contract: 'A service or framework agreement with the client',
+      },
+      contract: {
+        party: {
+          title: 'Type and client',
+          hint: 'Who it is for',
+          body: 'Choose what you are preparing and for which client.',
+        },
+        template: {
+          title: 'Template',
+          hint: 'Start from your text',
+          body: 'Start from one of your firm’s templates — names, dates and amounts are filled in for you — or start blank.',
+        },
+        details: {
+          title: 'Title',
+          hint: 'English and Arabic',
+          body: 'The title appears on the document and in lists, in both languages.',
+        },
+        money: {
+          title: 'Value and payment',
+          hint: 'Fee and terms',
+          body: 'The agreed fee and how it will be paid. Leave the value empty if it is not fixed.',
+        },
+        dates: {
+          title: 'Dates and renewal',
+          hint: 'Term and reminder',
+          body: 'When it starts and ends, and how many days before the end you want a renewal reminder.',
+        },
+        review: {
+          title: 'Review',
+          hint: 'Check and create',
+          body: 'Check everything before creating the draft.',
+        },
+      },
     },
     // ws:end
   },
